@@ -14,7 +14,6 @@ protected:
 	// Virtual event handlers, overide them in your derived class
 	virtual void FrameOnLeftDClick(wxMouseEvent& event) { event.Skip(); }
 	virtual void FrameOnPaint(wxPaintEvent& event) { event.Skip(); }
-	virtual void ButtonOnClick(wxCommandEvent& event) { event.Skip(); }
 
 
 public:
@@ -37,14 +36,14 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	this->Centre(wxBOTH);
 
 	// Connect Events
-	this->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(FrameBase::FrameOnLeftDClick));
+	this->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(FrameBase::FrameOnLeftDClick));
 	this->Connect(wxEVT_PAINT, wxPaintEventHandler(FrameBase::FrameOnPaint));
 }
 
 FrameBase::~FrameBase()
 {
 	// Disconnect Events
-	this->Disconnect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(FrameBase::FrameOnLeftDClick));
+	this->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(FrameBase::FrameOnLeftDClick));
 	this->Disconnect(wxEVT_PAINT, wxPaintEventHandler(FrameBase::FrameOnPaint));
 }
 
@@ -118,18 +117,41 @@ inline void CurveToBezier(std::vector<Pos>& bs, std::vector<Pos> const& cs, floa
 
 
 
+///////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 struct Frame;
 
 struct Button : public wxButton {
+	bool dragging = false;
+	wxPoint lastMP;
+
 	int id = 0;
 	Pos pos;
 	Button(Frame* f, int id, Pos const& pos);
+
+	void OnMouseLeftDoubleClick(wxMouseEvent& evt);
+	void OnMouseDown(wxMouseEvent& evt);
+	void OnMouseUp(wxMouseEvent& evt);
+	void OnMove(wxMouseEvent& evt);
+
+	DECLARE_EVENT_TABLE()
 };
+BEGIN_EVENT_TABLE(Button, wxButton)
+EVT_LEFT_DCLICK(Button::OnMouseLeftDoubleClick)
+EVT_LEFT_DOWN(Button::OnMouseDown)
+EVT_LEFT_UP(Button::OnMouseUp)
+EVT_MOTION(Button::OnMove)
+END_EVENT_TABLE()
+
+
 
 struct Frame : public FrameBase {
 	FrameBase::FrameBase;
-	~Frame();
 
 	int buttonId = 0;
 	std::vector<Button*> buttons;
@@ -138,8 +160,11 @@ struct Frame : public FrameBase {
 
 	virtual void FrameOnLeftDClick(wxMouseEvent& event) override;
 	virtual void FrameOnPaint(wxPaintEvent& event) override;
-	virtual void ButtonOnClick(wxCommandEvent& event) override;
 };
+
+
+
+
 
 
 
@@ -150,21 +175,36 @@ Button::Button(Frame* f, int id, Pos const& pos)
 	, pos(pos) {
 }
 
+void Button::OnMouseLeftDoubleClick(wxMouseEvent& evt) {
+	((Frame*)GetParent())->Refresh();
+}
+void Button::OnMouseDown(wxMouseEvent& evt) {
+	lastMP = { evt.GetX(),evt.GetY() };
+	dragging = true;
+}
+void Button::OnMouseUp(wxMouseEvent& evt) {
+	dragging = false;
+}
+void Button::OnMove(wxMouseEvent& evt) {
+	if (dragging) {
+		auto p = GetParent()->ScreenToClient(wxGetMousePosition() - lastMP);
+		this->Move(p);
+		pos.x = p.x + 7;
+		pos.y = p.y + 7;
+		GetParent()->Refresh();
+	}
+}
+
+
 
 
 void Frame::NewButton(int id, Pos const& pos) {
 	auto&& btn = buttons.emplace_back(new Button(this, id, pos));
-	btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Frame::ButtonOnClick), nullptr, this);
+	Refresh();
 }
 
 void Frame::FrameOnLeftDClick(wxMouseEvent& event) {
 	NewButton(++buttonId, { (float)event.GetX(), (float)event.GetY() });
-}
-
-Frame::~Frame() {
-	for (auto&& btn : buttons) {
-		btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Frame::ButtonOnClick), nullptr, this);
-	}
 }
 
 void Frame::FrameOnPaint(wxPaintEvent& event) {
@@ -188,19 +228,11 @@ void Frame::FrameOnPaint(wxPaintEvent& event) {
 	}
 }
 
-void Frame::ButtonOnClick(wxCommandEvent& event) {
-	auto btn = (Button*)event.GetEventObject();
-	this->SetTitle(std::to_string(btn->id));
-	Refresh();
-}
-
-
-
 class MyApp : public wxApp
 {
 public:
 	virtual bool OnInit() {
-		auto frame = new Frame(nullptr, wxID_ANY, L"Hello World");
+		auto frame = new Frame(nullptr, wxID_ANY, L"mouse click to draw a point!");
 		frame->Show(true);
 		return true;
 	}
