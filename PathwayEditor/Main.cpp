@@ -1,5 +1,7 @@
 #pragma once
 #include <wx/wx.h>
+#include "xx_point.h"
+#include "Pathway_class_lite.h"
 
 // 下面这两段参考自 wxFormBuilder 生成物
 
@@ -53,72 +55,6 @@ FrameBase::~FrameBase()
 
 
 
-struct Pos {
-	float x = 0, y = 0;
-
-	inline bool operator==(const Pos& v) const noexcept {
-		return x == v.x && y == v.y;
-	}
-	inline Pos& operator+=(Pos const& v) noexcept {
-		x += v.x;
-		y += v.y;
-		return *this;
-	}
-	inline Pos operator+(Pos const& v) const noexcept {
-		return Pos{ x + v.x, y + v.y };
-	}
-	inline Pos operator-(Pos const& v) const noexcept {
-		return Pos{ x - v.x, y - v.y };
-	}
-	inline Pos operator*(float const& s) const noexcept {
-		return Pos{ x * s, y * s };
-	}
-	inline Pos operator/(float const& s) const noexcept {
-		return Pos{ x / s, y / s };
-	}
-};
-
-inline void BezierToPoints(std::vector<Pos>& ps, std::vector<Pos> const& bs, int numSegments = 50) {
-	auto len = (bs.size() - 1) / 3;
-	ps.resize(numSegments * len);
-	auto step = 1.0f / numSegments;
-	for (size_t i = 0; i < numSegments; ++i) {
-		auto t = step * i;
-		auto t1 = 1 - t;
-		for (size_t j = 0; j < len; ++j)
-		{
-			auto idx = j * 3;
-			ps[j * numSegments + i] = bs[idx] * t1 * t1 * t1
-				+ bs[idx + 1] * 3 * t * t1 * t1
-				+ bs[idx + 2] * 3 * t * t * (1 - t)
-				+ bs[idx + 3] * t * t * t;
-		}
-	}
-}
-
-inline void CurveToBezier(std::vector<Pos>& bs, std::vector<Pos> const& cs, float tension = 0.3f) {
-	auto n = cs.size();
-	auto len = n * 3 - 2;
-	bs.resize(len);
-
-	bs[0] = cs[0];
-	bs[1] = (cs[1] - cs[0]) * tension + cs[0];
-
-	for (size_t i = 0; i < n - 2; i++) {
-		auto diff = (cs[i + 2] - cs[i]) * tension;
-		bs[3 * i + 2] = cs[i + 1] - diff;
-		bs[3 * i + 3] = cs[i + 1];
-		bs[3 * i + 4] = cs[i + 1] + diff;
-	}
-	bs[len - 2] = (cs[n - 2] - cs[n - 1]) * tension + cs[n - 1];
-	bs[len - 1] = cs[n - 1];
-}
-
-
-
-
-///////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -131,8 +67,8 @@ struct Button : public wxButton {
 	wxPoint lastMP;
 
 	int id = 0;
-	Pos pos;
-	Button(Frame* f, int id, Pos const& pos);
+	xx::Point pos;
+	Button(Frame* f, int id, xx::Point const& pos);
 
 	void OnMouseLeftDoubleClick(wxMouseEvent& evt);
 	void OnMouseDown(wxMouseEvent& evt);
@@ -156,7 +92,7 @@ struct Frame : public FrameBase {
 	int buttonId = 0;
 	std::vector<Button*> buttons;
 
-	void NewButton(int id, Pos const& pos);
+	void NewButton(int id, xx::Point const& pos);
 
 	virtual void FrameOnLeftDClick(wxMouseEvent& event) override;
 	virtual void FrameOnPaint(wxPaintEvent& event) override;
@@ -169,7 +105,7 @@ struct Frame : public FrameBase {
 
 
 
-Button::Button(Frame* f, int id, Pos const& pos)
+Button::Button(Frame* f, int id, xx::Point const& pos)
 	: wxButton(f, wxID_ANY, wxEmptyString, wxPoint(pos.x - 7, pos.y - 7), wxSize(15, 15))
 	, id(id)
 	, pos(pos) {
@@ -198,7 +134,7 @@ void Button::OnMove(wxMouseEvent& evt) {
 
 
 
-void Frame::NewButton(int id, Pos const& pos) {
+void Frame::NewButton(int id, xx::Point const& pos) {
 	auto&& btn = buttons.emplace_back(new Button(this, id, pos));
 	Refresh();
 }
@@ -213,14 +149,14 @@ void Frame::FrameOnPaint(wxPaintEvent& event) {
 	dc.SetPen(wxPen(wxColor(255, 0, 0), 5));
 
 	if (buttons.size() > 1) {
-		std::vector<Pos> cs, bs, ps;
+		std::vector<xx::Point> cs, bs, ps;
 
 		for (auto&& btn : buttons) {
 			cs.push_back(btn->pos);
 		}
 
-		CurveToBezier(bs, cs);
-		BezierToPoints(ps, bs, 500);
+		xx::CurveToBezier(bs, cs);
+		xx::BezierToPoints(ps, bs, 500);
 
 		for (auto&& pos : ps) {
 			dc.DrawPoint({ (int)pos.x, (int)pos.y });

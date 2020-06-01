@@ -4,6 +4,14 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ui.fbp" />
+    <ClInclude Include="xx_data.h" />
+    <ClInclude Include="xx_data_view.h" />
+    <ClInclude Include="xx_ispod.h" />
+    <ClInclude Include="xx_math.h" />
+    <ClInclude Include="Pathway_class_lite.h" />
+    <ClInclude Include="xx_point.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Pathway.cs" />
   </ItemGroup>
 </Project>
