@@ -45,7 +45,7 @@
             <property name="minimum_size"></property>
             <property name="name">FrameBase</property>
             <property name="pos"></property>
-            <property name="size">835,528</property>
+            <property name="size">1258,706</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title"></property>
@@ -85,7 +85,7 @@
                 <property name="max_size"></property>
                 <property name="maximize_button">0</property>
                 <property name="maximum_size"></property>
-                <property name="min_size">200,200</property>
+                <property name="min_size">250,200</property>
                 <property name="minimize_button">0</property>
                 <property name="minimum_size"></property>
                 <property name="moveable">0</property>
@@ -196,7 +196,7 @@
                 <property name="max_size"></property>
                 <property name="maximize_button">0</property>
                 <property name="maximum_size"></property>
-                <property name="min_size">200,200</property>
+                <property name="min_size">250,200</property>
                 <property name="minimize_button">0</property>
                 <property name="minimum_size"></property>
                 <property name="moveable">0</property>
@@ -217,7 +217,7 @@
                 <property name="tooltip"></property>
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
-                <property name="window_style">wxALWAYS_SHOW_SB|wxVSCROLL</property>
+                <property name="window_style"></property>
                 <object class="wxBoxSizer" expanded="0">
                     <property name="minimum_size"></property>
                     <property name="name">bSizer2</property>
@@ -226,7 +226,7 @@
                     <object class="sizeritem" expanded="0">
                         <property name="border">5</property>
                         <property name="flag">wxALL|wxEXPAND</property>
-                        <property name="proportion">0</property>
+                        <property name="proportion">1</property>
                         <object class="wxPropertyGrid" expanded="0">
                             <property name="BottomDockable">1</property>
                             <property name="LeftDockable">1</property>
@@ -282,6 +282,7 @@
                             <property name="window_extra_style"></property>
                             <property name="window_name"></property>
                             <property name="window_style"></property>
+                            <event name="OnPropertyGridChanged">propertyGridPropertiesOnPropertyGridChanged</event>
                         </object>
                     </object>
                 </object>

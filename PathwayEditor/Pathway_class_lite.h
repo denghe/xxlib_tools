@@ -1,16 +1,32 @@
 ﻿#pragma once
-#include "xx_data_view.h"
+#include "xx_datareader.h"
+#include "Pathway_class_lite.h.inc"  // user create it for extend include files
 namespace Pathway {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<a42c3f62352d6a4075f86e6f59b52d9a>*#";
+		inline static const std::string value = "#*MD5<75cd629ed6827ca2d50c8137b9ff5f1c>*#";
     };
 
+    // 点
+    struct Point {
+        float x = 0;
+        float y = 0;
+        float z = 0;
+        // 张力. 默认 0.3. 值越大, 倒角越圆润, 越小越尖
+        float tension = 0;
+        // 到下一个点的切片数
+        int32_t numSegments = 0;
+
+        Point() = default;
+        Point(Point const&) = default;
+        Point& operator=(Point const&) = default;
+        Point(Point&& o);
+        Point& operator=(Point&& o);
+#include "Pathway_Point.inc"
+    };
     // 线
     struct Line {
         // 途经点集合. 2 个点为直线，更多点为曲线串联
-        std::vector<::xx::Point> points;
-        // 张力. 默认 0.3. 值越大, 倒角越圆润, 越小越尖
-        float tension = 0;
+        std::vector<Pathway::Point> points;
         // 是否闭合. 直线无法闭合。将于头尾多填2点，绘制后裁切掉以确保曲线形状正确
         bool isLoop = false;
 
@@ -49,6 +65,11 @@ namespace Pathway {
 }
 namespace xx {
 	template<>
+	struct DataFuncs<Pathway::Point, void> {
+		static void Write(Data& d, Pathway::Point const& in) noexcept;
+		static int Read(DataReader& d, Pathway::Point& out) noexcept;
+	};
+	template<>
 	struct DataFuncs<Pathway::Line, void> {
 		static void Write(Data& d, Pathway::Line const& in) noexcept;
 		static int Read(DataReader& d, Pathway::Line& out) noexcept;
@@ -63,65 +84,4 @@ namespace xx {
 		static void Write(Data& d, Pathway::Data const& in) noexcept;
 		static int Read(DataReader& d, Pathway::Data& out) noexcept;
 	};
-}
-
-
-
-namespace Pathway {
-    inline Line::Line(Line&& o) {
-        this->operator=(std::move(o));
-    }
-    inline Line& Line::operator=(Line&& o) {
-        std::swap(this->points, o.points);
-        std::swap(this->tension, o.tension);
-        std::swap(this->isLoop, o.isLoop);
-        return *this;
-    }
-    inline Group::Group(Group&& o) {
-        this->operator=(std::move(o));
-    }
-    inline Group& Group::operator=(Group&& o) {
-        std::swap(this->name, o.name);
-        std::swap(this->lineIndexs, o.lineIndexs);
-        return *this;
-    }
-    inline Data::Data(Data&& o) {
-        this->operator=(std::move(o));
-    }
-    inline Data& Data::operator=(Data&& o) {
-        std::swap(this->lines, o.lines);
-        std::swap(this->groups, o.groups);
-        return *this;
-    }
-}
-namespace xx {
-	inline void DataFuncs<Pathway::Line, void>::Write(Data& d, Pathway::Line const& in) noexcept {
-        ::xx::Write(d, in.points);
-        ::xx::Write(d, in.tension);
-        ::xx::Write(d, in.isLoop);
-    }
-	inline int DataFuncs<Pathway::Line, void>::Read(DataReader& d, Pathway::Line& out) noexcept {
-        if (int r = d.Read(out.points)) return r;
-        if (int r = d.Read(out.tension)) return r;
-        if (int r = d.Read(out.isLoop)) return r;
-        return 0;
-    }
-	inline void DataFuncs<Pathway::Group, void>::Write(Data& d, Pathway::Group const& in) noexcept {
-        ::xx::Write(d, in.name);
-        ::xx::Write(d, in.lineIndexs);
-    }
-	inline int DataFuncs<Pathway::Group, void>::Read(DataReader& d, Pathway::Group& out) noexcept {
-        if (int r = d.Read(out.name)) return r;
-        if (int r = d.Read(out.lineIndexs)) return r;
-        return 0;
-    }
-	inline void DataFuncs<Pathway::Data, void>::Write(Data& d, Pathway::Data const& in) noexcept {
-        ::xx::Write(d, in.lines);
-        ::xx::Write(d, in.groups);
-    }
-	inline int DataFuncs<Pathway::Data, void>::Read(DataReader& d, Pathway::Data& out) noexcept {
-        if (int r = d.Read(out.lines)) return r;
-        if (int r = d.Read(out.groups)) return r;
-        return 0;
-    }
 }

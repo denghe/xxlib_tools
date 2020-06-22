@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "xx_ispod.h"
+#include "xx_typetraits.h"
 #include "xx_math.h"
-#include <string.h>
+#include <cstring>
 
 namespace xx {
 
@@ -53,10 +53,10 @@ namespace xx {
 		}
 
 		// 移动构造
-		Data(Data&& o) {
+		Data(Data&& o)  noexcept {
 			operator=(std::move(o));
 		}
-		inline Data& operator=(Data&& o) {
+		inline Data& operator=(Data&& o)  noexcept {
 			std::swap(buf, o.buf);
 			std::swap(len, o.len);
 			std::swap(cap, o.cap);

@@ -89,17 +89,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Pathway_class_lite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Pathway_class_lite.h" />
     <ClInclude Include="xx_data.h" />
-    <ClInclude Include="xx_data_view.h" />
-    <ClInclude Include="xx_ispod.h" />
+    <ClInclude Include="xx_datareader.h" />
     <ClInclude Include="xx_math.h" />
-    <ClInclude Include="xx_point.h" />
+    <ClInclude Include="xx_typetraits.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />
+    <None Include="Pathway_class_lite.cpp.inc" />
+    <None Include="Pathway_class_lite.h.inc" />
+    <None Include="Pathway_Point.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
