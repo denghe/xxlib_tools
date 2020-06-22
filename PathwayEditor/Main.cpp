@@ -31,7 +31,6 @@ public:
 	wxAuiManager m_mgr;
 
 	~FrameBase();
-
 };
 
 
@@ -143,13 +142,17 @@ FrameBase::~FrameBase()
 struct Frame;
 
 struct Button : public wxButton {
+	// for mouse drag
+	wxPanel* parent = nullptr;
 	bool dragging = false;
 	wxPoint lastMP;
 
+	// for logic
 	int id = 0;
 	xx::Point pos;
+	Frame* frame = nullptr;
+
 	Button(Frame* const& f, int const& id, xx::Point const& pos);
-	Frame& GetFrame();
 
 	void OnMouseRightDown(wxMouseEvent& event);
 	void OnMouseLeftDown(wxMouseEvent& event);
@@ -180,7 +183,6 @@ struct Frame : public FrameBase {
 
 	int buttonId = 0;
 	std::vector<Button*> buttons;
-	Button* draggingButton = nullptr;
 	Button* lastFocusButton = nullptr;
 
 	virtual void scrolledWindowPointsOnLeftDown(wxMouseEvent& event) override;
@@ -196,17 +198,15 @@ struct Frame : public FrameBase {
 
 Button::Button(Frame* const& f, int const& id, xx::Point const& pos)
 	: wxButton(f->scrolledWindowPoints, wxID_ANY, wxEmptyString, wxPoint(pos.x - 7, pos.y - 7), wxSize(15, 15))
+	, parent(f->scrolledWindowPoints)
 	, id(id)
-	, pos(pos) {
+	, pos(pos)
+	, frame(f) {
 	SetBackgroundColour(*wxBLUE);
 }
 
-Frame& Button::GetFrame() {
-	return *(Frame*)GetParent();
-}
-
 void Button::OnMouseRightDown(wxMouseEvent& event) {
-	auto&& fb = GetFrame().lastFocusButton;
+	auto&& fb = frame->lastFocusButton;
 	if (fb) {
 		fb->SetBackgroundColour(*wxBLUE);
 	}
@@ -215,14 +215,16 @@ void Button::OnMouseRightDown(wxMouseEvent& event) {
 }
 
 void Button::OnMouseLeftDown(wxMouseEvent& event) {
+	CaptureMouse();
 	lastMP = { event.GetX(),event.GetY() };
 	dragging = true;
-	GetFrame().draggingButton = this;
 }
 
 void Button::OnMouseLeftUp(wxMouseEvent& event) {
-	dragging = false;
-	GetFrame().draggingButton = nullptr;
+	if (dragging) {
+		ReleaseMouse();
+		dragging = false;
+	}
 }
 
 void Button::OnMouseMiddleDown(wxMouseEvent& event) {
@@ -231,11 +233,13 @@ void Button::OnMouseMiddleDown(wxMouseEvent& event) {
 
 void Button::OnMouseMove(wxMouseEvent& event) {
 	if (dragging) {
-		auto p = GetFrame().scrolledWindowPoints->ScreenToClient(wxGetMousePosition() - lastMP);
-		this->Move(p);
+		auto&& currPos = wxGetMousePosition();
+		auto&& tarPos = currPos - lastMP;
+		auto p = parent->ScreenToClient(tarPos);
+		Move(p);
 		pos.x = p.x + 7;
 		pos.y = p.y + 7;
-		GetFrame().scrolledWindowPoints->Refresh();
+		parent->Refresh();
 	}
 }
 
@@ -258,9 +262,6 @@ void Frame::scrolledWindowPointsOnLeftDown(wxMouseEvent& event) {
 }
 
 void Frame::scrolledWindowPointsOnMotion(wxMouseEvent& event) {
-	if (draggingButton) {
-		draggingButton->OnMouseMove(event);
-	}
 }
 
 void Frame::scrolledWindowPointsOnPaint(wxPaintEvent& event) {
@@ -275,7 +276,7 @@ void Frame::scrolledWindowPointsOnPaint(wxPaintEvent& event) {
 			cs.push_back(btn->pos);
 		}
 
-		xx::CurveToBezier(bs, cs);
+		xx::CurveToBezier(bs, cs, 0.5f);
 		xx::BezierToPoints(ps, bs, 500);
 
 		for (auto&& pos : ps) {
