@@ -92,10 +92,13 @@
     <ClCompile Include="Pathway_class_lite.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="fixed_function.hpp" />
     <ClInclude Include="Pathway_class_lite.h" />
     <ClInclude Include="xx_data.h" />
     <ClInclude Include="xx_datareader.h" />
+    <ClInclude Include="xx_file.h" />
     <ClInclude Include="xx_math.h" />
+    <ClInclude Include="xx_scopeguard.h" />
     <ClInclude Include="xx_typetraits.h" />
   </ItemGroup>
   <ItemGroup>

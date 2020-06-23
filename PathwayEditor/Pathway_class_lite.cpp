@@ -16,8 +16,9 @@ namespace Pathway {
         this->operator=(std::move(o));
     }
     Line& Line::operator=(Line&& o) {
-        std::swap(this->points, o.points);
+        std::swap(this->name, o.name);
         std::swap(this->isLoop, o.isLoop);
+        std::swap(this->points, o.points);
         return *this;
     }
     Group::Group(Group&& o) {
@@ -25,13 +26,16 @@ namespace Pathway {
     }
     Group& Group::operator=(Group&& o) {
         std::swap(this->name, o.name);
-        std::swap(this->lineIndexs, o.lineIndexs);
+        std::swap(this->lineNames, o.lineNames);
         return *this;
     }
     Data::Data(Data&& o) {
         this->operator=(std::move(o));
     }
     Data& Data::operator=(Data&& o) {
+        std::swap(this->designWidth, o.designWidth);
+        std::swap(this->designHeight, o.designHeight);
+        std::swap(this->safeLength, o.safeLength);
         std::swap(this->lines, o.lines);
         std::swap(this->groups, o.groups);
         return *this;
@@ -54,28 +58,36 @@ namespace xx {
         return 0;
     }
 	void DataFuncs<Pathway::Line, void>::Write(Data& d, Pathway::Line const& in) noexcept {
-        ::xx::Write(d, in.points);
+        ::xx::Write(d, in.name);
         ::xx::Write(d, in.isLoop);
+        ::xx::Write(d, in.points);
     }
 	int DataFuncs<Pathway::Line, void>::Read(DataReader& d, Pathway::Line& out) noexcept {
-        if (int r = d.Read(out.points)) return r;
+        if (int r = d.Read(out.name)) return r;
         if (int r = d.Read(out.isLoop)) return r;
+        if (int r = d.Read(out.points)) return r;
         return 0;
     }
 	void DataFuncs<Pathway::Group, void>::Write(Data& d, Pathway::Group const& in) noexcept {
         ::xx::Write(d, in.name);
-        ::xx::Write(d, in.lineIndexs);
+        ::xx::Write(d, in.lineNames);
     }
 	int DataFuncs<Pathway::Group, void>::Read(DataReader& d, Pathway::Group& out) noexcept {
         if (int r = d.Read(out.name)) return r;
-        if (int r = d.Read(out.lineIndexs)) return r;
+        if (int r = d.Read(out.lineNames)) return r;
         return 0;
     }
 	void DataFuncs<Pathway::Data, void>::Write(Data& d, Pathway::Data const& in) noexcept {
+        ::xx::Write(d, in.designWidth);
+        ::xx::Write(d, in.designHeight);
+        ::xx::Write(d, in.safeLength);
         ::xx::Write(d, in.lines);
         ::xx::Write(d, in.groups);
     }
 	int DataFuncs<Pathway::Data, void>::Read(DataReader& d, Pathway::Data& out) noexcept {
+        if (int r = d.Read(out.designWidth)) return r;
+        if (int r = d.Read(out.designHeight)) return r;
+        if (int r = d.Read(out.safeLength)) return r;
         if (int r = d.Read(out.lines)) return r;
         if (int r = d.Read(out.groups)) return r;
         return 0;

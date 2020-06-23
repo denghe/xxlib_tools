@@ -3,7 +3,7 @@
 #include "Pathway_class_lite.h.inc"  // user create it for extend include files
 namespace Pathway {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<75cd629ed6827ca2d50c8137b9ff5f1c>*#";
+		inline static const std::string value = "#*MD5<fb6fe78026432ba0b37b6401c2f6eb1c>*#";
     };
 
     // 点
@@ -25,10 +25,12 @@ namespace Pathway {
     };
     // 线
     struct Line {
-        // 途经点集合. 2 个点为直线，更多点为曲线串联
-        std::vector<Pathway::Point> points;
+        // 唯一名称( 编辑时显示用. 也可用于查找 )
+        std::string name;
         // 是否闭合. 直线无法闭合。将于头尾多填2点，绘制后裁切掉以确保曲线形状正确
         bool isLoop = false;
+        // 途经点集合. 2 个点为直线，更多点为曲线串联
+        std::vector<Pathway::Point> points;
 
         Line() = default;
         Line(Line const&) = default;
@@ -40,8 +42,8 @@ namespace Pathway {
     struct Group {
         // 唯一名称( 编辑时显示用. 也可用于查找 )
         std::string name;
-        // 组成员：Data.lines 下标集合
-        std::vector<int32_t> lineIndexs;
+        // 组成员：线名称集合
+        std::vector<std::string> lineNames;
 
         Group() = default;
         Group(Group const&) = default;
@@ -51,6 +53,12 @@ namespace Pathway {
     };
     // 所有数据
     struct Data {
+        // 设计尺寸（通常代表屏幕实际显示矩形）之 宽度
+        int32_t designWidth = 0;
+        // 设计尺寸之 高度
+        int32_t designHeight = 0;
+        // 设计尺寸外包围圆环之 安全距离（通常为最大显示图片的半径，防穿帮）
+        int32_t safeLength = 0;
         // 线集合
         std::vector<Pathway::Line> lines;
         // 组集合

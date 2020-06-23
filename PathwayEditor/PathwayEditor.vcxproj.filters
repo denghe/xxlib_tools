@@ -10,6 +10,9 @@
     <ClInclude Include="Pathway_class_lite.h" />
     <ClInclude Include="xx_datareader.h" />
     <ClInclude Include="xx_typetraits.h" />
+    <ClInclude Include="xx_file.h" />
+    <ClInclude Include="fixed_function.hpp" />
+    <ClInclude Include="xx_scopeguard.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />
