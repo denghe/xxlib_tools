@@ -86,7 +86,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	gridLines = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 
 	// Grid
-	gridLines->CreateGrid(55, 2);
+	gridLines->CreateGrid(0, 2);
 	gridLines->EnableEditing(true);
 	gridLines->EnableGridLines(true);
 	gridLines->EnableDragGridSize(false);
@@ -116,7 +116,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	gridPoints = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 
 	// Grid
-	gridPoints->CreateGrid(55, 5);
+	gridPoints->CreateGrid(0, 5);
 	gridPoints->EnableEditing(true);
 	gridPoints->EnableGridLines(true);
 	gridPoints->EnableDragGridSize(false);
@@ -281,7 +281,22 @@ struct Frame : public FrameBase {
 	std::vector<Button*> buttons;
 	Button* lastFocusButton = nullptr;
 
+
+	// 根据设计尺寸和安全距离，计算整个显示区域（正方形）的 直径
+	int designWidth = 1280;
+	int designHeight = 720;
+	int safeLength = 100;
+
+	int lineWidth = 5;
+
+	int radius = sqrt((designWidth / 2) * (designWidth / 2) + (designHeight / 2) * (designHeight / 2)) + safeLength;
+
+	int centerXY = radius + safeLength;
+	int rectWH = (radius + safeLength) * 2;
+
 	std::unique_ptr<wxBitmap> bmp;
+	void DrawBackground();
+
 	wxStaticBitmap* sb = nullptr;
 	void sbOnLeftDown(wxMouseEvent& event);
 	void sbOnPaint(wxPaintEvent& event);
@@ -290,6 +305,30 @@ struct Frame : public FrameBase {
 	Pathway::Data data;
 	std::string filePath = "data";	// 默认存档为工作目录的 data 文件
 	// todo: wxFileDialog 
+
+
+	void ClearAllLines() {
+		data.lines.clear();
+		gridLines->DeleteRows(0, gridLines->GetNumberRows());
+	}
+
+	void AddRow(Pathway::Point const& p) {
+		auto&& idx = gridPoints->GetNumberRows();
+		gridPoints->AppendRows();
+		gridPoints->SetCellValue({ idx, 0 }, std::to_string(p.x));
+		gridPoints->SetCellValue({ idx, 1 }, std::to_string(p.y));
+		gridPoints->SetCellValue({ idx, 2 }, std::to_string(p.z));
+		gridPoints->SetCellValue({ idx, 3 }, std::to_string(p.tension));
+		gridPoints->SetCellValue({ idx, 4 }, std::to_string(p.numSegments));
+	}
+
+	void RemoveRow(Pathway::Line& line, int const& idx) {
+		// todo
+	}
+
+	// todo: more grid funcs
+
+
 
 	Frame(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 706), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
 	~Frame() override;
@@ -313,8 +352,8 @@ Button::Button(Frame* const& frame, Pathway::Point const& pos)
 	, frame(frame) {
 	SetBackgroundColour(*wxBLUE);
 
-	// todo: insert to points grid
-	//frame->gridLines->
+	//frame->gridPoints->ClearGrid();
+	frame->gridPoints->AppendRows();
 }
 
 void Button::OnMouseRightDown(wxMouseEvent& event) {
@@ -380,21 +419,8 @@ void Button::OnMouseLeave(wxMouseEvent& event) {
 
 
 
-Frame::Frame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-	: FrameBase(parent, id, title, pos, size, style) {
 
-	// 根据设计尺寸和安全距离，计算整个显示区域（正方形）的 直径
-	int designWidth = 1280;
-	int designHeight = 720;
-	int safeLength = 100;
-
-	int lineWidth = 5;
-
-	int radius = sqrt((designWidth / 2) * (designWidth / 2) + (designHeight / 2) * (designHeight / 2)) + safeLength;
-
-	int centerXY = radius + safeLength;
-	int rectWH = (radius + safeLength) * 2;
-
+void Frame::DrawBackground() {
 	// 创建背景图并放入 scrolledWindowPoints
 	bmp.reset(new wxBitmap(rectWH, rectWH));
 	wxMemoryDC dc;
@@ -409,7 +435,25 @@ Frame::Frame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoi
 	dc.SetPen(wxPen(wxColor(111, 111, 111), 2));
 	dc.DrawLine({ centerXY, 0 }, { centerXY, rectWH });
 	dc.DrawLine({ 0, centerXY }, { rectWH, centerXY });
+}
 
+Frame::Frame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+	: FrameBase(parent, id, title, pos, size, style) {
+
+	// 初始化grid显示格式
+	gridLines->SetColFormatBool(1);
+
+	gridPoints->SetColFormatFloat(0, 6, 2);
+	gridPoints->SetColFormatFloat(1, 6, 2);
+	gridPoints->SetColFormatFloat(2, 6, 2);
+	gridPoints->SetColFormatFloat(3, 3, 3);
+	gridPoints->SetColFormatFloat(4, 3, 0);
+
+	//gridLines->DeleteRows()
+	//gridLines->GetNumberRows();
+
+
+	DrawBackground();
 	sb = new wxStaticBitmap(scrolledWindowPoints, wxID_ANY, *bmp, wxPoint(0, 0));
 	sb->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(Frame::sbOnLeftDown), NULL, this);
 	sb->Connect(wxEVT_PAINT, wxPaintEventHandler(Frame::sbOnPaint), NULL, this);
@@ -449,10 +493,10 @@ void Frame::sbOnPaint(wxPaintEvent& event) {
 		BezierToPoints(ps, bs);
 
 		dc.SetBackground(wxBrush(GetBackgroundColour()));
-		dc.SetPen(wxPen(wxColor(255, 0, 0), 4));
+		dc.SetPen(wxPen(wxColor(255, 0, 0), 2));
 
 		for (auto&& pos : ps) {
-			dc.DrawCircle({ (int)pos.x, (int)pos.y }, 5);
+			dc.DrawCircle({ (int)pos.x, (int)pos.y }, 3);
 		}
 	}
 }
@@ -534,14 +578,6 @@ void Frame::menuItemOpenOnMenuSelection(wxCommandEvent& event) {
 	//// sync property grid
 	//listBoxLinesOnListBox(event);
 
-	gridPoints->SetColFormatBool(1);
-
-	gridPoints->SetColFormatFloat(0, 6, 2);
-	gridPoints->SetColFormatFloat(1, 6, 2);
-	gridPoints->SetColFormatFloat(2, 6, 2);
-	gridPoints->SetColFormatFloat(3, 3, 3);
-	gridPoints->SetColFormatFloat(4, 3, 0);
-	gridPoints->SetCellValue(0, 4, "3.1415");
 }
 void Frame::menuItemSaveOnMenuSelection(wxCommandEvent& event) {
 	xx::Data d;
