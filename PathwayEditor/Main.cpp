@@ -3,37 +3,37 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/aui/aui.h>
+#include <wx/grid.h>
 
-// the following code is copy from wxFormBuilder
-///////////////////////////////////////////////////////////////////////////
+#pragma region copy from wxFormBuilder
 
 class FrameBase : public wxFrame
 {
 private:
 
 protected:
-	wxListBox* listBoxLines;
-	wxScrolledWindow* scrolledWindowProperties;
 	wxMenuBar* menubarRoot;
 	wxMenu* menuFile;
-	wxMenu* menuEdit;
+	wxToolBar* toolBarRoot;
+	wxToolBarToolBase* toolNewLine;
 
 	// Virtual event handlers, overide them in your derived class
-	virtual void listBoxLinesOnListBox(wxCommandEvent& event) { event.Skip(); }
-	virtual void propertyGridPropertiesOnPropertyGridChanged(wxPropertyGridEvent& event) { event.Skip(); }
 	virtual void menuItemNewOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void menuItemOpenOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void menuItemSaveOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void menuItemExitOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
-	virtual void menuItemNewLineOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
-	virtual void menuItemDeleteLineOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
+	virtual void toolNewLineOnToolClicked(wxCommandEvent& event) { event.Skip(); }
+	virtual void gridLinesOnGridCellChange(wxGridEvent& event) { event.Skip(); }
+	virtual void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
+	virtual void gridLinesOnGridSelectCell(wxGridEvent& event) { event.Skip(); }
 
 
 public:
+	wxGrid* gridLines;
+	wxGrid* gridPoints;
 	wxScrolledWindow* scrolledWindowPoints;
-	wxPropertyGrid* propertyGridProperties;
 
-	FrameBase(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 706), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
+	FrameBase(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1008, 782), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
 	wxAuiManager m_mgr;
 
 	~FrameBase();
@@ -41,6 +41,8 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style) : wxFrame(parent, id, title, pos, size, style)
@@ -50,27 +52,6 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	m_mgr.SetManagedWindow(this);
 	m_mgr.SetFlags(wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-	listBoxLines = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
-	m_mgr.AddPane(listBoxLines, wxAuiPaneInfo().Left().Caption(wxT("Lines")).CloseButton(false).Movable(false).Dock().Resizable().FloatingSize(wxDefaultSize).BottomDockable(false).TopDockable(false).Floatable(false).MinSize(wxSize(250, 200)));
-
-	scrolledWindowPoints = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxALWAYS_SHOW_SB | wxHSCROLL | wxVSCROLL);
-	scrolledWindowPoints->SetScrollRate(5, 5);
-	m_mgr.AddPane(scrolledWindowPoints, wxAuiPaneInfo().Center().Caption(wxT("Points")).CloseButton(false).Movable(false).Dock().Resizable().FloatingSize(wxDefaultSize).BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false));
-
-	scrolledWindowProperties = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-	scrolledWindowProperties->SetScrollRate(5, 5);
-	m_mgr.AddPane(scrolledWindowProperties, wxAuiPaneInfo().Right().Caption(wxT("properties")).CloseButton(false).Movable(false).Dock().Fixed().BottomDockable(false).TopDockable(false).Floatable(false).MinSize(wxSize(250, 200)).Layer(0));
-
-	wxBoxSizer* bSizer2;
-	bSizer2 = new wxBoxSizer(wxVERTICAL);
-
-	propertyGridProperties = new wxPropertyGrid(scrolledWindowProperties, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE);
-	bSizer2->Add(propertyGridProperties, 1, wxALL | wxEXPAND, 5);
-
-
-	scrolledWindowProperties->SetSizer(bSizer2);
-	scrolledWindowProperties->Layout();
-	bSizer2->Fit(scrolledWindowProperties);
 	menubarRoot = new wxMenuBar(0);
 	menuFile = new wxMenu();
 	wxMenuItem* menuItemNew;
@@ -93,47 +74,113 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 
 	menubarRoot->Append(menuFile, wxT("&File"));
 
-	menuEdit = new wxMenu();
-	wxMenuItem* menuItemNewLine;
-	menuItemNewLine = new wxMenuItem(menuEdit, wxID_ANY, wxString(wxT("&New Line")) + wxT('\t') + wxT("Ctrl + N"), wxEmptyString, wxITEM_NORMAL);
-	menuEdit->Append(menuItemNewLine);
-
-	wxMenuItem* menuItemDeleteLine;
-	menuItemDeleteLine = new wxMenuItem(menuEdit, wxID_ANY, wxString(wxT("&Delete Line")) + wxT('\t') + wxT("Ctrl + W"), wxEmptyString, wxITEM_NORMAL);
-	menuEdit->Append(menuItemDeleteLine);
-
-	menubarRoot->Append(menuEdit, wxT("&Edit"));
-
 	this->SetMenuBar(menubarRoot);
+
+	toolBarRoot = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORZ_TEXT);
+	toolNewLine = toolBarRoot->AddTool(wxID_ANY, wxT("New Line"), wxBitmap(wxT("icon_add.bmp"), wxBITMAP_TYPE_ANY), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL);
+
+	toolBarRoot->Realize();
+	m_mgr.AddPane(toolBarRoot, wxAuiPaneInfo().Left().CaptionVisible(false).CloseButton(false).PaneBorder(false).Movable(false).Dock().Fixed().BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false));
+
+
+	gridLines = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+
+	// Grid
+	gridLines->CreateGrid(55, 2);
+	gridLines->EnableEditing(true);
+	gridLines->EnableGridLines(true);
+	gridLines->EnableDragGridSize(false);
+	gridLines->SetMargins(0, 0);
+
+	// Columns
+	gridLines->SetColSize(0, 160);
+	gridLines->SetColSize(1, 47);
+	gridLines->EnableDragColMove(false);
+	gridLines->EnableDragColSize(false);
+	gridLines->SetColLabelSize(22);
+	gridLines->SetColLabelValue(0, wxT("name"));
+	gridLines->SetColLabelValue(1, wxT("isLoop"));
+	gridLines->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
+
+	// Rows
+	gridLines->EnableDragRowSize(false);
+	gridLines->SetRowLabelSize(25);
+	gridLines->SetRowLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+
+	// Label Appearance
+
+	// Cell Defaults
+	gridLines->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
+	m_mgr.AddPane(gridLines, wxAuiPaneInfo().Left().Caption(wxT("Lines")).CloseButton(false).Movable(false).Dock().Resizable().FloatingSize(wxDefaultSize).DockFixed(true).BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false).MinSize(wxSize(250, 200)));
+
+	gridPoints = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+
+	// Grid
+	gridPoints->CreateGrid(55, 5);
+	gridPoints->EnableEditing(true);
+	gridPoints->EnableGridLines(true);
+	gridPoints->EnableDragGridSize(false);
+	gridPoints->SetMargins(0, 0);
+
+	// Columns
+	gridPoints->SetColSize(0, 44);
+	gridPoints->SetColSize(1, 44);
+	gridPoints->SetColSize(2, 44);
+	gridPoints->SetColSize(3, 39);
+	gridPoints->SetColSize(4, 36);
+	gridPoints->EnableDragColMove(false);
+	gridPoints->EnableDragColSize(true);
+	gridPoints->SetColLabelSize(22);
+	gridPoints->SetColLabelValue(0, wxT("x"));
+	gridPoints->SetColLabelValue(1, wxT("y"));
+	gridPoints->SetColLabelValue(2, wxT("z"));
+	gridPoints->SetColLabelValue(3, wxT("t"));
+	gridPoints->SetColLabelValue(4, wxT("n"));
+	gridPoints->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
+
+	// Rows
+	gridPoints->EnableDragRowSize(false);
+	gridPoints->SetRowLabelSize(25);
+	gridPoints->SetRowLabelAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+
+	// Label Appearance
+
+	// Cell Defaults
+	gridPoints->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_TOP);
+	m_mgr.AddPane(gridPoints, wxAuiPaneInfo().Left().Caption(wxT("Points")).CloseButton(false).Movable(false).Dock().Resizable().FloatingSize(wxDefaultSize).DockFixed(true).BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false).MinSize(wxSize(250, 200)));
+
+	scrolledWindowPoints = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxALWAYS_SHOW_SB | wxHSCROLL | wxVSCROLL);
+	scrolledWindowPoints->SetScrollRate(5, 5);
+	m_mgr.AddPane(scrolledWindowPoints, wxAuiPaneInfo().Center().Caption(wxT("Points( mouse draw area )")).CloseButton(false).PaneBorder(false).Movable(false).Dock().Resizable().FloatingSize(wxDefaultSize).BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false));
 
 
 	m_mgr.Update();
 	this->Centre(wxBOTH);
 
 	// Connect Events
-	listBoxLines->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FrameBase::listBoxLinesOnListBox), NULL, this);
-	propertyGridProperties->Connect(wxEVT_PG_CHANGED, wxPropertyGridEventHandler(FrameBase::propertyGridPropertiesOnPropertyGridChanged), NULL, this);
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemNewOnMenuSelection), this, menuItemNew->GetId());
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemOpenOnMenuSelection), this, menuItemOpen->GetId());
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemSaveOnMenuSelection), this, menuItemSave->GetId());
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemExitOnMenuSelection), this, menuItemExit->GetId());
-	menuEdit->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemNewLineOnMenuSelection), this, menuItemNewLine->GetId());
-	menuEdit->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemDeleteLineOnMenuSelection), this, menuItemDeleteLine->GetId());
+	this->Connect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
+	gridLines->Connect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
+	gridLines->Connect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
+	gridLines->Connect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
 }
 
 FrameBase::~FrameBase()
 {
 	// Disconnect Events
-	listBoxLines->Disconnect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FrameBase::listBoxLinesOnListBox), NULL, this);
-	propertyGridProperties->Disconnect(wxEVT_PG_CHANGED, wxPropertyGridEventHandler(FrameBase::propertyGridPropertiesOnPropertyGridChanged), NULL, this);
+	this->Disconnect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
+	gridLines->Disconnect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
+	gridLines->Disconnect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
+	gridLines->Disconnect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
 
 	m_mgr.UnInit();
 
 }
 
-
-///////////////////////////////////////////////////////////////////////////
-
+#pragma endregion
 
 #include "Pathway_class_lite.h"
 #include "xx_file.h"
@@ -203,7 +250,6 @@ struct Button : public wxButton {
 	// for logic
 	Pathway::Point pos;
 	Frame* frame = nullptr;
-	wxPropertyGrid* pg = nullptr;
 
 	Button(Frame* const& frame, Pathway::Point const& pos);
 
@@ -248,14 +294,10 @@ struct Frame : public FrameBase {
 	Frame(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 706), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
 	~Frame() override;
 
-	void propertyGridPropertiesOnPropertyGridChanged(wxPropertyGridEvent& event) override;
-	void listBoxLinesOnListBox(wxCommandEvent& event) override;
 	void menuItemNewOnMenuSelection(wxCommandEvent& event) override;
 	void menuItemOpenOnMenuSelection(wxCommandEvent& event) override;
 	void menuItemSaveOnMenuSelection(wxCommandEvent& event) override;
 	void menuItemExitOnMenuSelection(wxCommandEvent& event) override;
-	void menuItemNewLineOnMenuSelection(wxCommandEvent& event) override;
-	void menuItemDeleteLineOnMenuSelection(wxCommandEvent& event) override;
 };
 
 
@@ -268,9 +310,11 @@ Button::Button(Frame* const& frame, Pathway::Point const& pos)
 	: wxButton(frame->sb, wxID_ANY, wxEmptyString, wxPoint(pos.x - 7, pos.y - 7), wxSize(15, 15))
 	, parent(frame->sb)
 	, pos(pos)
-	, frame(frame)
-	, pg(frame->propertyGridProperties) {
+	, frame(frame) {
 	SetBackgroundColour(*wxBLUE);
+
+	// todo: insert to points grid
+	//frame->gridLines->
 }
 
 void Button::OnMouseRightDown(wxMouseEvent& event) {
@@ -281,12 +325,12 @@ void Button::OnMouseRightDown(wxMouseEvent& event) {
 	fb = this;
 	SetBackgroundColour(*wxRED);
 
-	pg->Clear();
-	pg->Append(new wxFloatProperty("x", wxPG_LABEL, pos.x));
-	pg->Append(new wxFloatProperty("y", wxPG_LABEL, pos.y));
-	pg->Append(new wxFloatProperty("z", wxPG_LABEL, pos.z));
-	pg->Append(new wxFloatProperty("tension", wxPG_LABEL, pos.tension));
-	pg->Append(new wxIntProperty("numSegments", wxPG_LABEL, pos.numSegments));
+	//pg->Clear();
+	//pg->Append(new wxFloatProperty("x", wxPG_LABEL, pos.x));
+	//pg->Append(new wxFloatProperty("y", wxPG_LABEL, pos.y));
+	//pg->Append(new wxFloatProperty("z", wxPG_LABEL, pos.z));
+	//pg->Append(new wxFloatProperty("tension", wxPG_LABEL, pos.tension));
+	//pg->Append(new wxIntProperty("numSegments", wxPG_LABEL, pos.numSegments));
 }
 
 void Button::OnMouseLeftDown(wxMouseEvent& event) {
@@ -305,7 +349,7 @@ void Button::OnMouseLeftUp(wxMouseEvent& event) {
 void Button::OnMouseMiddleDown(wxMouseEvent& event) {
 	if (frame->lastFocusButton == this) {
 		frame->lastFocusButton = nullptr;
-		pg->Clear();
+		//pg->Clear();
 	}
 	frame->buttons.erase(std::find(frame->buttons.begin(), frame->buttons.end(), this));
 	parent->RemoveChild(this);
@@ -413,39 +457,39 @@ void Frame::sbOnPaint(wxPaintEvent& event) {
 	}
 }
 
-void Frame::propertyGridPropertiesOnPropertyGridChanged(wxPropertyGridEvent& event) {
-
-	// todo: 判断当前显示的是什么东西的属性: Line 或者 Point
-
-	if (auto&& p = event.GetProperty()) {
-		auto&& n = p->GetName();
-		auto&& v = p->GetValue();
-		if (n == "x") {
-			auto&& v = p->GetValue();
-			lastFocusButton->pos.x = v.GetDouble();
-		}
-		else if (n == "y") {
-			auto&& v = p->GetValue();
-			lastFocusButton->pos.y = v.GetDouble();
-		}
-		else if (n == "z") {
-			auto&& v = p->GetValue();
-			lastFocusButton->pos.z = v.GetDouble();
-		}
-		else if (n == "tension") {
-			auto&& v = p->GetValue();
-			lastFocusButton->pos.tension = v.GetDouble();
-		}
-		else if (n == "numSegments") {
-			auto&& v = p->GetValue();
-			lastFocusButton->pos.numSegments = v.GetInteger();
-		}
-		else {
-			throw std::logic_error("not impl");
-		}
-		Refresh();
-	}
-}
+//void Frame::propertyGridPropertiesOnPropertyGridChanged(wxPropertyGridEvent& event) {
+//
+//	// todo: 判断当前显示的是什么东西的属性: Line 或者 Point
+//
+//	if (auto&& p = event.GetProperty()) {
+//		auto&& n = p->GetName();
+//		auto&& v = p->GetValue();
+//		if (n == "x") {
+//			auto&& v = p->GetValue();
+//			lastFocusButton->pos.x = v.GetDouble();
+//		}
+//		else if (n == "y") {
+//			auto&& v = p->GetValue();
+//			lastFocusButton->pos.y = v.GetDouble();
+//		}
+//		else if (n == "z") {
+//			auto&& v = p->GetValue();
+//			lastFocusButton->pos.z = v.GetDouble();
+//		}
+//		else if (n == "tension") {
+//			auto&& v = p->GetValue();
+//			lastFocusButton->pos.tension = v.GetDouble();
+//		}
+//		else if (n == "numSegments") {
+//			auto&& v = p->GetValue();
+//			lastFocusButton->pos.numSegments = v.GetInteger();
+//		}
+//		else {
+//			throw std::logic_error("not impl");
+//		}
+//		Refresh();
+//	}
+//}
 
 
 void Frame::menuItemNewOnMenuSelection(wxCommandEvent& event) {
@@ -456,7 +500,7 @@ void Frame::menuItemNewOnMenuSelection(wxCommandEvent& event) {
 	}
 	buttons.clear();
 	lastFocusButton = nullptr;
-	propertyGridProperties->Clear();
+	//propertyGridProperties->Clear();
 	sb->Refresh();
 	// todo: list box sync
 }
@@ -478,17 +522,26 @@ void Frame::menuItemOpenOnMenuSelection(wxCommandEvent& event) {
 		data.designWidth = 1280;
 		data.designHeight = 720;
 		data.safeLength = 100;
-		menuItemNewLineOnMenuSelection(event);
+		//menuItemNewLineOnMenuSelection(event);
 	}
 
-	// fill list & select first
-	for (auto&& line : data.lines) {
-		listBoxLines->Insert(line.name, listBoxLines->GetCount());
-	}
-	listBoxLines->Select(0);
+	//// fill list & select first
+	//for (auto&& line : data.lines) {
+	//	listBoxLines->Insert(line.name, listBoxLines->GetCount());
+	//}
+	//listBoxLines->Select(0);
 
-	// sync property grid
-	listBoxLinesOnListBox(event);
+	//// sync property grid
+	//listBoxLinesOnListBox(event);
+
+	gridPoints->SetColFormatBool(1);
+
+	gridPoints->SetColFormatFloat(0, 6, 2);
+	gridPoints->SetColFormatFloat(1, 6, 2);
+	gridPoints->SetColFormatFloat(2, 6, 2);
+	gridPoints->SetColFormatFloat(3, 3, 3);
+	gridPoints->SetColFormatFloat(4, 3, 0);
+	gridPoints->SetCellValue(0, 4, "3.1415");
 }
 void Frame::menuItemSaveOnMenuSelection(wxCommandEvent& event) {
 	xx::Data d;
@@ -498,24 +551,24 @@ void Frame::menuItemSaveOnMenuSelection(wxCommandEvent& event) {
 void Frame::menuItemExitOnMenuSelection(wxCommandEvent& event) {
 	ExitProcess(0);
 }
-void Frame::menuItemNewLineOnMenuSelection(wxCommandEvent& event) {
-	auto&& line = data.lines.emplace_back();
-	line.name = std::string("line_") + std::to_string(++lineAutoId);
-	line.isLoop = false;
-}
-void Frame::menuItemDeleteLineOnMenuSelection(wxCommandEvent& event) {
-	// todo
-}
-void Frame::listBoxLinesOnListBox(wxCommandEvent& event) {
-	// todo
-	//listBoxLines->GetSelection()
-	auto&& name = listBoxLines->GetStringSelection();
-	for (auto&& line : data.lines) {
-		if (line.name == name) {
-			// todo: propery grid
-		}
-	}
-}
+//void Frame::menuItemNewLineOnMenuSelection(wxCommandEvent& event) {
+//	auto&& line = data.lines.emplace_back();
+//	line.name = std::string("line_") + std::to_string(++lineAutoId);
+//	line.isLoop = false;
+//}
+//void Frame::menuItemDeleteLineOnMenuSelection(wxCommandEvent& event) {
+//	// todo
+//}
+//void Frame::listBoxLinesOnListBox(wxCommandEvent& event) {
+//	// todo
+//	//listBoxLines->GetSelection()
+//	auto&& name = listBoxLines->GetStringSelection();
+//	for (auto&& line : data.lines) {
+//		if (line.name == name) {
+//			// todo: propery grid
+//		}
+//	}
+//}
 
 
 
