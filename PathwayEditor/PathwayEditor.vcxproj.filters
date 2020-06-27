@@ -3,6 +3,9 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Pathway_class_lite.cpp" />
+    <ClCompile Include="FrameBase.cpp" />
+    <ClCompile Include="PointButton.cpp" />
+    <ClCompile Include="Frame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xx_data.h" />
@@ -13,6 +16,10 @@
     <ClInclude Include="xx_file.h" />
     <ClInclude Include="fixed_function.hpp" />
     <ClInclude Include="xx_scopeguard.h" />
+    <ClInclude Include="FrameBase.h" />
+    <ClInclude Include="PointButton.h" />
+    <ClInclude Include="Algorithm.hpp" />
+    <ClInclude Include="Frame.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />
