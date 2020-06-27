@@ -41,7 +41,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	gridLines = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 
 	// Grid
-	gridLines->CreateGrid(0, 2);
+	gridLines->CreateGrid(55, 2);
 	gridLines->EnableEditing(true);
 	gridLines->EnableGridLines(true);
 	gridLines->EnableDragGridSize(false);
@@ -71,7 +71,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	gridPoints = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 
 	// Grid
-	gridPoints->CreateGrid(0, 5);
+	gridPoints->CreateGrid(55, 5);
 	gridPoints->EnableEditing(true);
 	gridPoints->EnableGridLines(true);
 	gridPoints->EnableDragGridSize(false);
@@ -119,6 +119,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemExitOnMenuSelection), this, menuItemExit->GetId());
 	this->Connect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
 	gridLines->Connect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
+	gridLines->Connect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridCmdRangeSelect), NULL, this);
 	gridLines->Connect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
 	gridLines->Connect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
 }
@@ -128,6 +129,7 @@ FrameBase::~FrameBase()
 	// Disconnect Events
 	this->Disconnect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
 	gridLines->Disconnect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
+	gridLines->Disconnect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridCmdRangeSelect), NULL, this);
 	gridLines->Disconnect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
 	gridLines->Disconnect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
 

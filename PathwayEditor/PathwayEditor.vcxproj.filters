@@ -20,6 +20,7 @@
     <ClInclude Include="PointButton.h" />
     <ClInclude Include="Algorithm.hpp" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="GridHelpers.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />

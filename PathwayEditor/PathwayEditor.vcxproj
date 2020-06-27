@@ -101,6 +101,7 @@
     <ClInclude Include="fixed_function.hpp" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="FrameBase.h" />
+    <ClInclude Include="GridHelpers.hpp" />
     <ClInclude Include="Pathway_class_lite.h" />
     <ClInclude Include="PointButton.h" />
     <ClInclude Include="xx_data.h" />

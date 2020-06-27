@@ -1,7 +1,5 @@
 #pragma once
 #include <wx/wx.h>
-#include <wx/propgrid/propgrid.h>
-#include <wx/propgrid/advprops.h>
 #include <wx/aui/aui.h>
 #include <wx/grid.h>
 
@@ -22,6 +20,7 @@ protected:
 	virtual void menuItemExitOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void toolNewLineOnToolClicked(wxCommandEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridCellChange(wxGridEvent& event) { event.Skip(); }
+	virtual void gridLinesOnGridCmdRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridSelectCell(wxGridEvent& event) { event.Skip(); }
 

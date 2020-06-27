@@ -3,16 +3,16 @@
 
 struct Frame;
 struct Button : public wxButton {
+	Frame* frame = nullptr;
+	int lineIndex = -1;
+	int pointIndex = -1;
+
 	// for mouse drag
 	wxWindow* parent = nullptr;
 	bool dragging = false;
 	wxPoint lastMP;
 
-	// for logic
-	Pathway::Point pos;
-	Frame* frame = nullptr;
-
-	Button(Frame* const& frame, Pathway::Point const& pos);
+	Button(Frame* const& frame, int const& lineIndex, int const& pointIndex);
 
 	void OnMouseRightDown(wxMouseEvent& event);
 	void OnMouseLeftDown(wxMouseEvent& event);
@@ -23,4 +23,3 @@ struct Button : public wxButton {
 
 	DECLARE_EVENT_TABLE()
 };
-
