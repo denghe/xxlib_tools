@@ -6,19 +6,6 @@ struct Button;
 struct Frame : public FrameBase {
 	std::vector<Button*> buttons;
 
-
-	// 根据设计尺寸和安全距离，计算整个显示区域（正方形）的 直径
-	int designWidth = 1280;
-	int designHeight = 720;
-	int safeLength = 100;
-
-	int lineWidth = 5;
-
-	int radius = sqrt((designWidth / 2) * (designWidth / 2) + (designHeight / 2) * (designHeight / 2)) + safeLength;
-
-	int centerXY = radius + safeLength;
-	int rectWH = (radius + safeLength) * 2;
-
 	std::unique_ptr<wxBitmap> bmp;
 	void DrawBackground();
 
@@ -26,13 +13,20 @@ struct Frame : public FrameBase {
 	void sbOnLeftDown(wxMouseEvent& event);
 	void sbOnPaint(wxPaintEvent& event);
 
-	int lineAutoId = 0;	// 放到 data?
+	// 中途用到的一些尺寸变量
+	int lineWidth = 0, radius = 0, centerXY = 0, rectWH = 0;
+
+	int lineAutoId = 0;
 	Pathway::Data data;
 	std::string filePath = "data";	// 默认存档为工作目录的 data 文件
 
-	// 当前线下标	// todo: 和 gridLines select 同步?
-	int lineIndex = -1;
+	// 当前线下标
+	int lineIndex = 0;
+
 	// todo: wxFileDialog 
+
+	// 选线后重绘所有点
+	void DrawPoints();
 
 
 	Frame(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 706), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
@@ -45,7 +39,10 @@ struct Frame : public FrameBase {
 
 	void toolNewLineOnToolClicked(wxCommandEvent& event) override;
 
-	void gridLinesOnGridCellChange(wxGridEvent& event) override;
 	void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) override;
+	void gridLinesOnGridCellChange(wxGridEvent& event) override;
 	void gridLinesOnGridSelectCell(wxGridEvent& event) override;
+
+	void gridPointsOnGridCellChange(wxGridEvent& event) override;
+	void gridPointsOnGridRangeSelect(wxGridRangeSelectEvent& event) override;
 };

@@ -379,6 +379,8 @@
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
+                <event name="OnGridCellChange">gridPointsOnGridCellChange</event>
+                <event name="OnGridRangeSelect">gridPointsOnGridRangeSelect</event>
             </object>
             <object class="wxScrolledWindow" expanded="0">
                 <property name="BottomDockable">0</property>

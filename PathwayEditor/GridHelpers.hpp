@@ -5,19 +5,22 @@
 namespace GridHelpers {
 
 	inline void Clear(wxGrid* const& g) {
-		g->DeleteRows(0, g->GetNumberRows());
-		//g->DeselectRow??
+		if (g->GetNumberRows()) {
+			g->DeleteRows(0, g->GetNumberRows());
+		}
 	}
 
 	inline void Init(wxGrid* const& gridLines, wxGrid* const& gridPoints) {
 		gridLines->SetColFormatBool(1);
 		Clear(gridLines);
+		gridLines->SetSelectionMode(wxGrid::wxGridSelectRows);
 
 		gridPoints->SetColFormatFloat(0, 4, 0);
 		gridPoints->SetColFormatFloat(1, 4, 0);
 		gridPoints->SetColFormatFloat(2, 4, 0);
 		gridPoints->SetColFormatFloat(3, 3, 3);
 		gridPoints->SetColFormatFloat(4, 3, 0);
+		gridPoints->SetSelectionMode(wxGrid::wxGridSelectRows);
 		Clear(gridPoints);
 	}
 

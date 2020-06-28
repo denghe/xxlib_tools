@@ -26,15 +26,15 @@ Button::Button(Frame* const& frame, int const& lineIndex, int const& pointIndex)
 }
 
 void Button::OnMouseRightDown(wxMouseEvent& event) {
-	//auto&& fb = frame->lastFocusButton;
-	//if (fb) {
-	//	fb->SetBackgroundColour(*wxBLUE);
-	//}
-	//fb = this;
-	//SetBackgroundColour(*wxRED);
-
-	// todo: sync grid's select row?
-	frame->gridPoints->SelectRow(pointIndex);
+	auto&& ps = frame->gridPoints;
+	if (ps->IsInSelection(pointIndex, 0)) {
+		ps->DeselectRow(pointIndex);
+		SetBackgroundColour(*wxBLUE);
+	}
+	else {
+		ps->SelectRow(pointIndex, true);
+		SetBackgroundColour(*wxRED);
+	}
 }
 
 void Button::OnMouseLeftDown(wxMouseEvent& event) {
@@ -51,12 +51,6 @@ void Button::OnMouseLeftUp(wxMouseEvent& event) {
 }
 
 void Button::OnMouseMiddleDown(wxMouseEvent& event) {
-	//if (frame->lastFocusButton == this) {
-	//	frame->lastFocusButton = nullptr;
-	//	//pg->Clear();
-	//	// todo: sync grid
-	//}
-
 	// 定位到点容器
 	auto&& ps = frame->data.lines[lineIndex].points;
 	// 删点
@@ -72,21 +66,35 @@ void Button::OnMouseMiddleDown(wxMouseEvent& event) {
 	parent->RemoveChild(this);
 	auto p = parent;
 	this->Destroy();
-	
+	// 画线
 	p->Refresh();
 }
 
 void Button::OnMouseMove(wxMouseEvent& event) {
 	if (dragging) {
+		// 结合当前鼠标坐标，以及 mouse down 时压下的位置，算出新的坐标
 		auto&& currPos = wxGetMousePosition();
 		auto&& tarPos = currPos - lastMP;
 		auto p = parent->ScreenToClient(tarPos);
-		Move(p);
-		auto&& point = frame->data.lines[lineIndex].points[pointIndex];
-		point.x = p.x + 7;
-		point.y = p.y + 7;
+		// 与当前旧坐标相减，得到 x, y 移动差值
+		auto&& op = GetPosition();
+		auto&& diff = p - op;
+		
+		// 获得选中行集合。如果当前点没被选中，就临时加到集合
+		auto&& ints = frame->gridPoints->GetSelectedRows();
+		if (std::find(ints.begin(), ints.end(), pointIndex) == ints.end()) {
+			ints.push_back(pointIndex);
+		}
+		// 同时移动集合里的
+		auto&& ps = frame->data.lines[frame->lineIndex].points;
+		for (auto&& i : ints) {
+			auto&& b = frame->buttons[i];
+			b->Move(b->GetPosition() + diff);
+			ps[i].x += diff.x;
+			ps[i].y += diff.y;
+			GridHelpers::Update(frame->gridPoints, ps[i], i);
+		}
 		parent->Refresh();
-		GridHelpers::Update(frame->gridPoints, point, pointIndex);
 	}
 }
 

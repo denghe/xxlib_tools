@@ -20,9 +20,10 @@ protected:
 	virtual void menuItemExitOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void toolNewLineOnToolClicked(wxCommandEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridCellChange(wxGridEvent& event) { event.Skip(); }
-	virtual void gridLinesOnGridCmdRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridSelectCell(wxGridEvent& event) { event.Skip(); }
+	virtual void gridPointsOnGridCellChange(wxGridEvent& event) { event.Skip(); }
+	virtual void gridPointsOnGridRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 
 
 public:
