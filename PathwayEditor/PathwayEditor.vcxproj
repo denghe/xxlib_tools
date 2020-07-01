@@ -90,6 +90,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DialogGroup.cpp" />
+    <ClCompile Include="DialogNewProject.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="FrameBase.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -98,6 +100,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.hpp" />
+    <ClInclude Include="DialogGroup.h" />
+    <ClInclude Include="DialogNewProject.h" />
     <ClInclude Include="fixed_function.hpp" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="FrameBase.h" />

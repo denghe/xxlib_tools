@@ -6,6 +6,8 @@
     <ClCompile Include="FrameBase.cpp" />
     <ClCompile Include="PointButton.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="DialogNewProject.cpp" />
+    <ClCompile Include="DialogGroup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xx_data.h" />
@@ -21,6 +23,8 @@
     <ClInclude Include="Algorithm.hpp" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GridHelpers.hpp" />
+    <ClInclude Include="DialogGroup.h" />
+    <ClInclude Include="DialogNewProject.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />
