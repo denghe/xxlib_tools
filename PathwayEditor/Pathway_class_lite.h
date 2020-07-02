@@ -3,7 +3,7 @@
 #include "Pathway_class_lite.h.inc"  // user create it for extend include files
 namespace Pathway {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<fb6fe78026432ba0b37b6401c2f6eb1c>*#";
+		inline static const std::string value = "#*MD5<9d3f0d884519d41847ef16232e7da4b2>*#";
     };
 
     // 点
@@ -42,8 +42,8 @@ namespace Pathway {
     struct Group {
         // 唯一名称( 编辑时显示用. 也可用于查找 )
         std::string name;
-        // 组成员：线名称集合
-        std::vector<std::string> lineNames;
+        // 组成员：线下标集合
+        std::vector<int32_t> lineIndexs;
 
         Group() = default;
         Group(Group const&) = default;

@@ -8,6 +8,7 @@
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="DialogNewProject.cpp" />
     <ClCompile Include="DialogGroup.cpp" />
+    <ClCompile Include="MyDialogGroup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xx_data.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="GridHelpers.hpp" />
     <ClInclude Include="DialogGroup.h" />
     <ClInclude Include="DialogNewProject.h" />
+    <ClInclude Include="MyDialogGroup.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pathway.cs" />

@@ -220,7 +220,7 @@
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
                     <property name="tooltip"></property>
-                    <event name="OnToolClicked">toolNewLineOnToolClicked</event>
+                    <event name="OnToolClicked">toolGroupManageOnToolClicked</event>
                 </object>
             </object>
             <object class="wxGrid" expanded="1">

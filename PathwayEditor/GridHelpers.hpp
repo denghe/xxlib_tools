@@ -10,6 +10,59 @@ namespace GridHelpers {
 		}
 	}
 
+
+	inline void InitGroupLines(wxGrid* const& gridGroups, wxGrid* const& gridLines) {
+		Clear(gridGroups);
+		gridGroups->SetSelectionMode(wxGrid::wxGridSelectRows);
+
+		gridLines->SetColFormatBool(0);
+		Clear(gridLines);
+		gridLines->SetSelectionMode(wxGrid::wxGridSelectRows);
+	}
+
+	inline void Update(wxGrid* const& g, Pathway::Group& group, int i) {
+		assert(i < g->GetNumberRows());
+		g->SetCellValue({ i, 0 }, group.name);
+	}
+
+	inline void Update(wxGrid* const& g, Pathway::Line& line, bool selected, int i) {
+		assert(i < g->GetNumberRows());
+		g->SetCellValue({ i, 0 }, selected ? "1" : "");
+		g->SetCellValue({ i, 1 }, line.name);
+	}
+
+	inline void Insert(wxGrid* const& g, Pathway::Group& group, int i = -1) {
+		if (i == -1) {
+			i = g->GetNumberRows();
+		}
+		g->AppendRows();
+		Update(g, group, i);
+	}
+
+	inline void Insert(wxGrid* const& g, Pathway::Line& line, bool selected, int i) {
+		if (i == -1) {
+			i = g->GetNumberRows();
+		}
+		g->AppendRows();
+		Update(g, line, selected, i);
+	}
+
+	inline void FullSync(wxGrid* const& g, std::vector<Pathway::Group>& groups) {
+		Clear(g);
+		for (auto&& group : groups) {
+			Insert(g, group);
+		}
+	}
+
+	inline void FullSync(wxGrid* const& g, Pathway::Group const& group, std::vector<Pathway::Line>& lines) {
+		Clear(g);
+		for(int i=0;i<lines.size();++i) {
+			Insert(g, lines[i], std::find(group.lineIndexs.begin(), group.lineIndexs.end(), i) != group.lineIndexs.end(), -1);
+		}
+	}
+
+
+
 	inline void Init(wxGrid* const& gridLines, wxGrid* const& gridPoints) {
 		gridLines->SetColFormatBool(1);
 		Clear(gridLines);
@@ -23,6 +76,8 @@ namespace GridHelpers {
 		gridPoints->SetSelectionMode(wxGrid::wxGridSelectRows);
 		Clear(gridPoints);
 	}
+
+
 
 	inline void Update(wxGrid* const& g, Pathway::Line& line, int i) {
 		assert(i < g->GetNumberRows());

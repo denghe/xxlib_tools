@@ -34,6 +34,8 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	toolBarRoot = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORZ_TEXT);
 	toolNewLine = toolBarRoot->AddTool(wxID_ANY, wxT("New Line"), wxBitmap(wxT("icon_add.bmp"), wxBITMAP_TYPE_ANY), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL);
 
+	toolGroupManage = toolBarRoot->AddTool(wxID_ANY, wxT("Group Manage"), wxBitmap(wxT("icon_add.bmp"), wxBITMAP_TYPE_ANY), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString, NULL);
+
 	toolBarRoot->Realize();
 	m_mgr.AddPane(toolBarRoot, wxAuiPaneInfo().Left().CaptionVisible(false).CloseButton(false).PaneBorder(false).Movable(false).Dock().Fixed().BottomDockable(false).TopDockable(false).LeftDockable(false).RightDockable(false).Floatable(false));
 
@@ -118,6 +120,7 @@ FrameBase::FrameBase(wxWindow* parent, wxWindowID id, const wxString& title, con
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemSaveOnMenuSelection), this, menuItemSave->GetId());
 	menuFile->Bind(wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FrameBase::menuItemExitOnMenuSelection), this, menuItemExit->GetId());
 	this->Connect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
+	this->Connect(toolGroupManage->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolGroupManageOnToolClicked));
 	gridLines->Connect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
 	gridLines->Connect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
 	gridLines->Connect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
@@ -129,6 +132,7 @@ FrameBase::~FrameBase()
 {
 	// Disconnect Events
 	this->Disconnect(toolNewLine->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolNewLineOnToolClicked));
+	this->Disconnect(toolGroupManage->GetId(), wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(FrameBase::toolGroupManageOnToolClicked));
 	gridLines->Disconnect(wxEVT_GRID_CELL_CHANGED, wxGridEventHandler(FrameBase::gridLinesOnGridCellChange), NULL, this);
 	gridLines->Disconnect(wxEVT_GRID_RANGE_SELECT, wxGridRangeSelectEventHandler(FrameBase::gridLinesOnGridRangeSelect), NULL, this);
 	gridLines->Disconnect(wxEVT_GRID_SELECT_CELL, wxGridEventHandler(FrameBase::gridLinesOnGridSelectCell), NULL, this);
