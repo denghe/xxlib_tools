@@ -30,8 +30,8 @@ struct Group {
     [Desc("唯一名称( 编辑时显示用. 也可用于查找 )")]
     string name;
 
-    [Desc("组成员：线名称集合")]
-    List<string> lineNames;
+    [Desc("组成员：线下标集合")]
+    List<int> lineIndexs;
 }
 
 [Desc("所有数据")]

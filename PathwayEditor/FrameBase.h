@@ -12,6 +12,7 @@ protected:
 	wxMenu* menuFile;
 	wxToolBar* toolBarRoot;
 	wxToolBarToolBase* toolNewLine;
+	wxToolBarToolBase* toolGroupManage;
 
 	// Virtual event handlers, overide them in your derived class
 	virtual void menuItemNewOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
@@ -19,6 +20,7 @@ protected:
 	virtual void menuItemSaveOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void menuItemExitOnMenuSelection(wxCommandEvent& event) { event.Skip(); }
 	virtual void toolNewLineOnToolClicked(wxCommandEvent& event) { event.Skip(); }
+	virtual void toolGroupManageOnToolClicked(wxCommandEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridCellChange(wxGridEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) { event.Skip(); }
 	virtual void gridLinesOnGridSelectCell(wxGridEvent& event) { event.Skip(); }

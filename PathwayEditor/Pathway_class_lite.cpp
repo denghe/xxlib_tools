@@ -26,7 +26,7 @@ namespace Pathway {
     }
     Group& Group::operator=(Group&& o) {
         std::swap(this->name, o.name);
-        std::swap(this->lineNames, o.lineNames);
+        std::swap(this->lineIndexs, o.lineIndexs);
         return *this;
     }
     Data::Data(Data&& o) {
@@ -70,11 +70,11 @@ namespace xx {
     }
 	void DataFuncs<Pathway::Group, void>::Write(Data& d, Pathway::Group const& in) noexcept {
         ::xx::Write(d, in.name);
-        ::xx::Write(d, in.lineNames);
+        ::xx::Write(d, in.lineIndexs);
     }
 	int DataFuncs<Pathway::Group, void>::Read(DataReader& d, Pathway::Group& out) noexcept {
         if (int r = d.Read(out.name)) return r;
-        if (int r = d.Read(out.lineNames)) return r;
+        if (int r = d.Read(out.lineIndexs)) return r;
         return 0;
     }
 	void DataFuncs<Pathway::Data, void>::Write(Data& d, Pathway::Data const& in) noexcept {

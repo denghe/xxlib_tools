@@ -90,18 +90,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DialogGroup.cpp" />
+    <ClCompile Include="DialogNewProject.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="FrameBase.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MyDialogGroup.cpp" />
     <ClCompile Include="Pathway_class_lite.cpp" />
     <ClCompile Include="PointButton.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.hpp" />
+    <ClInclude Include="DialogGroup.h" />
+    <ClInclude Include="DialogNewProject.h" />
     <ClInclude Include="fixed_function.hpp" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="FrameBase.h" />
     <ClInclude Include="GridHelpers.hpp" />
+    <ClInclude Include="MyDialogGroup.h" />
     <ClInclude Include="Pathway_class_lite.h" />
     <ClInclude Include="PointButton.h" />
     <ClInclude Include="xx_data.h" />

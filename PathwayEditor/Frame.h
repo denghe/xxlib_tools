@@ -38,6 +38,7 @@ struct Frame : public FrameBase {
 	void menuItemExitOnMenuSelection(wxCommandEvent& event) override;
 
 	void toolNewLineOnToolClicked(wxCommandEvent& event) override;
+	void toolGroupManageOnToolClicked(wxCommandEvent& event) override;
 
 	void gridLinesOnGridRangeSelect(wxGridRangeSelectEvent& event) override;
 	void gridLinesOnGridCellChange(wxGridEvent& event) override;

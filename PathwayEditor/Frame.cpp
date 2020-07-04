@@ -3,6 +3,8 @@
 #include "Algorithm.hpp"
 #include "xx_file.h"
 #include "GridHelpers.hpp"
+//#include "MyDialogNewProject.h"
+#include "MyDialogGroup.h"
 
 void Frame::DrawBackground() {
 	// 创建背景图并放入 scrolledWindowPoints
@@ -164,6 +166,13 @@ LabRetry:
 	GridHelpers::Insert(gridLines, data.lines[idx], idx);
 	gridLines->SelectRow(idx, false);
 	DrawPoints();
+}
+
+void Frame::toolGroupManageOnToolClicked(wxCommandEvent& event) {
+	auto&& d = new MyDialogGroup(this);
+	auto&& r = d->ShowModal();
+	(void)r;
+	d->Destroy();
 }
 
 void Frame::menuItemNewOnMenuSelection(wxCommandEvent& event) {
