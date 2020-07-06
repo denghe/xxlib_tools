@@ -10,12 +10,10 @@ class FishBase {
 	long coin2;
 	// todo: more props
 }
-
 [Struct]
 class ActionBase {
 	string actionName;
 }
-
 [Struct]
 class FrameBase {
 	float moveDistance;
@@ -24,44 +22,53 @@ class FrameBase {
 
 
 
-[Struct]
-class Fish_2D : FishBase {
-	List<Fish_2D_Action> actions;
-}
 
-[Struct]
-class Fish_2D_Action : ActionBase {
-	List<Fish_2D_Frame> frames;
-}
 
 [Struct]
 class Fish_2D_Frame : FrameBase {
 	string spriteFrameName;
 	string plistFileName;
 }
+[Struct]
+class Fish_2D_Action : ActionBase {
+	List<Fish_2D_Frame> frames;
+}
+[Struct]
+class Fish_2D : FishBase {
+	List<Fish_2D_Action> actions;
+}
 
 
 
 
 
+
+[Struct]
+class Fish_Spine_Frame : FrameBase {
+}
+[Struct]
+class Fish_Spine_Action : ActionBase {
+	List<Fish_Spine_Frame> frames;
+}
 [Struct]
 class Fish_Spine : FishBase {
 	string atlasFileName;
 	List<Fish_Spine_Action> actions;
 }
 
+
+
+
+
+
+
 [Struct]
-class Fish_Spine_Action : ActionBase {
-	List<Fish_Spine_Frame> frames;
+class Fish_3D_Frame : FrameBase {
 }
-
 [Struct]
-class Fish_Spine_Frame : FrameBase {
+class Fish_3D_Action : ActionBase {
+	List<Fish_3D_Frame> frames;
 }
-
-
-
-
 [Struct]
 class Fish_3D : FishBase {
 	string c3bFileName;
@@ -72,23 +79,12 @@ class Fish_3D : FishBase {
 	List<Fish_3D_Action> actions;
 }
 
-[Struct]
-class Fish_3D_Action : ActionBase {
-	List<Fish_3D_Frame> frames;
-}
-
-[Struct]
-class Fish_3D_Frame : FrameBase {
-}
 
 
 
 
 
-[Struct]
-class Fish_Combine : FishBase {
-	List<Fish_Combine_Child> childs;
-}
+
 
 [Struct]
 class Fish_Combine_Child {
@@ -101,6 +97,17 @@ class Fish_Combine_Child {
 	float baseAngle;
 	float baseScale;
 }
+[Struct]
+class Fish_Combine_Action : ActionBase {
+}
+[Struct]
+class Fish_Combine : FishBase {
+	List<Fish_Combine_Child> childs;
+	List<Fish_Combine_Action> actions;
+}
+
+
+
 
 
 

@@ -8,7 +8,7 @@
 cocos2d::Label* HelloWorld::CreateLabel(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::Node* const& container) {
 	auto l = cocos2d::Label::createWithSystemFont(txt, "", fontSize);
 	if (!l) return l;
-	l->setAnchorPoint({ 0, 1 });
+	l->setAnchorPoint({ 0, 0.5 });
 	l->setPosition(pos);
 	if (container) {
 		container->addChild(l);
@@ -19,9 +19,9 @@ cocos2d::Label* HelloWorld::CreateLabel(cocos2d::Vec2 const& pos, std::string co
 cocos2d::ui::Button* HelloWorld::CreateTextButton(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::ccMenuCallback&& callback, cocos2d::Node* const& container) {
 	auto b = cocos2d::ui::Button::create();
 	if (!b) return b;
-	b->setAnchorPoint({ 0, 1 });
+	b->setAnchorPoint({ 0, 0.5 });
 	b->setPosition(pos);
-	b->setTitleColor({ 122,192,255 });
+	b->setTitleColor(blue);
 	b->setTitleText(txt);
 	b->setTitleFontSize(fontSize);
 	b->setZoomScale(0.3f);
@@ -37,7 +37,7 @@ cocos2d::ui::EditBox* HelloWorld::CreateEditBox(cocos2d::Vec2 const& pos, cocos2
 	auto et = cocos2d::ui::EditBox::create(siz, "green_edit.png");
 	et->setDelegate(this);
 	et->setContentSize(siz);
-	et->setAnchorPoint({ 0, 1 });
+	et->setAnchorPoint({ 0, 0.5 });
 	et->setPosition(pos);
 	et->setInputMode(cocos2d::ui::EditBox::InputMode::SINGLE_LINE);
 	et->setFontSize(fontSize);
@@ -153,158 +153,8 @@ cocos2d::ui::CheckBox* HelloWorld::CreateCheckBox(cocos2d::Vec2 const& pos, bool
 }
 
 
-template<typename T>
-T* HelloWorld::HorizontalLeft(cocos2d::Vec2& offset, float& maxHeight, T* o) {
-	auto&& scaleX = o->getScaleX();
-	auto&& scaleY = o->getScaleY();
-	auto cs = o->getContentSize();
-	cs.width *= scaleX;
-	cs.height *= scaleY;
-	o->setPosition(offset);
-	o->setAnchorPoint({ 0, 1 });
-	offset.x += cs.width;
-	if (cs.height > maxHeight) {
-		maxHeight = cs.height;
-	}
-	return o;
-}
-
-template<typename T>
-T* HelloWorld::HorizontalRight(cocos2d::Vec2& offset, float& maxHeight, T* o) {
-	auto&& scaleX = o->getScaleX();
-	auto&& scaleY = o->getScaleY();
-	auto cs = o->getContentSize();
-	cs.width *= scaleX;
-	cs.height *= scaleY;
-	o->setPosition(offset);
-	o->setAnchorPoint({ 1, 0 });
-	offset.x -= cs.width;
-	if (cs.height > maxHeight) {
-		maxHeight = cs.height;
-	}
-	return o;
-}
-
-template<typename T>
-T* HelloWorld::VerticalTop(cocos2d::Vec2& offset, T* o) {
-	auto&& scaleX = o->getScaleX();
-	auto&& scaleY = o->getScaleY();
-	auto cs = o->getContentSize();
-	cs.width *= scaleX;
-	cs.height *= scaleY;
-	o->setPosition(offset);
-	o->setAnchorPoint({ 0, 1 });
-	offset.y -= cs.height;
-	return o;
-}
-
-
-
-
 #pragma endregion
 
-
-
-void HelloWorld::DrawFishMenu_SpriteFrame() {
-	this->removeAllChildren();
-	editBoxs.clear();
-	editBoxMap.clear();
-
-	// 背景
-	CreateBG(this);
-
-	// 定位到屏幕左上方的位置
-	cocos2d::Vec2 p(defaultMargin, H - defaultMargin);
-
-	// 最上方 label + editbox 要求输入 鱼名
-	float mh = 0;
-	HorizontalLeft(p, mh, CreateLabel({ 0,0 }, "fish name: ", defaultFontSize, this));
-	auto et = CreateEditBox({ 0, 0 }, { 300, defaultFontSize + 6 }, "", "", defaultFontSize, this);
-	HorizontalLeft(p, mh, et);
-	editBoxs.push_back(et);		// 放在下标 0
-
-
-	// todo: 别的鱼的基础配置显示在此, 诸如倍率, 啥啥. 兼容 edit mode
-
-
-	// 第二排显示 [new action] 按钮
-	p.x = defaultMargin;
-	p.y -= mh;
-	mh = 0;
-	HorizontalLeft(p, mh, CreateTextButton({ 0,0 }, "[New Action]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this));
-
-
-	// 算 sv 显示坐标 与 体积
-	p.x = defaultMargin;
-	p.y -= mh + defaultMargin;
-	auto svPos = p;
-	cocos2d::Size svSize(W - defaultMargin * 2, p.y);
-
-	// 最下方 提交并退出 和 取消 按钮
-	mh = 0;
-	p.x = W - defaultMargin;
-	p.y = defaultMargin;
-	HorizontalRight(p, mh, CreateTextButton({ 0, 0 }, "[Save & Quit]", defaultFontSize, [this](cocos2d::Ref* ref) { this->SaveFishMenu_SpriteFrame(); }, this));
-	p.x -= defaultMargin * 2;
-	HorizontalRight(p, mh, CreateTextButton({ 0,0 }, "[Cancel]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawWelcome(); }, this));
-
-	// 修正 sv 体积
-	svSize.height -= mh + defaultMargin;
-
-	// 每条 item 长相：
-	/*
-+---------+ action name: xxxxxxxxxx
-|         | total num of physics frames:
-| preview | total num of logic frames:
-|         | total distance: xxxxxxx
-+---------+ [delete action]
-*/
-// item 高度
-	auto itemHeight = 30.0f * 5;
-
-	// 内容总高度
-	auto svContentHeight = (itemHeight + defaultMargin) * names.size() - defaultMargin;
-	if (svContentHeight < svSize.height) {
-		svContentHeight = svSize.height;
-	}
-
-	// 根据 裁切size, 内容size 创建 sv
-	auto&& sv = CreateSV(svPos, svSize, { svSize.width, svContentHeight }, this);
-
-	//// 向 sv 填充 items
-	//for (int i = 0; i < names.size(); ++i) {
-	//	auto&& frameName = names[i];
-
-	//	// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
-	//	cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + defaultMargin) * i);
-
-	//	// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
-	//	auto spr = CreateSpriteFrame({ pos.x + defaultMargin + 45,  pos.y - 45 }, { 90, 90 }, frameName, sv);
-
-	//	auto txt0 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 15 }, std::string(" sprite frame name: "), defaultFontSize, sv);
-	//	txt0->setAnchorPoint({ 0, 0.5 });
-	//	auto txt00 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin + txt0->getContentSize().width, pos.y - 15 }, frameName, defaultFontSize, sv);
-	//	txt00->setAnchorPoint({ 0, 0.5 });
-	//	txt00->setColor({ 255, 127, 39 });
-
-	//	auto txt1 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 45 }, "distance( string ): ", defaultFontSize, sv);
-	//	txt1->setAnchorPoint({ 0, 0.5 });
-	//	auto e1 = CreateEditBox({ pos.x + defaultMargin + 90 + defaultMargin + txt1->getContentSize().width,  pos.y - 45 }, { 100, defaultFontSize + 6 }, "1.2", "", defaultFontSize, sv);
-	//	e1->setInputMode(cocos2d::ui::EditBox::InputMode::DECIMAL);
-	//	e1->setAnchorPoint({ 0, 0.5 });
-	//	editBoxMap[frameName + "*d"] = e1;
-
-	//	auto txt2 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 75 }, "frame count( int ): ", defaultFontSize, sv);
-	//	txt2->setAnchorPoint({ 0, 0.5 });
-	//	auto e2 = CreateEditBox({ pos.x + defaultMargin + 90 + defaultMargin + txt2->getContentSize().width,  pos.y - 75 }, { 100, defaultFontSize + 6 }, "1", "", defaultFontSize, sv);
-	//	e2->setInputMode(cocos2d::ui::EditBox::InputMode::NUMERIC);
-	//	e2->setAnchorPoint({ 0, 0.5 });
-	//	editBoxMap[frameName + "*c"] = e2;
-	//}
-}
-void HelloWorld::SaveFishMenu_SpriteFrame() {
-
-}
 
 
 void HelloWorld::DrawSpriteFrameConfig() {
@@ -326,39 +176,40 @@ void HelloWorld::DrawSpriteFrameConfig() {
 	// 背景
 	CreateBG(this);
 
+	// 界定行高
+	auto lineHeight = fontSize * 1.4f;
+
 	// 定位到屏幕左上方的位置
-	cocos2d::Vec2 p(defaultMargin, H - defaultMargin);
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 
 	// 最上方 label + editbox 要求输入 动作名
-	float mh = 0;
-	HorizontalLeft(p, mh, CreateLabel({ 0,0 }, "action name: ", defaultFontSize, this));
-	auto et = CreateEditBox({ 0, 0 }, { 300, defaultFontSize + 6 }, "", "", defaultFontSize, this);
-	HorizontalLeft(p, mh, et);
-	editBoxs.push_back(et);		// 放在下标 0
+	auto lblActionName = CreateLabel(p, "action name: ", fontSize, this);
 
+	p.x += lblActionName->getContentSize().width;
+	auto ebActionName = CreateEditBox(p, { lineHeight * 6, lineHeight }, "", "", fontSize, this);
 
-	// 算 sv 显示坐标 与 体积
-	p.x = defaultMargin;
-	p.y -= mh + defaultMargin;
-	auto svPos = p;
-	cocos2d::Size svSize(W - defaultMargin * 2, p.y);
+	// 放在下标 0
+	editBoxs.push_back(ebActionName);
 
 	// 最下方步骤按钮
-	mh = 0;
-	p.x = W - defaultMargin;
-	p.y = defaultMargin;
-	HorizontalRight(p, mh, CreateTextButton({ 0, 0 }, "[Next]", defaultFontSize, [this](cocos2d::Ref* ref) { this->SaveSpriteFrameConfig(); }, this));
-	p.x -= defaultMargin * 2;
-	HorizontalRight(p, mh, CreateTextButton({ 0,0 }, "[Cancel]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this));
+	p.x = W - margin;
+	p.y = margin;
+	auto txtNext = CreateTextButton(p, "[Next]", fontSize, [this](cocos2d::Ref* ref) { this->SaveSpriteFrameConfig(); }, this);
+	txtNext->setAnchorPoint({ 1, 0.5 });
 
-	// 修正 sv 体积
-	svSize.height -= mh + defaultMargin;
+	p.x -= txtNext->getContentSize().width + margin * 2;
+	auto txtCancel = CreateTextButton(p, "[Cancel]", fontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this);
+	txtCancel->setAnchorPoint({ 1, 0.5 });
+
+	// 算 sv 显示坐标 与 体积
+	p.x = margin;
+	p.y = H - (lineHeight + margin);
+	cocos2d::Size svSize(W - margin * 2, H - (lineHeight + margin) * 2);
 
 	// 排序( 如果含有数字，以其中的数字部分大小来排 )
 	std::sort(names.begin(), names.end(), [](std::string const& a, std::string const& b)->bool {
 		return xx::InnerNumberToFixed(a) < xx::InnerNumberToFixed(b);
 		});
-
 
 	// 每条 item 长相：
 	/*
@@ -367,45 +218,52 @@ void HelloWorld::DrawSpriteFrameConfig() {
 +-----+ frame count:
 */
 // item 高度
-	auto itemHeight = 90.0f;
+	const auto itemHeight = lineHeight * 3;
 
 	// 内容总高度
-	auto svContentHeight = (itemHeight + defaultMargin) * names.size() - defaultMargin;
+	auto svContentHeight = (itemHeight + margin) * names.size() - margin;
 	if (svContentHeight < svSize.height) {
 		svContentHeight = svSize.height;
 	}
 
 	// 根据 裁切size, 内容size 创建 sv
-	auto&& sv = CreateSV(svPos, svSize, { svSize.width, svContentHeight }, this);
+	auto&& sv = CreateSV(p, svSize, { svSize.width, svContentHeight }, this);
 
 	// 向 sv 填充 items
-	for (int i = 0; i < names.size(); ++i) {
+	// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
+	for (size_t i = 0; i < names.size(); ++i) {
 		auto&& frameName = names[i];
 
 		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
-		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + defaultMargin) * i);
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
 
-		// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
-		auto spr = CreateSpriteFrame({ pos.x + defaultMargin + 45,  pos.y - 45 }, { 90, 90 }, frameName, sv);
+		p.x = pos.x + margin + itemHeight / 2;
+		p.y = pos.y - itemHeight / 2;
+		auto spr = CreateSpriteFrame(p, { itemHeight, itemHeight }, frameName, sv);
 
-		auto txt0 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 15 }, std::string(" sprite frame name: "), defaultFontSize, sv);
-		txt0->setAnchorPoint({ 0, 0.5 });
-		auto txt00 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin + txt0->getContentSize().width, pos.y - 15 }, frameName, defaultFontSize, sv);
-		txt00->setAnchorPoint({ 0, 0.5 });
-		txt00->setColor({ 255, 127, 39 });
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y = pos.y - lineHeight / 2;
+		auto txt0 = CreateLabel(p, std::string(" sprite frame name: "), fontSize, sv);
+		p.x += txt0->getContentSize().width;
+		auto txt00 = CreateLabel(p, frameName, fontSize, sv);
+		txt00->setColor(yellow);
 
-		auto txt1 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 45 }, "distance( string ): ", defaultFontSize, sv);
-		txt1->setAnchorPoint({ 0, 0.5 });
-		auto e1 = CreateEditBox({ pos.x + defaultMargin + 90 + defaultMargin + txt1->getContentSize().width,  pos.y - 45 }, { 100, defaultFontSize + 6 }, "1.2", "", defaultFontSize, sv);
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto txt1 = CreateLabel(p, "distance( string ): ", fontSize, sv);
+
+		p.x += txt1->getContentSize().width;
+		auto e1 = CreateEditBox(p, { lineHeight * 3, lineHeight }, "1.2", "", fontSize, sv);
 		e1->setInputMode(cocos2d::ui::EditBox::InputMode::DECIMAL);
-		e1->setAnchorPoint({ 0, 0.5 });
 		editBoxMap[frameName + "*d"] = e1;
 
-		auto txt2 = CreateLabel({ pos.x + defaultMargin + 90 + defaultMargin,  pos.y - 75 }, "frame count( int ): ", defaultFontSize, sv);
-		txt2->setAnchorPoint({ 0, 0.5 });
-		auto e2 = CreateEditBox({ pos.x + defaultMargin + 90 + defaultMargin + txt2->getContentSize().width,  pos.y - 75 }, { 100, defaultFontSize + 6 }, "1", "", defaultFontSize, sv);
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto txt2 = CreateLabel(p, "frame count( int ): ", fontSize, sv);
+
+		p.x += txt2->getContentSize().width;
+		auto e2 = CreateEditBox(p, { lineHeight * 3, lineHeight }, "1", "", fontSize, sv);
 		e2->setInputMode(cocos2d::ui::EditBox::InputMode::NUMERIC);
-		e2->setAnchorPoint({ 0, 0.5 });
 		editBoxMap[frameName + "*c"] = e2;
 	}
 }
@@ -434,31 +292,25 @@ void HelloWorld::DrawSpriteFrameChoose() {
 
 	// 背景
 	CreateBG(this);
-	float mh = 0;
+
+	// 行高
+	float lineHeight = fontSize * 1.4f;
 
 	// 定位到屏幕左上方的位置
-	cocos2d::Vec2 p(defaultMargin, H - defaultMargin);
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 
 	// 最上方说明文字
-	mh = 0;
-	HorizontalLeft(p, mh, CreateLabel({ 0,0 }, "please multi select every sprite frame:", defaultFontSize, this));
-
-	// 算 sv 显示坐标 与 体积
-	p.x = defaultMargin;
-	p.y -= mh + defaultMargin;
-	auto svPos = p;
-	cocos2d::Size svSize(W - defaultMargin * 2, p.y);
+	CreateLabel(p, "please multi select every sprite frame:", fontSize, this);
 
 	// 最下方步骤按钮
-	mh = 0;
-	p.x = W - defaultMargin;
-	p.y = defaultMargin;
-	HorizontalRight(p, mh, CreateTextButton({ 0, 0 }, "[Next]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawSpriteFrameConfig(); }, this));
-	p.x -= defaultMargin * 2;
-	HorizontalRight(p, mh, CreateTextButton({ 0,0 }, "[Cancel]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this));
+	p.x = W - margin;
+	p.y = lineHeight / 2;
+	auto bNext = CreateTextButton(p, "[Next]", fontSize, [this](cocos2d::Ref* ref) { this->DrawSpriteFrameConfig(); }, this);
+	bNext->setAnchorPoint({ 1, 0.5 });
+	p.x -= bNext->getContentSize().width + margin * 2;
+	auto bCancel = CreateTextButton(p, "[Cancel]", fontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this);
 
-	// 修正 sv 体积
-	svSize.height -= mh + defaultMargin;
+
 
 	// 逐个加载所有 plist, 找出所有 sprite frame name
 	frameNames.clear();
@@ -487,35 +339,45 @@ void HelloWorld::DrawSpriteFrameChoose() {
 [  ] | pic | sprite frame name
 	 +-----+
 */
-// item 高度
-	auto itemHeight = 50.0f;
+
+// 算 sv 显示坐标 与 体积
+	p.x = margin;
+	p.y = H - lineHeight - margin;
+	cocos2d::Size svSize(W - margin * 2, H - (lineHeight + margin) * 2);
+
+	// item 高度
+	auto itemHeight = lineHeight * 2;
 
 	// 内容总高度
-	auto svContentHeight = (itemHeight + defaultMargin) * frameNames.size() - defaultMargin;
+	auto svContentHeight = (itemHeight + margin) * frameNames.size() - margin;
 	if (svContentHeight < svSize.height) {
 		svContentHeight = svSize.height;
 	}
 
 	// 根据 裁切size, 内容size 创建 sv
-	auto&& sv = CreateSV(svPos, svSize, { svSize.width, svContentHeight }, this);
+	auto&& sv = CreateSV(p, svSize, { svSize.width, svContentHeight }, this);
 
 	// 准备容器
 	cbNames.clear();
 
 	// 向 sv 填充 items
-	for (int i = 0; i < frameNames.size(); ++i) {
+	// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
+	for (size_t i = 0; i < frameNames.size(); ++i) {
 		auto&& frameName = frameNames[i];
 
 		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
-		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + defaultMargin) * i);
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
 
-		// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
-		auto cb = CreateCheckBox({ pos.x + defaultMargin, pos.y - 25 }, false, nullptr, sv);
-		auto cbWidth = cb->getContentSize().width;
+		p.x = pos.x + margin;
+		p.y = pos.y - itemHeight / 2;
+		auto cb = CreateCheckBox(p, false, nullptr, sv);
 		cbNames[cb] = frameName;
-		auto spr = CreateSpriteFrame({ pos.x + defaultMargin + cbWidth + defaultMargin + 25,  pos.y - 25 }, { 50, 50 }, frameName, sv);
-		auto txt = CreateLabel({ pos.x + defaultMargin + cbWidth + defaultMargin + 50 + defaultMargin,  pos.y - 25 }, frameName, defaultFontSize, sv);
-		txt->setAnchorPoint({ 0, 0.5 });
+
+		p.x += cb->getContentSize().width + margin + itemHeight / 2;
+		auto spr = CreateSpriteFrame(p, { itemHeight, itemHeight }, frameName, sv);
+
+		p.x += itemHeight + margin;
+		auto txt = CreateLabel(p, frameName, fontSize, sv);
 	}
 }
 
@@ -530,31 +392,23 @@ void HelloWorld::DrawPListChoose() {
 
 	// 背景
 	CreateBG(this);
-	float mh = 0;
+
+	// 行高
+	float lineHeight = fontSize * 1.4f;
 
 	// 定位到屏幕左上方的位置
-	cocos2d::Vec2 p(defaultMargin, H - defaultMargin);
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 
 	// 最上方说明文字
-	mh = 0;
-	HorizontalLeft(p, mh, CreateLabel({ 0,0 }, "please multi select every plist file include your sprite frames:", defaultFontSize, this));
-
-	// 算 sv 显示坐标 与 体积
-	p.x = defaultMargin;
-	p.y -= mh + defaultMargin;
-	auto svPos = p;
-	cocos2d::Size svSize(W - defaultMargin * 2, p.y);
+	CreateLabel(p, "please multi select every plist file include your sprite frames:", fontSize, this);
 
 	// 最下方步骤按钮
-	mh = 0;
-	p.x = W - defaultMargin;
-	p.y = defaultMargin;
-	HorizontalRight(p, mh, CreateTextButton({ 0, 0 }, "[Next]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawSpriteFrameChoose(); }, this));
-	p.x -= defaultMargin * 2;
-	HorizontalRight(p, mh, CreateTextButton({ 0,0 }, "[Cancel]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawFishMenu_SpriteFrame(); }, this));
-
-	// 修正 sv 体积
-	svSize.height -= mh + defaultMargin;
+	p.x = W - margin;
+	p.y = lineHeight / 2;
+	auto bNext = CreateTextButton(p, "[Next]", fontSize, [this](cocos2d::Ref* ref) { this->DrawSpriteFrameChoose(); }, this);
+	bNext->setAnchorPoint({ 1, 0.5 });
+	p.x -= bNext->getContentSize().width + margin * 2;
+	auto bCancel = CreateTextButton(p, "[Cancel]", fontSize, [this](cocos2d::Ref* ref) { this->DrawFishMenu_SpriteFrame(); }, this);
 
 
 	// 遍历所有 .plist
@@ -570,36 +424,44 @@ void HelloWorld::DrawPListChoose() {
 	// 每条 item 长相：
 	/*
 [  ] file name
-*/
-// item 高度
-	auto itemHeight = 30.0f;
+	*/
+
+	// 算 sv 显示坐标 与 体积
+	p.x = margin;
+	p.y = H - lineHeight - margin;
+	cocos2d::Size svSize(W - margin * 2, H - (lineHeight + margin) * 2);
+
+	// item 高度
+	auto itemHeight = lineHeight;
 
 	// 内容总高度
-	auto svContentHeight = (itemHeight + defaultMargin) * paths.size() - defaultMargin;
+	auto svContentHeight = (itemHeight + margin) * paths.size() - margin;
 	if (svContentHeight < svSize.height) {
 		svContentHeight = svSize.height;
 	}
 
 	// 根据 裁切size, 内容size 创建 sv
-	auto&& sv = CreateSV(svPos, svSize, { svSize.width, svContentHeight }, this);
+	auto&& sv = CreateSV(p, svSize, { svSize.width, svContentHeight }, this);
 
 	// 准备容器
 	cbNames.clear();
 
 	// 向 sv 填充 items
-	for (int i = 0; i < paths.size(); ++i) {
+	// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
+	for (size_t i = 0; i < paths.size(); ++i) {
 		auto&& path = paths[i];
 		auto&& fn = path.filename().u8string();
 
 		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
-		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + defaultMargin) * i);
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
 
-		// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
-		auto cb = CreateCheckBox({ pos.x + defaultMargin, pos.y - 50 }, false, nullptr, sv);
-		auto cbWidth = cb->getContentSize().width;
+		p.x = pos.x + margin;
+		p.y = pos.y - itemHeight / 2;
+		auto cb = CreateCheckBox(p, false, nullptr, sv);
 		cbNames[cb] = fn;
-		auto txt = CreateLabel({ pos.x + defaultMargin + cbWidth + defaultMargin,  pos.y - 50 }, fn, defaultFontSize, sv);
-		txt->setAnchorPoint({ 0, 0.5 });
+
+		p.x += cb->getContentSize().width + margin;
+		CreateLabel(p, fn, fontSize, sv);
 	}
 
 	// 令 sv 正确裁切 3d 内容
@@ -609,6 +471,158 @@ void HelloWorld::DrawPListChoose() {
 
 
 
+void HelloWorld::DrawFishMenu_SpriteFrame() {
+	this->removeAllChildren();
+	editBoxs.clear();
+	editBoxMap.clear();
+
+	// 判断是创建新鱼还是修改旧鱼. 用指针指向存储区
+	FishManage::Fish_2D* fish;
+	if (currentFishIndex == -1) {
+		fish = &fish2d;
+	}
+	else {
+		fish = &data.fish_2ds[currentFishIndex];
+	}
+
+	// 背景
+	CreateBG(this);
+
+
+	// 行高
+	float lineHeight = fontSize * 1.4f;
+
+	// 定位到屏幕左上方的位置
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
+
+	// 最上方 label + editbox 要求输入 鱼名
+	auto lblFishName = CreateLabel(p, "fish name: ", fontSize, this);
+
+	p.x += lblFishName->getContentSize().width;
+	auto et = CreateEditBox(p, { lineHeight * 10, lineHeight }, fish->fishName, "", fontSize, this);
+	editBoxs.push_back(et);		// 放在下标 0
+
+	// todo: 别的鱼的基础配置显示在此, 诸如倍率, 啥啥. 兼容 edit mode
+
+	// 新一排显示 [new action] 按钮
+	p.x = margin;
+	p.y -= lineHeight;
+	CreateTextButton(p, "[New Action]", fontSize, [this](cocos2d::Ref* ref) { this->DrawPListChoose(); }, this);
+
+	// 最下方步骤按钮
+	p.x = W - margin;
+	p.y = lineHeight / 2;
+	auto bNext = CreateTextButton(p, "[Save & Quit]", fontSize, [this](cocos2d::Ref* ref) { this->SaveFishMenu_SpriteFrame(); }, this);
+	bNext->setAnchorPoint({ 1, 0.5 });
+	p.x -= bNext->getContentSize().width + margin * 2;
+	auto bCancel = CreateTextButton(p, "[Cancel]", fontSize, [this](cocos2d::Ref* ref) { this->DrawWelcome(); }, this);
+
+
+
+	// 每条 item 长相：
+	/*
++---------+ action name: xxxxxxxxxx
+|         | total num of physics frames:
+| preview | total num of logic frames:
+|         | total distance: xxxxxxx
++---------+ [delete action]
+	*/
+
+	// 算 sv 显示坐标 与 体积
+	p.x = margin;
+	p.y = H - lineHeight * 2 - margin;
+	cocos2d::Size svSize(W - margin * 2, H - lineHeight * 3 - margin * 2);
+
+	// item 高度
+	auto itemHeight = lineHeight * 5;
+
+	// 内容总高度
+	auto svContentHeight = (itemHeight + margin) * names.size() - margin;
+	if (svContentHeight < svSize.height) {
+		svContentHeight = svSize.height;
+	}
+
+	// 根据 裁切size, 内容size 创建 sv
+	auto&& sv = CreateSV(p, svSize, { svSize.width, svContentHeight }, this);
+
+	// todo
+}
+void HelloWorld::SaveFishMenu_SpriteFrame() {
+
+}
+
+
+
+template<typename FishType>
+void HelloWorld::CreateSVItem(cocos2d::ui::ScrollView* const& sv, float const& itemHeight, cocos2d::Vec2 const& pos, FishType const& fish) {
+	float lineHeight = fontSize * 1.4f;
+	cocos2d::Vec2 p;
+
+	// name: fishName
+	{
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y = pos.y - lineHeight / 2;
+		auto tk = CreateLabel(p, "name: ", fontSize, sv);
+
+		p.x += tk->getContentSize().width;
+		auto tv = CreateLabel(p, fish.fishName, fontSize, sv);
+		tv->setColor(yellow);
+	}
+
+	// type: 2d? spine? 3d? combine?
+	{
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto tk = CreateLabel(p, "type: ", fontSize, sv);
+
+		p.x += tk->getContentSize().width;
+		auto tv = CreateLabel(p, "2D Sprite Frame", fontSize, sv);
+		tv->setColor(yellow);
+	}
+
+	// actions: .........
+	{
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto tk = CreateLabel(p, "actions: ", fontSize, sv);
+
+		p.x += tk->getContentSize().width;
+		for (auto&& action : fish.actions) {
+			auto tv = CreateLabel(p, action.actionName + ((&action == &fish.actions.back()) ? "" : ", "), fontSize, sv);
+			tv->setColor(yellow);
+			p.x += tv->getContentSize().width + margin;
+		}
+	}
+
+	// coin1:       coin2:
+	{
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto tk1 = CreateLabel(p, "coin1: ", fontSize, sv);
+
+		p.x += tk1->getContentSize().width;
+		auto tv1 = CreateLabel(p, std::to_string(fish.coin1), fontSize, sv);
+		tv1->setColor(yellow);
+
+		p.x += tv1->getContentSize().width + margin;
+		auto tk2 = CreateLabel(p, "coin2: ", fontSize, sv);
+
+		p.x += tk2->getContentSize().width;
+		auto tv2 = CreateLabel(p, std::to_string(fish.coin2), fontSize, sv);
+		tv2->setColor(yellow);
+	}
+
+	// [Edit]                     [Delete]
+	{
+		p.x = pos.x + margin + itemHeight + margin;
+		p.y -= lineHeight;
+		auto b1 = CreateTextButton(p, "[Edit]", fontSize, [this](cocos2d::Ref* ref) { /* todo: 令 currentFishIndex = xxxx */ this->DrawFishMenu_SpriteFrame(); }, sv);
+
+		p.x += b1->getContentSize().width + lineHeight * 10;
+		auto b2 = CreateTextButton(p, "[Delete]", fontSize, [this](cocos2d::Ref* ref) { /* todo: 记录当前 sv 滚动位置 并删除? */ }, sv);
+	}
+}
+
 void HelloWorld::DrawWelcome() {
 	this->removeAllChildren();
 
@@ -616,51 +630,63 @@ void HelloWorld::DrawWelcome() {
 
 	// 背景
 	CreateBG(this);
-	float defaultMargin = 10, mh = 0;
+
+
+	// 行高
+	float lineHeight = fontSize * 1.4f;
 
 	// 定位到屏幕左上方的位置
-	cocos2d::Vec2 p(defaultMargin, H - defaultMargin);
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 
 	// 上方依次显示 4 个按钮
-	HorizontalLeft(p, mh, CreateTextButton({ 0,0 }, "[create 2d sprite frame fish]", defaultFontSize, [this](cocos2d::Ref* ref) { this->DrawFishMenu_SpriteFrame();	}, this));
-	p.x += defaultMargin * 3;
-	HorizontalLeft(p, mh, CreateTextButton({ 0,0 }, "[create spine fish]", defaultFontSize, [this](cocos2d::Ref* ref) { /* this->DrawSpineChoose(); */ }, this));
-	p.x += defaultMargin * 3;
-	HorizontalLeft(p, mh, CreateTextButton({ 0,0 }, "[create 3d c3b fish]", defaultFontSize, [this](cocos2d::Ref* ref) { /* this->DrawC3bChoose(); */ }, this));
-	p.x += defaultMargin * 3;
-	HorizontalLeft(p, mh, CreateTextButton({ 0,0 }, "[create combine fish]", defaultFontSize, [this](cocos2d::Ref* ref) { /* this->DrawFishsChoose(); */ }, this));
+	auto b1 = CreateTextButton(p, "[create 2d sprite frame fish]", fontSize, [this](cocos2d::Ref* ref) { this->DrawFishMenu_SpriteFrame();	}, this);
 
-	// 按钮下方是 scroll view
-	p.x = defaultMargin;
-	p.y -= mh + defaultMargin;
+	p.x += b1->getContentSize().width + margin * 3;
+	auto b2 = CreateTextButton(p, "[create spine fish]", fontSize, [this](cocos2d::Ref* ref) { /* this->DrawSpineChoose(); */ }, this);
 
-	// 裁切范围
-	cocos2d::Size svSize(W - defaultMargin * 2, p.y - defaultMargin);
+	p.x += b2->getContentSize().width + margin * 3;
+	auto b3 = CreateTextButton(p, "[create 3d c3b fish]", fontSize, [this](cocos2d::Ref* ref) { /* this->DrawC3bChoose(); */ }, this);
+
+	p.x += b3->getContentSize().width + margin * 3;
+	auto b4 = CreateTextButton(p, "[create combine fish]", fontSize, [this](cocos2d::Ref* ref) { /* this->DrawFishsChoose(); */ }, this);
 
 
-	// 遍历所有 pics
-	auto&& sps = cocos2d::FileUtils::getInstance()->getSearchPaths();
-	assert(sps.size() == 1);
-	std::vector<std::filesystem::path> paths;
-	for (auto&& entry : std::filesystem::directory_iterator(sps[0])) {
-		if (entry.is_regular_file() && entry.path().extension().u8string() == ".png") {
-			paths.emplace_back(entry);
-		}
+
+	// 如果没有数据，先生造一条看效果
+	if (data.fish_2ds.empty()) {
+		auto&& f = data.fish_2ds.emplace_back();
+		f.fishName = "fish_001";
+		f.coin1 = 11;
+		f.coin2 = 222;
+		auto&& a1 = f.actions.emplace_back();
+		a1.actionName = "idle";
+		auto&& a2 = f.actions.emplace_back();
+		a2.actionName = "die";
 	}
+
+
 
 	// 每条 item 长相：
 	/*
-	 +---------+
-	 |         |
-[  ] |   pic   | file name
-	 |         |
-	 +---------+
-*/
-// item 高度
-	auto itemHeight = 100.0f;
++---------+ name: fishName
+|         | type: 2d? spine? 3d? combine?
+| preview | actions: 逗号分隔列出
+|         | coin1:       coin2:
++---------+ [Edit]                     [Delete]
+	*/
+
+	// 按钮下方是 scroll view
+	p.x = margin;
+	p.y = H - lineHeight;
+
+	// 裁切范围
+	cocos2d::Size svSize(W - margin * 2, H - lineHeight - margin);
+
+	// item 高度
+	auto itemHeight = lineHeight * 5;
 
 	// 内容总高度
-	auto svContentHeight = (itemHeight + defaultMargin) * paths.size() - defaultMargin;
+	auto svContentHeight = margin + (itemHeight + margin) * (data.fish_2ds.size() + data.fish_spines.size() + data.fish_3ds.size() + data.fish_combines.size());
 	if (svContentHeight < svSize.height) {
 		svContentHeight = svSize.height;
 	}
@@ -669,23 +695,58 @@ void HelloWorld::DrawWelcome() {
 	auto&& sv = CreateSV(p, svSize, { svSize.width, svContentHeight }, this);
 
 	// 向 sv 填充 items
-	for (int i = 0; i < paths.size(); ++i) {
-		auto&& path = paths[i];
-		auto&& fn = path.filename().u8string();
+	// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
+	for (size_t i = 0; i < data.fish_2ds.size(); ++i) {
+		auto&& fish = data.fish_2ds[i];
 
 		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
-		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + defaultMargin) * i);
+		cocos2d::Vec2 pos(0, svContentHeight - margin - (itemHeight + margin) * i);
 
-		// sv 里面的东西必须直接放入, 如果套一层 node 啥的，会导致裁切失败
-		auto cb = CreateCheckBox({ pos.x + defaultMargin, pos.y - 50 }, false, nullptr, sv);
-		auto cbWidth = cb->getContentSize().width;
-		auto spr = CreateSprite({ pos.x + defaultMargin + cbWidth + defaultMargin + 50,  pos.y - 50 }, { 100, 100 }, fn, sv);
-		auto txt = CreateLabel({ pos.x + defaultMargin + cbWidth + defaultMargin + 100 + defaultMargin,  pos.y - 50 }, fn, defaultFontSize, sv);
-		txt->setAnchorPoint({ 0, 0.5 });
+		// todo: 帧动画
+		//auto spr = CreateSpriteFrame({ pos.x + margin + itemHeight/2,  pos.y - itemHeight/2 }, { itemHeight, itemHeight }, fish.actions[0].frames[0].spriteFrameName, sv);
+
+		// 继续绘制预览图右侧的东西
+		CreateSVItem(sv, itemHeight, pos, fish);
+	}
+	for (size_t i = 0; i < data.fish_spines.size(); ++i) {
+		auto&& fish = data.fish_spines[i];
+
+		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
+
+		// todo: spine 动画
+		//auto spr = CreateSpriteFrame({ pos.x + margin + itemHeight / 2,  pos.y - itemHeight / 2 }, { itemHeight, itemHeight }, fish.actions[0].frames[0].spriteFrameName, sv);
+
+		// 继续绘制预览图右侧的东西
+		CreateSVItem(sv, itemHeight, pos, fish);
+	}
+	for (size_t i = 0; i < data.fish_3ds.size(); ++i) {
+		auto&& fish = data.fish_3ds[i];
+
+		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
+
+		// todo: 3d 动画
+		//auto spr = CreateSpriteFrame({ pos.x + margin + itemHeight / 2,  pos.y - itemHeight / 2 }, { itemHeight, itemHeight }, fish.actions[0].frames[0].spriteFrameName, sv);
+
+		// 继续绘制预览图右侧的东西
+		CreateSVItem(sv, itemHeight, pos, fish);
+	}
+	for (size_t i = 0; i < data.fish_combines.size(); ++i) {
+		auto&& fish = data.fish_combines[i];
+
+		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
+		cocos2d::Vec2 pos(0, svContentHeight - (itemHeight + margin) * i);
+
+		// todo: 组合鱼动画
+		//auto spr = CreateSpriteFrame({ pos.x + margin + itemHeight / 2,  pos.y - itemHeight / 2 }, { itemHeight, itemHeight }, fish.actions[0].frames[0].spriteFrameName, sv);
+
+		// 继续绘制预览图右侧的东西
+		CreateSVItem(sv, itemHeight, pos, fish);
 	}
 
 	// 随便画些 3d 模型 到 scroll view
-	for (int i = 0; i < 200; ++i) {
+	for (size_t i = 0; i < 100; ++i) {
 		auto o = CreateOrc({ (float)cocos2d::random(0, (int)svSize.width), (float)cocos2d::random(0, (int)svContentHeight) }, cocos2d::random(0, 360));
 		sv->addChild(o);
 	}
@@ -696,16 +757,34 @@ void HelloWorld::DrawWelcome() {
 
 
 
-void HelloWorld::editBoxReturn(cocos2d::ui::EditBox* editBox) {
-	std::string s = editBox->getText();
-	printf(s.c_str());
-}
-
-
 bool HelloWorld::init() {
 	if (!Scene::init()) return false;
+
+	LoadData();
+
 	W = AppDelegate::designWidth;
 	H = AppDelegate::designHeight;
 	DrawWelcome();
+
 	return true;
+}
+
+void HelloWorld::LoadData() {
+	if (std::filesystem::exists("fishs.data")) {
+		xx::Data d;
+		xx::ReadAllBytes("fishs.data", d);
+		xx::DataReader dr(d);
+		int r = dr.Read(data);
+		if (r) throw std::logic_error("can't read fish.data");
+	}
+}
+void HelloWorld::SaveData() {
+	xx::Data d;
+	xx::Write(d, data);
+	xx::WriteAllBytes("data", d);
+}
+
+void HelloWorld::editBoxReturn(cocos2d::ui::EditBox* editBox) {
+	//std::string s = editBox->getText();
+	//printf(s.c_str());
 }
