@@ -838,8 +838,10 @@ void HelloWorld::DrawWelcome() {
 		// 每 item 内部 0, 0 点起始，在左上角. 向下是负坐标
 		cocos2d::Vec2 pos(margin, svContentHeight - margin - (itemHeight + margin) * i);
 
-		// todo: 帧动画
-		//auto spr = CreateSpriteFrame({ pos.x + margin + itemHeight/2,  pos.y - itemHeight/2 }, { itemHeight, itemHeight }, fish.actions[0].frames[0].spriteFrameName, sv);
+		// 帧动画预览第一个动作
+		p.x = pos.x + itemHeight / 2;
+		p.y = pos.y - itemHeight / 2;
+		CreateActionPlayer_SpriteFrame(p, { itemHeight ,itemHeight }, fish.plistFileNames, fish.actions[0], sv);
 
 		// 继续绘制预览图右侧的东西
 		CreateSVItem(sv, itemHeight, pos, i, fish);
@@ -879,7 +881,7 @@ void HelloWorld::DrawWelcome() {
 	}
 
 	// 随便画些 3d 模型 到 scroll view
-	for (size_t i = 0; i < 100; ++i) {
+	for (size_t i = 0; i < 10; ++i) {
 		auto o = CreateOrc({ (float)cocos2d::random(0, (int)svSize.width), (float)cocos2d::random(0, (int)svContentHeight) }, cocos2d::random(0, 360));
 		sv->addChild(o);
 	}
