@@ -3,11 +3,12 @@
 #include "FishManage_class_lite.h.inc"  // user create it for extend include files
 namespace FishManage {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<824668f314c774d23b6b7b0c5864a67f>*#";
+		inline static const std::string value = "#*MD5<470ab0bd664f7acd99e1258f6868b65b>*#";
     };
 
     struct FishBase {
         std::string fishName;
+        float baseScale = 0;
         // 基数
         int64_t coin1 = 0;
         // == 0: 以coin1作为固定值.     < 0: 取屏幕相同鱼倍率?    > 0: 范围上限
@@ -29,6 +30,7 @@ namespace FishManage {
         ActionBase& operator=(ActionBase&& o);
     };
     struct FrameBase {
+        // 在鱼线上的移动距离
         float moveDistance = 0;
 
         FrameBase() = default;
@@ -39,7 +41,6 @@ namespace FishManage {
     };
     struct Fish_2D_Frame : FishManage::FrameBase {
         std::string spriteFrameName;
-        std::string plistFileName;
 
         Fish_2D_Frame() = default;
         Fish_2D_Frame(Fish_2D_Frame const&) = default;
@@ -58,6 +59,7 @@ namespace FishManage {
     };
     struct Fish_2D : FishManage::FishBase {
         std::vector<FishManage::Fish_2D_Action> actions;
+        std::vector<std::string> plistFileNames;
 
         Fish_2D() = default;
         Fish_2D(Fish_2D const&) = default;
@@ -111,7 +113,6 @@ namespace FishManage {
     };
     struct Fish_3D : FishManage::FishBase {
         std::string c3bFileName;
-        float baseScale = 0;
         float baseAngleX = 0;
         float baseAngleY = 0;
         float baseAngleZ = 0;
@@ -130,6 +131,7 @@ namespace FishManage {
         int32_t index = 0;
         float offsetX = 0;
         float offsetY = 0;
+        // 3d 下 angle 指的是 围绕 z 的旋转角度
         float baseAngle = 0;
         float baseScale = 0;
 

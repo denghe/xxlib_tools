@@ -6,6 +6,7 @@ namespace FishManage {
     }
     FishBase& FishBase::operator=(FishBase&& o) {
         std::swap(this->fishName, o.fishName);
+        std::swap(this->baseScale, o.baseScale);
         std::swap(this->coin1, o.coin1);
         std::swap(this->coin2, o.coin2);
         return *this;
@@ -30,7 +31,6 @@ namespace FishManage {
     Fish_2D_Frame& Fish_2D_Frame::operator=(Fish_2D_Frame&& o) {
         this->FishManage::FrameBase::operator=(std::move(o));
         std::swap(this->spriteFrameName, o.spriteFrameName);
-        std::swap(this->plistFileName, o.plistFileName);
         return *this;
     }
     Fish_2D_Action::Fish_2D_Action(Fish_2D_Action&& o) {
@@ -47,6 +47,7 @@ namespace FishManage {
     Fish_2D& Fish_2D::operator=(Fish_2D&& o) {
         this->FishManage::FishBase::operator=(std::move(o));
         std::swap(this->actions, o.actions);
+        std::swap(this->plistFileNames, o.plistFileNames);
         return *this;
     }
     Fish_Spine_Frame::Fish_Spine_Frame(Fish_Spine_Frame&& o) {
@@ -94,7 +95,6 @@ namespace FishManage {
     Fish_3D& Fish_3D::operator=(Fish_3D&& o) {
         this->FishManage::FishBase::operator=(std::move(o));
         std::swap(this->c3bFileName, o.c3bFileName);
-        std::swap(this->baseScale, o.baseScale);
         std::swap(this->baseAngleX, o.baseAngleX);
         std::swap(this->baseAngleY, o.baseAngleY);
         std::swap(this->baseAngleZ, o.baseAngleZ);
@@ -143,11 +143,13 @@ namespace FishManage {
 namespace xx {
 	void DataFuncs<FishManage::FishBase, void>::Write(Data& d, FishManage::FishBase const& in) noexcept {
         ::xx::Write(d, in.fishName);
+        ::xx::Write(d, in.baseScale);
         ::xx::Write(d, in.coin1);
         ::xx::Write(d, in.coin2);
     }
 	int DataFuncs<FishManage::FishBase, void>::Read(DataReader& d, FishManage::FishBase& out) noexcept {
         if (int r = d.Read(out.fishName)) return r;
+        if (int r = d.Read(out.baseScale)) return r;
         if (int r = d.Read(out.coin1)) return r;
         if (int r = d.Read(out.coin2)) return r;
         return 0;
@@ -169,12 +171,10 @@ namespace xx {
 	void DataFuncs<FishManage::Fish_2D_Frame, void>::Write(Data& d, FishManage::Fish_2D_Frame const& in) noexcept {
         DataFuncs<FishManage::FrameBase>::Write(d, in);
         ::xx::Write(d, in.spriteFrameName);
-        ::xx::Write(d, in.plistFileName);
     }
 	int DataFuncs<FishManage::Fish_2D_Frame, void>::Read(DataReader& d, FishManage::Fish_2D_Frame& out) noexcept {
         if (int r = DataFuncs<FishManage::FrameBase>::Read(d, out)) return r;
         if (int r = d.Read(out.spriteFrameName)) return r;
-        if (int r = d.Read(out.plistFileName)) return r;
         return 0;
     }
 	void DataFuncs<FishManage::Fish_2D_Action, void>::Write(Data& d, FishManage::Fish_2D_Action const& in) noexcept {
@@ -189,10 +189,12 @@ namespace xx {
 	void DataFuncs<FishManage::Fish_2D, void>::Write(Data& d, FishManage::Fish_2D const& in) noexcept {
         DataFuncs<FishManage::FishBase>::Write(d, in);
         ::xx::Write(d, in.actions);
+        ::xx::Write(d, in.plistFileNames);
     }
 	int DataFuncs<FishManage::Fish_2D, void>::Read(DataReader& d, FishManage::Fish_2D& out) noexcept {
         if (int r = DataFuncs<FishManage::FishBase>::Read(d, out)) return r;
         if (int r = d.Read(out.actions)) return r;
+        if (int r = d.Read(out.plistFileNames)) return r;
         return 0;
     }
 	void DataFuncs<FishManage::Fish_Spine_Frame, void>::Write(Data& d, FishManage::Fish_Spine_Frame const& in) noexcept {
@@ -241,7 +243,6 @@ namespace xx {
 	void DataFuncs<FishManage::Fish_3D, void>::Write(Data& d, FishManage::Fish_3D const& in) noexcept {
         DataFuncs<FishManage::FishBase>::Write(d, in);
         ::xx::Write(d, in.c3bFileName);
-        ::xx::Write(d, in.baseScale);
         ::xx::Write(d, in.baseAngleX);
         ::xx::Write(d, in.baseAngleY);
         ::xx::Write(d, in.baseAngleZ);
@@ -250,7 +251,6 @@ namespace xx {
 	int DataFuncs<FishManage::Fish_3D, void>::Read(DataReader& d, FishManage::Fish_3D& out) noexcept {
         if (int r = DataFuncs<FishManage::FishBase>::Read(d, out)) return r;
         if (int r = d.Read(out.c3bFileName)) return r;
-        if (int r = d.Read(out.baseScale)) return r;
         if (int r = d.Read(out.baseAngleX)) return r;
         if (int r = d.Read(out.baseAngleY)) return r;
         if (int r = d.Read(out.baseAngleZ)) return r;

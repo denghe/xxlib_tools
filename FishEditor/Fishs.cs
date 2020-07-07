@@ -4,6 +4,7 @@ using TemplateLibrary;
 [Struct]
 class FishBase {
 	string fishName;
+	float baseScale;
 	[Desc("基数")]
 	long coin1;
 	[Desc("== 0: 以coin1作为固定值.     < 0: 取屏幕相同鱼倍率?    > 0: 范围上限")]
@@ -16,6 +17,7 @@ class ActionBase {
 }
 [Struct]
 class FrameBase {
+	[Desc("在鱼线上的移动距离")]
 	float moveDistance;
 }
 
@@ -27,7 +29,6 @@ class FrameBase {
 [Struct]
 class Fish_2D_Frame : FrameBase {
 	string spriteFrameName;
-	string plistFileName;
 }
 [Struct]
 class Fish_2D_Action : ActionBase {
@@ -36,6 +37,7 @@ class Fish_2D_Action : ActionBase {
 [Struct]
 class Fish_2D : FishBase {
 	List<Fish_2D_Action> actions;
+	List<string> plistFileNames;
 }
 
 
@@ -72,7 +74,6 @@ class Fish_3D_Action : ActionBase {
 [Struct]
 class Fish_3D : FishBase {
 	string c3bFileName;
-	float baseScale;
 	float baseAngleX;
 	float baseAngleY;
 	float baseAngleZ;
@@ -94,6 +95,7 @@ class Fish_Combine_Child {
 	int index;
 	float offsetX;
 	float offsetY;
+	[Desc("3d 下 angle 指的是 围绕 z 的旋转角度")]
 	float baseAngle;
 	float baseScale;
 }

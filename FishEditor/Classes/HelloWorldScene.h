@@ -2,35 +2,35 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 #include "FishManage_class_lite.h"
+#include "ActionPlayer_SpriteFrame.h"
 
 struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 缓存 AppDelegate::designWidth/Height
     float W = 0, H = 0;
 
     // 公共布局参数
-    const float margin = 10;
     const float fontSize = 32;
+    const float margin = fontSize / 3.0f;
+    const float lineHeight = fontSize * 1.4f;
 
     const cocos2d::Color3B yellow = cocos2d::Color3B(255, 207, 64);
     const cocos2d::Color3B blue = cocos2d::Color3B(126, 194, 255);
 
+    const std::string dataFileName = "fishs.data";
+
     // 临时容器
     std::unordered_map<cocos2d::ui::CheckBox*, std::string> cbNames;
-    std::vector<std::string> names;
-    std::vector<std::string> frameNames;
     std::vector<cocos2d::ui::EditBox*> editBoxs;
-    std::unordered_map<std::string, cocos2d::ui::EditBox*> editBoxMap;
 
 
-    enum class FishTypes {
-        Unknown, _2D, Spine, _3D, Combine
-    };
-
-    // 当前正在编辑的 fish 的 类型
-    FishTypes currentFishType = FishTypes::Unknown;
-
-    // 当前正在编辑的 fish 的 数组下标( 根据类型在 data 中定位数组 ). 如果为 -1 则表示 new fish
+    // 当前正在编辑的 fish 的 数组下标. 如果为 -1 则表示 new fish
     int currentFishIndex = -1;
+
+    // 当前正在编辑的 fish 的 actions 数组下标. 如果为 -1 则表示 new action
+    int currentActionIndex = -1;
+
+    // 便于 刷新后恢复 scroll view 的显示位置
+    cocos2d::Vec2 currentScrollBarPos;
 
     // 所有数据在此
     FishManage::Data data;
@@ -40,6 +40,7 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     FishManage::Fish_Spine fishSpine;
     FishManage::Fish_3D fish3d;
     FishManage::Fish_Combine fishCombine;
+    FishManage::Fish_2D_Action fish2dAction;
 
     // 读档
     void LoadData();
@@ -81,33 +82,29 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 创建 某 3d 模型( 锚点 中心 )
     cocos2d::Sprite3D* CreateOrc(cocos2d::Vec2 const& pos, float const& r, cocos2d::Node* const& container = nullptr);
 
-
+    // 创建一个 2d 帧图 动作 预览动画
+    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::Fish_2D_Action const& action, cocos2d::Node* const& container = nullptr);
 
 
 
     template<typename FishType>
-    void CreateSVItem(cocos2d::ui::ScrollView* const& sv, float const& itemHeight, cocos2d::Vec2 const& pos, FishType const& fish);
+    void CreateSVItem(cocos2d::ui::ScrollView* const& sv, float const& itemHeight, cocos2d::Vec2 const& pos, int const& index, FishType const& fish);
 
     // 绘制 欢迎页
     void DrawWelcome();
 
     // 绘制 sprite frame 鱼 初始页
-    void DrawFishMenu_SpriteFrame();
-
-    // 提交 sprite frame 鱼 初始页 相关数据
-    void SaveFishMenu_SpriteFrame();
+    void DrawFish2DSpriteFrame(FishManage::Fish_2D* const& fish);
 
     // 绘制 选 plist 文件页
-    void DrawPListChoose();
+    void DrawPListChoose(FishManage::Fish_2D* const& fish);
 
     // 绘制 选 sprite frame 页
-    void DrawSpriteFrameChoose();
+    void DrawSpriteFrameChoose(FishManage::Fish_2D* const& fish, FishManage::Fish_2D_Action* const& action);
 
     // 绘制 sprite frame 参数配置 页
-    void DrawSpriteFrameConfig();
+    void DrawSpriteFrameConfig(FishManage::Fish_2D* const& fish, FishManage::Fish_2D_Action* const& action);
 
-    // 提交 sprite frame  参数配置
-    void SaveSpriteFrameConfig();
 
 
 
