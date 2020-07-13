@@ -10,12 +10,12 @@ ActionPlayer_SpriteFrame* ActionPlayer_SpriteFrame::create() {
 	return nullptr;
 }
 
-void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& plistFileNames, FishManage::Fish_2D_Action const& actionData) {
+void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& plistFileNames, std::shared_ptr<FishManage::Action2d> const& action2d) {
 	// Ô¤¼ÓÔØ plist
 	for (auto&& fn : plistFileNames) {
 		cocos2d::SpriteFrameCache::getInstance()->addSpriteFramesWithFile(fn);
 	}
-	this->actionData = actionData;
+	this->action2d = action2d;
 }
 
 void ActionPlayer_SpriteFrame::SetFrameRate(float const& frameRate) {
@@ -28,7 +28,7 @@ void ActionPlayer_SpriteFrame::SetAutoRepeat(bool const& autoRepeat) {
 }
 
 void ActionPlayer_SpriteFrame::Play(int const& beginIndex) {
-	if (actionData.frames.empty()) return;
+	if (action2d->frames.empty()) return;
 	frameIndex = beginIndex;
 	Draw();
 	ticksPool = 0;
@@ -41,7 +41,7 @@ void ActionPlayer_SpriteFrame::Stop() {
 
 void ActionPlayer_SpriteFrame::Next() {
 	++frameIndex;
-	if (frameIndex >= (int)actionData.frames.size()) {
+	if (frameIndex >= (int)action2d->frames.size()) {
 		frameIndex = 0;
 		if (!autoRepeat) {
 			unscheduleUpdate();
@@ -51,7 +51,7 @@ void ActionPlayer_SpriteFrame::Next() {
 }
 
 void ActionPlayer_SpriteFrame::Draw() {
-	this->setSpriteFrame(actionData.frames[frameIndex].spriteFrameName);
+	this->setSpriteFrame(xx::As<FishManage::Frame2d>(action2d->frames[frameIndex])->spriteFrameName);
 }
 
 void ActionPlayer_SpriteFrame::update(float delta) {

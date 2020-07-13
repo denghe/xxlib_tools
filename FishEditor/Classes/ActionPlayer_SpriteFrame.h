@@ -7,7 +7,7 @@ struct ActionPlayer_SpriteFrame : public cocos2d::Sprite {
 	static ActionPlayer_SpriteFrame* create();
 
 	// 动作数据上下文
-	FishManage::Fish_2D_Action actionData;
+	std::shared_ptr<FishManage::Action2d> action2d;
 
 	// 播放状态相关
 	bool autoRepeat = true;
@@ -23,7 +23,7 @@ struct ActionPlayer_SpriteFrame : public cocos2d::Sprite {
 	float ticksPool = 0;
 
 	// 填充动作数据上下文并预加载 plist
-	void SetActionData(std::vector<std::string> const& plistFileNames, FishManage::Fish_2D_Action const& actionData);
+	void SetActionData(std::vector<std::string> const& plistFileNames, std::shared_ptr<FishManage::Action2d> const& action2d);
 
 	// 设置播放参数
 	void SetFrameRate(float const& frameRate = 30);

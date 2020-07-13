@@ -16,31 +16,28 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     const cocos2d::Color3B yellow = cocos2d::Color3B(255, 207, 64);
     const cocos2d::Color3B blue = cocos2d::Color3B(126, 194, 255);
 
-    const std::string dataFileName = "fishs.data";
 
-    // 临时容器
+    // 临时控件引用容器
     std::unordered_map<cocos2d::ui::CheckBox*, std::string> cbNames;
     std::vector<cocos2d::ui::EditBox*> editBoxs;
 
-
-    // 当前正在编辑的 fish 的 数组下标. 如果为 -1 则表示 new fish
-    int currentFishIndex = -1;
-
-    // 当前正在编辑的 fish 的 actions 数组下标. 如果为 -1 则表示 new action
-    int currentActionIndex = -1;
-
     // 便于 刷新后恢复 scroll view 的显示位置
-    cocos2d::Vec2 currentScrollBarPos;
+    float welcomeScrolledPercentVertical = 0;
+    float spriteFrameConfigScrolledPercentVertical = 0;
+
+
+
+
+    // 创建新资源的临时数据在此. 根据指针是否能在 容器 中找到从而判定是否为新增
+    std::shared_ptr<FishManage::ResBase> tmpRes;
+    std::shared_ptr<FishManage::ActionBase> tmpAction;
 
     // 所有数据在此
     FishManage::Data data;
-
-    // 创建新鱼的临时数据在此
-    FishManage::Fish_2D fish2d;
-    FishManage::Fish_Spine fishSpine;
-    FishManage::Fish_3D fish3d;
-    FishManage::Fish_Combine fishCombine;
-    FishManage::Fish_2D_Action fish2dAction;
+    // 指令集
+    xx::ObjectCreators oc;
+    // 存盘文件名
+    const std::string dataFileName = "fishs.data";
 
     // 读档
     void LoadData();
@@ -83,34 +80,33 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     cocos2d::Sprite3D* CreateOrc(cocos2d::Vec2 const& pos, float const& r, cocos2d::Node* const& container = nullptr);
 
     // 创建一个 2d 帧图 动作 预览动画
-    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::Fish_2D_Action const& action, cocos2d::Node* const& container = nullptr);
+    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, std::shared_ptr<FishManage::Action2d> const& action, cocos2d::Node* const& container = nullptr);
 
 
 
-    template<typename FishType>
-    void CreateSVItem(cocos2d::ui::ScrollView* const& sv, float const& itemHeight, cocos2d::Vec2 const& pos, int const& index, FishType const& fish);
+
 
     // 绘制 欢迎页
-    void DrawWelcome();
+    void Welcome();
 
     // 绘制 sprite frame 鱼 初始页
-    void DrawFish2DSpriteFrame(FishManage::Fish_2D* const& fish);
+    void EditRes2d(std::shared_ptr<FishManage::Res2d> const& fish);
 
     // 绘制 选 plist 文件页
-    void DrawPListChoose(FishManage::Fish_2D* const& fish);
+    void ChoosePList(std::shared_ptr<FishManage::Res2d> const& fish);
 
     // 绘制 选 sprite frame 页
-    void DrawSpriteFrameChoose(FishManage::Fish_2D* const& fish, FishManage::Fish_2D_Action* const& action);
+    void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& fish, std::shared_ptr<FishManage::ActionBase> const& action);
 
     // 绘制 sprite frame 参数配置 页
-    void DrawSpriteFrameConfig(FishManage::Fish_2D* const& fish, FishManage::Fish_2D_Action* const& action);
+    void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& fish, std::shared_ptr<FishManage::ActionBase> const& action);
 
 
 
 
 
 
-
+    // for edit box delegate
     void editBoxReturn(cocos2d::ui::EditBox* editBox) override;
 
     // 绘制 欢迎页

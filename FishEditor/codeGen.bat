@@ -1,1 +1,0 @@
-..\PackageGenerator\pkggen.exe 2 FishManage .\ Classes\

@@ -92,22 +92,6 @@ namespace xx {
     };
 
     /************************************************************************************/
-    // 容器深度探测 系列: 计算 Container<Container<... 嵌套深度. 返回 0 表明不是 container
-
-
-    template<typename T>
-    constexpr size_t DeepLevel(T* const& v) {
-        if constexpr (IsOptional_v<T>) return 0 + DeepLevel((ChildType_t<T>*)0);
-        if constexpr (IsVector_v<T>) return 1 + DeepLevel((ChildType_t<T>*)0);
-        if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, Data>) return 1;
-        return 0;
-    }
-
-    template<typename T>
-    constexpr size_t DeepLevel_v = DeepLevel((std::decay_t<T>*)0);
-
-
-    /************************************************************************************/
     // shared_ptr 系列
 
     template<typename T, typename ...Args>
@@ -140,6 +124,11 @@ namespace xx {
     template<typename T, typename U>
     std::shared_ptr<T> As(std::shared_ptr<U> const &v) noexcept {
         return std::dynamic_pointer_cast<T>(v);
+    }
+
+    template<typename T, typename U>
+    bool Is(std::shared_ptr<U> const& v) noexcept {
+        return std::dynamic_pointer_cast<T>(v) != nullptr;
     }
 
     /************************************************************************************/
@@ -189,4 +178,27 @@ namespace xx {
         v = (T*)malloc(sizeof(T));
         return v;
     }
+
+
+
+    /************************************************************************************/
+    // TypeId 映射
+    template<typename T>
+    struct TypeId {
+        static const uint16_t value = 0;
+    };
+
+    template<typename T>
+    constexpr uint16_t TypeId_v = TypeId<T>::value;
+
+    /*
+    // 方便复制
+
+namespace xx {
+    template<>
+    struct TypeId<XXXXXXXXXXXXXX> {
+        static const uint16_t value = XXXXXXXX;
+    };
+}
+*/
 }
