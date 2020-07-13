@@ -16,6 +16,7 @@ void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& pli
 		cocos2d::SpriteFrameCache::getInstance()->addSpriteFramesWithFile(fn);
 	}
 	this->action2d = action2d;
+	SetFrameRate(action2d->frameRate);
 }
 
 void ActionPlayer_SpriteFrame::SetFrameRate(float const& frameRate) {

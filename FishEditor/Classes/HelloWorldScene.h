@@ -24,13 +24,8 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 便于 刷新后恢复 scroll view 的显示位置
     float welcomeScrolledPercentVertical = 0;
     float spriteFrameConfigScrolledPercentVertical = 0;
+    float editRes2dScrolledPercentVertical = 0;
 
-
-
-
-    // 创建新资源的临时数据在此. 根据指针是否能在 容器 中找到从而判定是否为新增
-    std::shared_ptr<FishManage::ResBase> tmpRes;
-    std::shared_ptr<FishManage::ActionBase> tmpAction;
 
     // 所有数据在此
     FishManage::Data data;
@@ -48,6 +43,10 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 
     // 创建 文本( 锚点 左中 )
     cocos2d::Label* CreateLabel(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::Node* const& container = nullptr);
+
+    // 创建 键值对文本. 值颜色 yellow( 锚点 左中 )
+    std::pair<cocos2d::Label*, cocos2d::Label*> CreateLabelPair(cocos2d::Vec2 const& pos, std::string const& key, std::string const& value, int const& fontSize, cocos2d::Node* const& container = nullptr);
+
 
     // 创建 文本 按钮( 锚点 左中 )
     cocos2d::ui::Button* CreateTextButton(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::ccMenuCallback&& callback, cocos2d::Node* const& container = nullptr);
@@ -90,16 +89,16 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     void Welcome();
 
     // 绘制 sprite frame 鱼 初始页
-    void EditRes2d(std::shared_ptr<FishManage::Res2d> const& fish);
+    void EditRes2d(std::shared_ptr<FishManage::Res2d> const& res2d);
 
     // 绘制 选 plist 文件页
-    void ChoosePList(std::shared_ptr<FishManage::Res2d> const& fish);
+    void ChoosePList(std::shared_ptr<FishManage::Res2d> const& res2d);
 
     // 绘制 选 sprite frame 页
-    void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& fish, std::shared_ptr<FishManage::ActionBase> const& action);
+    void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
     // 绘制 sprite frame 参数配置 页
-    void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& fish, std::shared_ptr<FishManage::ActionBase> const& action);
+    void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
 
 
