@@ -21,25 +21,25 @@ namespace xx {
     template<> struct TypeId<FishManage::FishEater> { static const uint16_t value = 15; };
 }
 namespace FishManage {
-	void PkgGenTypes::RegisterTo(xx::ObjectCreators& oc) {
-	    oc.Register<FishManage::ResBase>();
-	    oc.Register<FishManage::ActionBase>();
-	    oc.Register<FishManage::FrameBase>();
-	    oc.Register<FishManage::Res2d>();
-	    oc.Register<FishManage::Action2d>();
-	    oc.Register<FishManage::Frame2d>();
-	    oc.Register<FishManage::ResSpine>();
-	    oc.Register<FishManage::ActionSpine>();
-	    oc.Register<FishManage::Res3d>();
-	    oc.Register<FishManage::Action3d>();
-	    oc.Register<FishManage::ResCombine>();
-	    oc.Register<FishManage::FishBase>();
-	    oc.Register<FishManage::FishNormal>();
-	    oc.Register<FishManage::FishBomb>();
-	    oc.Register<FishManage::FishDrill>();
-	    oc.Register<FishManage::FishFury>();
-	    oc.Register<FishManage::FishCyclone>();
-	    oc.Register<FishManage::FishEater>();
+	void PkgGenTypes::RegisterTo(xx::ObjectHelper& oh) {
+	    oh.Register<FishManage::ResBase>();
+	    oh.Register<FishManage::ActionBase>();
+	    oh.Register<FishManage::FrameBase>();
+	    oh.Register<FishManage::Res2d>();
+	    oh.Register<FishManage::Action2d>();
+	    oh.Register<FishManage::Frame2d>();
+	    oh.Register<FishManage::ResSpine>();
+	    oh.Register<FishManage::ActionSpine>();
+	    oh.Register<FishManage::Res3d>();
+	    oh.Register<FishManage::Action3d>();
+	    oh.Register<FishManage::ResCombine>();
+	    oh.Register<FishManage::FishBase>();
+	    oh.Register<FishManage::FishNormal>();
+	    oh.Register<FishManage::FishBomb>();
+	    oh.Register<FishManage::FishDrill>();
+	    oh.Register<FishManage::FishFury>();
+	    oh.Register<FishManage::FishCyclone>();
+	    oh.Register<FishManage::FishEater>();
 	}
 }
 
@@ -55,19 +55,19 @@ namespace xx {
         if (int r = d.Read(out.r)) return r;
         return 0;
     }
-	void StringFuncs<FishManage::CDCircle, void>::Append(std::string& s, FishManage::CDCircle const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<FishManage::CDCircle, void>::Append(ObjectHelper &oh, FishManage::CDCircle const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<FishManage::CDCircle, void>::AppendCore(std::string& s, FishManage::CDCircle const& in) {
-        auto sizeBak = s.size();
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<FishManage::CDCircle, void>::AppendCore(ObjectHelper &oh, FishManage::CDCircle const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"x\":", in.x); 
-        xx::Append(s, ",\"y\":", in.y);
-        xx::Append(s, ",\"r\":", in.r);
+        xx::AppendEx(oh, "\"x\":", in.x); 
+        xx::AppendEx(oh, ",\"y\":", in.y);
+        xx::AppendEx(oh, ",\"r\":", in.r);
     }
 	void DataFuncsEx<FishManage::LockPoint, void>::Write(DataWriterEx& dw, FishManage::LockPoint const& in) {
         dw.Write(in.x);
@@ -78,18 +78,18 @@ namespace xx {
         if (int r = d.Read(out.y)) return r;
         return 0;
     }
-	void StringFuncs<FishManage::LockPoint, void>::Append(std::string& s, FishManage::LockPoint const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<FishManage::LockPoint, void>::Append(ObjectHelper &oh, FishManage::LockPoint const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<FishManage::LockPoint, void>::AppendCore(std::string& s, FishManage::LockPoint const& in) {
-        auto sizeBak = s.size();
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<FishManage::LockPoint, void>::AppendCore(ObjectHelper &oh, FishManage::LockPoint const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"x\":", in.x); 
-        xx::Append(s, ",\"y\":", in.y);
+        xx::AppendEx(oh, "\"x\":", in.x); 
+        xx::AppendEx(oh, ",\"y\":", in.y);
     }
 	void DataFuncsEx<FishManage::Data, void>::Write(DataWriterEx& dw, FishManage::Data const& in) {
         dw.Write(in.ress);
@@ -100,18 +100,18 @@ namespace xx {
         if (int r = d.Read(out.fishs)) return r;
         return 0;
     }
-	void StringFuncs<FishManage::Data, void>::Append(std::string& s, FishManage::Data const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<FishManage::Data, void>::Append(ObjectHelper &oh, FishManage::Data const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<FishManage::Data, void>::AppendCore(std::string& s, FishManage::Data const& in) {
-        auto sizeBak = s.size();
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<FishManage::Data, void>::AppendCore(ObjectHelper &oh, FishManage::Data const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"ress\":", in.ress); 
-        xx::Append(s, ",\"fishs\":", in.fishs);
+        xx::AppendEx(oh, "\"ress\":", in.ress); 
+        xx::AppendEx(oh, ",\"fishs\":", in.fishs);
     }
 	void DataFuncsEx<FishManage::CombineItem, void>::Write(DataWriterEx& dw, FishManage::CombineItem const& in) {
         dw.Write(in.res);
@@ -128,21 +128,21 @@ namespace xx {
         if (int r = d.Read(out.baseScale)) return r;
         return 0;
     }
-	void StringFuncs<FishManage::CombineItem, void>::Append(std::string& s, FishManage::CombineItem const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<FishManage::CombineItem, void>::Append(ObjectHelper &oh, FishManage::CombineItem const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<FishManage::CombineItem, void>::AppendCore(std::string& s, FishManage::CombineItem const& in) {
-        auto sizeBak = s.size();
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<FishManage::CombineItem, void>::AppendCore(ObjectHelper &oh, FishManage::CombineItem const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"res\":", in.res); 
-        xx::Append(s, ",\"offsetX\":", in.offsetX);
-        xx::Append(s, ",\"offsetY\":", in.offsetY);
-        xx::Append(s, ",\"baseAngle\":", in.baseAngle);
-        xx::Append(s, ",\"baseScale\":", in.baseScale);
+        xx::AppendEx(oh, "\"res\":", in.res); 
+        xx::AppendEx(oh, ",\"offsetX\":", in.offsetX);
+        xx::AppendEx(oh, ",\"offsetY\":", in.offsetY);
+        xx::AppendEx(oh, ",\"baseAngle\":", in.baseAngle);
+        xx::AppendEx(oh, ",\"baseScale\":", in.baseScale);
     }
 }
 namespace FishManage {
@@ -150,50 +150,54 @@ namespace FishManage {
         this->operator=(std::move(o));
     }
     FishBase& FishBase::operator=(FishBase&& o) noexcept {
-        std::swap(this->fishName, o.fishName);
+        std::swap(this->name, o.name);
+        std::swap(this->res, o.res);
         std::swap(this->coin1, o.coin1);
         std::swap(this->coin2, o.coin2);
         std::swap(this->pathwayGroupName, o.pathwayGroupName);
-        std::swap(this->res, o.res);
+        std::swap(this->lastUpdateTime, o.lastUpdateTime);
         return *this;
     }
     uint16_t FishBase::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishBase>;
     }
     void FishBase::Serialize(xx::DataWriterEx& dw) const {
-        dw.Write(this->fishName);
+        dw.Write(this->name);
+        dw.Write(this->res);
         dw.Write(this->coin1);
         dw.Write(this->coin2);
         dw.Write(this->pathwayGroupName);
-        dw.Write(this->res);
+        dw.Write(this->lastUpdateTime);
     }
     int FishBase::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = dr.Read(this->fishName)) return r;
+        if (int r = dr.Read(this->name)) return r;
+        if (int r = dr.Read(this->res)) return r;
         if (int r = dr.Read(this->coin1)) return r;
         if (int r = dr.Read(this->coin2)) return r;
         if (int r = dr.Read(this->pathwayGroupName)) return r;
-        if (int r = dr.Read(this->res)) return r;
+        if (int r = dr.Read(this->lastUpdateTime)) return r;
         return 0;
     }
-    void FishBase::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishBase::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishBase*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishBase*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishBase::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"fishName\":", this->fishName);
-        xx::Append(s, ",\"coin1\":", this->coin1);
-        xx::Append(s, ",\"coin2\":", this->coin2);
-        xx::Append(s, ",\"pathwayGroupName\":", this->pathwayGroupName);
-        xx::Append(s, ",\"res\":", this->res);
+    void FishBase::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"name\":", this->name);
+        xx::AppendEx(oh, ",\"res\":", this->res);
+        xx::AppendEx(oh, ",\"coin1\":", this->coin1);
+        xx::AppendEx(oh, ",\"coin2\":", this->coin2);
+        xx::AppendEx(oh, ",\"pathwayGroupName\":", this->pathwayGroupName);
+        xx::AppendEx(oh, ",\"lastUpdateTime\":", this->lastUpdateTime);
     }
     ResBase::ResBase(ResBase&& o) noexcept {
         this->operator=(std::move(o));
@@ -202,6 +206,7 @@ namespace FishManage {
         std::swap(this->name, o.name);
         std::swap(this->baseScale, o.baseScale);
         std::swap(this->actions, o.actions);
+        std::swap(this->lastUpdateTime, o.lastUpdateTime);
         return *this;
     }
     uint16_t ResBase::GetTypeId() const {
@@ -211,30 +216,33 @@ namespace FishManage {
         dw.Write(this->name);
         dw.Write(this->baseScale);
         dw.Write(this->actions);
+        dw.Write(this->lastUpdateTime);
     }
     int ResBase::Deserialize(xx::DataReaderEx& dr) {
         if (int r = dr.Read(this->name)) return r;
         if (int r = dr.Read(this->baseScale)) return r;
         if (int r = dr.Read(this->actions)) return r;
+        if (int r = dr.Read(this->lastUpdateTime)) return r;
         return 0;
     }
-    void ResBase::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void ResBase::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((ResBase*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((ResBase*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void ResBase::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"name\":", this->name);
-        xx::Append(s, ",\"baseScale\":", this->baseScale);
-        xx::Append(s, ",\"actions\":", this->actions);
+    void ResBase::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"name\":", this->name);
+        xx::AppendEx(oh, ",\"baseScale\":", this->baseScale);
+        xx::AppendEx(oh, ",\"actions\":", this->actions);
+        xx::AppendEx(oh, ",\"lastUpdateTime\":", this->lastUpdateTime);
     }
     ActionBase::ActionBase(ActionBase&& o) noexcept {
         this->operator=(std::move(o));
@@ -242,6 +250,8 @@ namespace FishManage {
     ActionBase& ActionBase::operator=(ActionBase&& o) noexcept {
         std::swap(this->name, o.name);
         std::swap(this->frameRate, o.frameRate);
+        std::swap(this->width, o.width);
+        std::swap(this->height, o.height);
         std::swap(this->frames, o.frames);
         return *this;
     }
@@ -251,31 +261,37 @@ namespace FishManage {
     void ActionBase::Serialize(xx::DataWriterEx& dw) const {
         dw.Write(this->name);
         dw.Write(this->frameRate);
+        dw.Write(this->width);
+        dw.Write(this->height);
         dw.Write(this->frames);
     }
     int ActionBase::Deserialize(xx::DataReaderEx& dr) {
         if (int r = dr.Read(this->name)) return r;
         if (int r = dr.Read(this->frameRate)) return r;
+        if (int r = dr.Read(this->width)) return r;
+        if (int r = dr.Read(this->height)) return r;
         if (int r = dr.Read(this->frames)) return r;
         return 0;
     }
-    void ActionBase::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void ActionBase::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((ActionBase*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((ActionBase*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void ActionBase::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"name\":", this->name);
-        xx::Append(s, ",\"frameRate\":", this->frameRate);
-        xx::Append(s, ",\"frames\":", this->frames);
+    void ActionBase::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"name\":", this->name);
+        xx::AppendEx(oh, ",\"frameRate\":", this->frameRate);
+        xx::AppendEx(oh, ",\"width\":", this->width);
+        xx::AppendEx(oh, ",\"height\":", this->height);
+        xx::AppendEx(oh, ",\"frames\":", this->frames);
     }
     CDCircle::CDCircle(CDCircle&& o) noexcept {
         this->operator=(std::move(o));
@@ -323,25 +339,25 @@ namespace FishManage {
         if (int r = dr.Read(this->lockPoints)) return r;
         return 0;
     }
-    void FrameBase::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FrameBase::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FrameBase*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FrameBase*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FrameBase::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"moveDistance\":", this->moveDistance);
-        xx::Append(s, ",\"maxCDCircle\":", this->maxCDCircle);
-        xx::Append(s, ",\"cdCircles\":", this->cdCircles);
-        xx::Append(s, ",\"mainLockPoint\":", this->mainLockPoint);
-        xx::Append(s, ",\"lockPoints\":", this->lockPoints);
+    void FrameBase::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"moveDistance\":", this->moveDistance);
+        xx::AppendEx(oh, ",\"maxCDCircle\":", this->maxCDCircle);
+        xx::AppendEx(oh, ",\"cdCircles\":", this->cdCircles);
+        xx::AppendEx(oh, ",\"mainLockPoint\":", this->mainLockPoint);
+        xx::AppendEx(oh, ",\"lockPoints\":", this->lockPoints);
     }
     Data::Data(Data&& o) noexcept {
         this->operator=(std::move(o));
@@ -355,7 +371,7 @@ namespace FishManage {
         this->operator=(std::move(o));
     }
     FishFury& FishFury::operator=(FishFury&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->numBulletsPerShoot, o.numBulletsPerShoot);
         return *this;
     }
@@ -371,28 +387,28 @@ namespace FishManage {
         if (int r = dr.Read(this->numBulletsPerShoot)) return r;
         return 0;
     }
-    void FishFury::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishFury::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishFury*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishFury*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishFury::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"numBulletsPerShoot\":", this->numBulletsPerShoot);
+    void FishFury::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"numBulletsPerShoot\":", this->numBulletsPerShoot);
     }
     FishDrill::FishDrill(FishDrill&& o) noexcept {
         this->operator=(std::move(o));
     }
     FishDrill& FishDrill::operator=(FishDrill&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->reserveCoin, o.reserveCoin);
         return *this;
     }
@@ -408,28 +424,28 @@ namespace FishManage {
         if (int r = dr.Read(this->reserveCoin)) return r;
         return 0;
     }
-    void FishDrill::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishDrill::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishDrill*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishDrill*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishDrill::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"reserveCoin\":", this->reserveCoin);
+    void FishDrill::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"reserveCoin\":", this->reserveCoin);
     }
     FishBomb::FishBomb(FishBomb&& o) noexcept {
         this->operator=(std::move(o));
     }
     FishBomb& FishBomb::operator=(FishBomb&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->timesFrom, o.timesFrom);
         std::swap(this->timesTo, o.timesTo);
         return *this;
@@ -448,29 +464,29 @@ namespace FishManage {
         if (int r = dr.Read(this->timesTo)) return r;
         return 0;
     }
-    void FishBomb::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishBomb::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishBomb*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishBomb*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishBomb::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"timesFrom\":", this->timesFrom);
-        xx::Append(s, ",\"timesTo\":", this->timesTo);
+    void FishBomb::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"timesFrom\":", this->timesFrom);
+        xx::AppendEx(oh, ",\"timesTo\":", this->timesTo);
     }
     FishNormal::FishNormal(FishNormal&& o) noexcept {
         this->operator=(std::move(o));
     }
     FishNormal& FishNormal::operator=(FishNormal&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         return *this;
     }
     uint16_t FishNormal::GetTypeId() const {
@@ -483,21 +499,21 @@ namespace FishManage {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void FishNormal::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishNormal::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishNormal*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishNormal*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishNormal::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
+    void FishNormal::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
     }
     CombineItem::CombineItem(CombineItem&& o) noexcept {
         this->operator=(std::move(o));
@@ -514,7 +530,7 @@ namespace FishManage {
         this->operator=(std::move(o));
     }
     ResCombine& ResCombine::operator=(ResCombine&& o) noexcept {
-        this->FishManage::ResBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->items, o.items);
         return *this;
     }
@@ -530,28 +546,28 @@ namespace FishManage {
         if (int r = dr.Read(this->items)) return r;
         return 0;
     }
-    void ResCombine::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void ResCombine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((ResCombine*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((ResCombine*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void ResCombine::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"items\":", this->items);
+    void ResCombine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"items\":", this->items);
     }
     ActionSpine::ActionSpine(ActionSpine&& o) noexcept {
         this->operator=(std::move(o));
     }
     ActionSpine& ActionSpine::operator=(ActionSpine&& o) noexcept {
-        this->FishManage::ActionBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         return *this;
     }
     uint16_t ActionSpine::GetTypeId() const {
@@ -564,27 +580,27 @@ namespace FishManage {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void ActionSpine::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void ActionSpine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((ActionSpine*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((ActionSpine*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void ActionSpine::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
+    void ActionSpine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
     }
     Res3d::Res3d(Res3d&& o) noexcept {
         this->operator=(std::move(o));
     }
     Res3d& Res3d::operator=(Res3d&& o) noexcept {
-        this->FishManage::ResBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->c3bFileName, o.c3bFileName);
         std::swap(this->baseAngleX, o.baseAngleX);
         std::swap(this->baseAngleY, o.baseAngleY);
@@ -609,31 +625,31 @@ namespace FishManage {
         if (int r = dr.Read(this->baseAngleZ)) return r;
         return 0;
     }
-    void Res3d::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Res3d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Res3d*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Res3d*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Res3d::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"c3bFileName\":", this->c3bFileName);
-        xx::Append(s, ",\"baseAngleX\":", this->baseAngleX);
-        xx::Append(s, ",\"baseAngleY\":", this->baseAngleY);
-        xx::Append(s, ",\"baseAngleZ\":", this->baseAngleZ);
+    void Res3d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"c3bFileName\":", this->c3bFileName);
+        xx::AppendEx(oh, ",\"baseAngleX\":", this->baseAngleX);
+        xx::AppendEx(oh, ",\"baseAngleY\":", this->baseAngleY);
+        xx::AppendEx(oh, ",\"baseAngleZ\":", this->baseAngleZ);
     }
     FishCyclone::FishCyclone(FishCyclone&& o) noexcept {
         this->operator=(std::move(o));
     }
     FishCyclone& FishCyclone::operator=(FishCyclone&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->sameFishName, o.sameFishName);
         return *this;
     }
@@ -649,28 +665,28 @@ namespace FishManage {
         if (int r = dr.Read(this->sameFishName)) return r;
         return 0;
     }
-    void FishCyclone::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishCyclone::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishCyclone*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishCyclone*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishCyclone::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"sameFishName\":", this->sameFishName);
+    void FishCyclone::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"sameFishName\":", this->sameFishName);
     }
     ResSpine::ResSpine(ResSpine&& o) noexcept {
         this->operator=(std::move(o));
     }
     ResSpine& ResSpine::operator=(ResSpine&& o) noexcept {
-        this->FishManage::ResBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->atlasFileName, o.atlasFileName);
         std::swap(this->shadowScale, o.shadowScale);
         std::swap(this->shadowOffsetX, o.shadowOffsetX);
@@ -695,31 +711,31 @@ namespace FishManage {
         if (int r = dr.Read(this->shadowOffsetY)) return r;
         return 0;
     }
-    void ResSpine::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void ResSpine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((ResSpine*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((ResSpine*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void ResSpine::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"atlasFileName\":", this->atlasFileName);
-        xx::Append(s, ",\"shadowScale\":", this->shadowScale);
-        xx::Append(s, ",\"shadowOffsetX\":", this->shadowOffsetX);
-        xx::Append(s, ",\"shadowOffsetY\":", this->shadowOffsetY);
+    void ResSpine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"atlasFileName\":", this->atlasFileName);
+        xx::AppendEx(oh, ",\"shadowScale\":", this->shadowScale);
+        xx::AppendEx(oh, ",\"shadowOffsetX\":", this->shadowOffsetX);
+        xx::AppendEx(oh, ",\"shadowOffsetY\":", this->shadowOffsetY);
     }
     Frame2d::Frame2d(Frame2d&& o) noexcept {
         this->operator=(std::move(o));
     }
     Frame2d& Frame2d::operator=(Frame2d&& o) noexcept {
-        this->FishManage::FrameBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->spriteFrameName, o.spriteFrameName);
         return *this;
     }
@@ -735,28 +751,28 @@ namespace FishManage {
         if (int r = dr.Read(this->spriteFrameName)) return r;
         return 0;
     }
-    void Frame2d::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Frame2d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Frame2d*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Frame2d*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Frame2d::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"spriteFrameName\":", this->spriteFrameName);
+    void Frame2d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"spriteFrameName\":", this->spriteFrameName);
     }
     Action2d::Action2d(Action2d&& o) noexcept {
         this->operator=(std::move(o));
     }
     Action2d& Action2d::operator=(Action2d&& o) noexcept {
-        this->FishManage::ActionBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         return *this;
     }
     uint16_t Action2d::GetTypeId() const {
@@ -769,27 +785,27 @@ namespace FishManage {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void Action2d::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Action2d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Action2d*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Action2d*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Action2d::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
+    void Action2d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
     }
     Res2d::Res2d(Res2d&& o) noexcept {
         this->operator=(std::move(o));
     }
     Res2d& Res2d::operator=(Res2d&& o) noexcept {
-        this->FishManage::ResBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->plistFileNames, o.plistFileNames);
         std::swap(this->shadowScale, o.shadowScale);
         std::swap(this->shadowOffsetX, o.shadowOffsetX);
@@ -814,31 +830,31 @@ namespace FishManage {
         if (int r = dr.Read(this->shadowOffsetY)) return r;
         return 0;
     }
-    void Res2d::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Res2d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Res2d*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Res2d*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Res2d::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"plistFileNames\":", this->plistFileNames);
-        xx::Append(s, ",\"shadowScale\":", this->shadowScale);
-        xx::Append(s, ",\"shadowOffsetX\":", this->shadowOffsetX);
-        xx::Append(s, ",\"shadowOffsetY\":", this->shadowOffsetY);
+    void Res2d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"plistFileNames\":", this->plistFileNames);
+        xx::AppendEx(oh, ",\"shadowScale\":", this->shadowScale);
+        xx::AppendEx(oh, ",\"shadowOffsetX\":", this->shadowOffsetX);
+        xx::AppendEx(oh, ",\"shadowOffsetY\":", this->shadowOffsetY);
     }
     Action3d::Action3d(Action3d&& o) noexcept {
         this->operator=(std::move(o));
     }
     Action3d& Action3d::operator=(Action3d&& o) noexcept {
-        this->FishManage::ActionBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         return *this;
     }
     uint16_t Action3d::GetTypeId() const {
@@ -851,27 +867,27 @@ namespace FishManage {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void Action3d::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Action3d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Action3d*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Action3d*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Action3d::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
+    void Action3d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
     }
     FishEater::FishEater(FishEater&& o) noexcept {
         this->operator=(std::move(o));
     }
     FishEater& FishEater::operator=(FishEater&& o) noexcept {
-        this->FishManage::FishBase::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->fishNames, o.fishNames);
         return *this;
     }
@@ -887,21 +903,21 @@ namespace FishManage {
         if (int r = dr.Read(this->fishNames)) return r;
         return 0;
     }
-    void FishEater::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void FishEater::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.ptrOffsets.find((void*)this);
+        if (iter != oh.ptrOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((FishEater*)this)->toStringFlag = true;
+            oh.ptrOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((FishEater*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void FishEater::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"fishNames\":", this->fishNames);
+    void FishEater::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"fishNames\":", this->fishNames);
     }
 }

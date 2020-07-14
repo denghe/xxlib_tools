@@ -3,10 +3,10 @@
 #include "FishManage_class_lite.h.inc"  // user create it for extend include files
 namespace FishManage {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<327f6b269648e03361c36c693442dae1>*#";
+		inline static const std::string value = "#*MD5<ff594b4d1e35e0951d554be248625681>*#";
     };
 	struct PkgGenTypes {
-        static void RegisterTo(xx::ObjectCreators& oc);
+        static void RegisterTo(xx::ObjectHelper& oh);
     };
 
     // 鱼基类
@@ -46,15 +46,17 @@ namespace FishManage {
     struct FishBase : xx::Object {
         XX_GENCODE_OBJECT_H(FishBase, xx::Object)
         // 鱼名( 用于创建定位 )
-        std::string fishName;
+        std::string name;
+        // 所用资源
+        std::weak_ptr<FishManage::ResBase> res;
         // 倍率基数
         int64_t coin1 = 0;
         // 倍率上限( 不可能小于基数。等于基数 则为固定值，大于基数，普通鱼则为随机上限 )
         int64_t coin2 = 0;
         // 默认鱼线组名
         std::string pathwayGroupName;
-        // 所用资源
-        std::weak_ptr<FishManage::ResBase> res;
+        // 最后编辑时间
+        int64_t lastUpdateTime = 0;
     };
     // 资源基类
     struct ResBase : xx::Object {
@@ -65,6 +67,8 @@ namespace FishManage {
         float baseScale = 0;
         // 动作集合
         std::vector<std::shared_ptr<FishManage::ActionBase>> actions;
+        // 最后编辑时间
+        int64_t lastUpdateTime = 0;
     };
     // 动作基类
     struct ActionBase : xx::Object {
@@ -73,6 +77,10 @@ namespace FishManage {
         std::string name;
         // 每秒帧率 / 播放速率. 每条鱼的每个动作都可以配置不同帧率. spine/3d 同样受影响
         float frameRate = 0;
+        // 总宽度( 2d sprite frame 默认为图集宽度. spine, 3d, combine 都需要手工设置 )
+        float width = 0;
+        // 总高度( 2d sprite frame 默认为图集高度. spine, 3d, combine 都需要手工设置 )
+        float height = 0;
         // 帧集合
         std::vector<std::shared_ptr<FishManage::FrameBase>> frames;
     };
@@ -218,9 +226,9 @@ namespace FishManage {
 }
 namespace xx {
 	template<>
-	struct StringFuncs<FishManage::CDCircle, void> {
-		static void Append(std::string& s, FishManage::CDCircle const& in);
-		static void AppendCore(std::string& s, FishManage::CDCircle const& in);
+	struct StringFuncsEx<FishManage::CDCircle, void> {
+		static void Append(ObjectHelper &oh, FishManage::CDCircle const& in);
+		static void AppendCore(ObjectHelper &oh, FishManage::CDCircle const& in);
     };
 	template<>
 	struct DataFuncsEx<FishManage::CDCircle, void> {
@@ -228,9 +236,9 @@ namespace xx {
 		static int Read(DataReaderEx& dr, FishManage::CDCircle& out);
 	};
 	template<>
-	struct StringFuncs<FishManage::LockPoint, void> {
-		static void Append(std::string& s, FishManage::LockPoint const& in);
-		static void AppendCore(std::string& s, FishManage::LockPoint const& in);
+	struct StringFuncsEx<FishManage::LockPoint, void> {
+		static void Append(ObjectHelper &oh, FishManage::LockPoint const& in);
+		static void AppendCore(ObjectHelper &oh, FishManage::LockPoint const& in);
     };
 	template<>
 	struct DataFuncsEx<FishManage::LockPoint, void> {
@@ -238,9 +246,9 @@ namespace xx {
 		static int Read(DataReaderEx& dr, FishManage::LockPoint& out);
 	};
 	template<>
-	struct StringFuncs<FishManage::Data, void> {
-		static void Append(std::string& s, FishManage::Data const& in);
-		static void AppendCore(std::string& s, FishManage::Data const& in);
+	struct StringFuncsEx<FishManage::Data, void> {
+		static void Append(ObjectHelper &oh, FishManage::Data const& in);
+		static void AppendCore(ObjectHelper &oh, FishManage::Data const& in);
     };
 	template<>
 	struct DataFuncsEx<FishManage::Data, void> {
@@ -248,9 +256,9 @@ namespace xx {
 		static int Read(DataReaderEx& dr, FishManage::Data& out);
 	};
 	template<>
-	struct StringFuncs<FishManage::CombineItem, void> {
-		static void Append(std::string& s, FishManage::CombineItem const& in);
-		static void AppendCore(std::string& s, FishManage::CombineItem const& in);
+	struct StringFuncsEx<FishManage::CombineItem, void> {
+		static void Append(ObjectHelper &oh, FishManage::CombineItem const& in);
+		static void AppendCore(ObjectHelper &oh, FishManage::CombineItem const& in);
     };
 	template<>
 	struct DataFuncsEx<FishManage::CombineItem, void> {

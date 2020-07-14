@@ -12,6 +12,7 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     const float fontSize = 32;
     const float margin = fontSize / 3.0f;
     const float lineHeight = fontSize * 1.4f;
+    cocos2d::TTFConfig ttfConfig = cocos2d::TTFConfig("arial.ttf", fontSize);
 
     const cocos2d::Color3B yellow = cocos2d::Color3B(255, 207, 64);
     const cocos2d::Color3B blue = cocos2d::Color3B(126, 194, 255);
@@ -22,15 +23,16 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     std::vector<cocos2d::ui::EditBox*> editBoxs;
 
     // 便于 刷新后恢复 scroll view 的显示位置
-    float welcomeScrolledPercentVertical = 0;
-    float spriteFrameConfigScrolledPercentVertical = 0;
+    float manageResourcesScrolledPercentVertical = 0;
+    float manageFishsScrolledPercentVertical = 0;
+    float configSpriteFrameScrolledPercentVertical = 0;
     float editRes2dScrolledPercentVertical = 0;
 
 
     // 所有数据在此
     FishManage::Data data;
-    // 指令集
-    xx::ObjectCreators oc;
+    // 对象帮助器
+    xx::ObjectHelper oh;
     // 存盘文件名
     const std::string dataFileName = "fishs.data";
 
@@ -39,20 +41,21 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 存档
     void SaveData();
 
-
+    // 在屏幕中间弹出一段提示，几秒钟后飞走消失
+    void PopupMessage(std::string const& txt, cocos2d::Color3B const& color = cocos2d::Color3B::RED);
 
     // 创建 文本( 锚点 左中 )
-    cocos2d::Label* CreateLabel(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::Node* const& container = nullptr);
+    cocos2d::Label* CreateLabel(cocos2d::Vec2 const& pos, std::string const& txt, cocos2d::Node* const& container = nullptr);
 
     // 创建 键值对文本. 值颜色 yellow( 锚点 左中 )
-    std::pair<cocos2d::Label*, cocos2d::Label*> CreateLabelPair(cocos2d::Vec2 const& pos, std::string const& key, std::string const& value, int const& fontSize, cocos2d::Node* const& container = nullptr);
+    std::pair<cocos2d::Label*, cocos2d::Label*> CreateLabelPair(cocos2d::Vec2 const& pos, std::string const& key, std::string const& value, cocos2d::Node* const& container = nullptr);
 
 
     // 创建 文本 按钮( 锚点 左中 )
-    cocos2d::ui::Button* CreateTextButton(cocos2d::Vec2 const& pos, std::string const& txt, int const& fontSize, cocos2d::ccMenuCallback&& callback, cocos2d::Node* const& container = nullptr);
+    cocos2d::ui::Button* CreateButton(cocos2d::Vec2 const& pos, std::string const& txt, cocos2d::ccMenuCallback&& callback, cocos2d::Node* const& container = nullptr);
 
     // 创建 文本 按钮( 锚点 左中 )
-    cocos2d::ui::EditBox* CreateEditBox(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::string const& text, std::string const& holderText, int const& fontSize, cocos2d::Node* const& container = nullptr);
+    cocos2d::ui::EditBox* CreateEditBox(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::string const& text, std::string const& holderText, cocos2d::Node* const& container = nullptr);
 
     // 创建 checkbox ( 锚点 左中 )
     cocos2d::ui::CheckBox* CreateCheckBox(cocos2d::Vec2 const& pos, bool const& value, cocos2d::ui::CheckBox::ccCheckBoxCallback&& callback, cocos2d::Node* const& container = nullptr);
@@ -81,29 +84,55 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 创建一个 2d 帧图 动作 预览动画
     ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, std::shared_ptr<FishManage::Action2d> const& action, cocos2d::Node* const& container = nullptr);
 
+    // return tar->getContentSize().width
+    float GetWidth(cocos2d::Node* const& tar);
+    float GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar);
+
+    // 创建资源预览( 锚点 中心 ). 显示为指定 siz 大小( 对 spine, 3d 需要取出 bounding box 结合指定 siz 来算 scale )
+    void CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::ResBase> res, cocos2d::Node* const& container = nullptr);
 
 
 
-
-    // 绘制 欢迎页
+    // 欢迎页
     void Welcome();
 
-    // 绘制 sprite frame 鱼 初始页
+    // 资源管理页
+    void ManageResources();
+
+    // 2d 帧资源编辑页
     void EditRes2d(std::shared_ptr<FishManage::Res2d> const& res2d);
 
-    // 绘制 选 plist 文件页
+    // 选 plist 文件页
     void ChoosePList(std::shared_ptr<FishManage::Res2d> const& res2d);
 
-    // 绘制 选 sprite frame 页
+    // 选 sprite frame 页
     void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
-    // 绘制 sprite frame 参数配置 页
+    // sprite frame 参数配置 页
     void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
+    // todo: EditResSpine
+    // todo: ChooseAtlas
+    // todo: ConfigSpineFrame
 
+    // todo: EditRes3d
+    // todo: ChooseC3b
+    // todo: Config3dFrame
 
+    // todo: EditResCombine
+    // todo: ChooseRes
+    // todo: ConfigCombineRes
 
+    // 鱼管理页
+    void ManageFishs();
 
+    // 鱼编辑页
+    void EditFishNormal(std::shared_ptr<FishManage::FishNormal> const& fish);
+    void EditFishBomb(std::shared_ptr<FishManage::FishBomb> const& fish);
+    void EditFishDrill(std::shared_ptr<FishManage::FishDrill> const& fish);
+    void EditFishFury(std::shared_ptr<FishManage::FishFury> const& fish);
+    void EditFishCyclone(std::shared_ptr<FishManage::FishCyclone> const& fish);
+    void EditFishEater(std::shared_ptr<FishManage::FishEater> const& fish);
 
     // for edit box delegate
     void editBoxReturn(cocos2d::ui::EditBox* editBox) override;
