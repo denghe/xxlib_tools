@@ -3,7 +3,7 @@
 #include "FishManage_class_lite.h.inc"  // user create it for extend include files
 namespace FishManage {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<ff594b4d1e35e0951d554be248625681>*#";
+		inline static const std::string value = "#*MD5<a3e444069efa929f6aac220d7478c948>*#";
     };
 	struct PkgGenTypes {
         static void RegisterTo(xx::ObjectHelper& oh);
@@ -235,6 +235,11 @@ namespace xx {
 		static void Write(DataWriterEx& dw, FishManage::CDCircle const& in);
 		static int Read(DataReaderEx& dr, FishManage::CDCircle& out);
 	};
+    template<>
+	struct CloneFuncs<FishManage::CDCircle, void> {
+		static void Clone1(ObjectHelper &oh, FishManage::CDCircle const& in, FishManage::CDCircle& out);
+		static void Clone2(ObjectHelper &oh, FishManage::CDCircle const& in, FishManage::CDCircle& out);
+	};
 	template<>
 	struct StringFuncsEx<FishManage::LockPoint, void> {
 		static void Append(ObjectHelper &oh, FishManage::LockPoint const& in);
@@ -244,6 +249,11 @@ namespace xx {
 	struct DataFuncsEx<FishManage::LockPoint, void> {
 		static void Write(DataWriterEx& dw, FishManage::LockPoint const& in);
 		static int Read(DataReaderEx& dr, FishManage::LockPoint& out);
+	};
+    template<>
+	struct CloneFuncs<FishManage::LockPoint, void> {
+		static void Clone1(ObjectHelper &oh, FishManage::LockPoint const& in, FishManage::LockPoint& out);
+		static void Clone2(ObjectHelper &oh, FishManage::LockPoint const& in, FishManage::LockPoint& out);
 	};
 	template<>
 	struct StringFuncsEx<FishManage::Data, void> {
@@ -255,6 +265,11 @@ namespace xx {
 		static void Write(DataWriterEx& dw, FishManage::Data const& in);
 		static int Read(DataReaderEx& dr, FishManage::Data& out);
 	};
+    template<>
+	struct CloneFuncs<FishManage::Data, void> {
+		static void Clone1(ObjectHelper &oh, FishManage::Data const& in, FishManage::Data& out);
+		static void Clone2(ObjectHelper &oh, FishManage::Data const& in, FishManage::Data& out);
+	};
 	template<>
 	struct StringFuncsEx<FishManage::CombineItem, void> {
 		static void Append(ObjectHelper &oh, FishManage::CombineItem const& in);
@@ -264,5 +279,10 @@ namespace xx {
 	struct DataFuncsEx<FishManage::CombineItem, void> {
 		static void Write(DataWriterEx& dw, FishManage::CombineItem const& in);
 		static int Read(DataReaderEx& dr, FishManage::CombineItem& out);
+	};
+    template<>
+	struct CloneFuncs<FishManage::CombineItem, void> {
+		static void Clone1(ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem& out);
+		static void Clone2(ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem& out);
 	};
 }

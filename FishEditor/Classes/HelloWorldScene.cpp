@@ -25,9 +25,9 @@ void HelloWorld::PopupMessage(std::string const& txt, cocos2d::Color3B const& co
 }
 
 cocos2d::Label* HelloWorld::CreateLabel(cocos2d::Vec2 const& pos, std::string const& txt, cocos2d::Node* const& container) {
-	//auto l = cocos2d::Label::createWithSystemFont(txt, "", fontSize);
-	auto l = cocos2d::Label::createWithTTF(ttfConfig, txt);
+	auto l = cocos2d::Label::createWithBMFont("3500.fnt", txt);
 	if (!l) return l;
+	l->setScale(fontSize / 32.0f);
 	l->setAnchorPoint({ 0, 0.5 });
 	l->setPosition(pos);
 	if (container) {
@@ -49,12 +49,12 @@ std::pair<cocos2d::Label*, cocos2d::Label*> HelloWorld::CreateLabelPair(cocos2d:
 cocos2d::ui::Button* HelloWorld::CreateButton(cocos2d::Vec2 const& pos, std::string const& txt, cocos2d::ccMenuCallback&& callback, cocos2d::Node* const& container) {
 	auto b = cocos2d::ui::Button::create();
 	if (!b) return b;
-	auto l = cocos2d::Label::createWithTTF(ttfConfig, txt);
-	l->setColor(blue);
-	b->setTitleLabel(l);
-	b->setAnchorPoint({ 0, 0.5 });
+	b->setTitleColor(blue);
+	b->setTitleFontName("arial");
+	b->setTitleFontSize(fontSize);
+	b->setTitleText(txt);
+	b->setAnchorPoint({ 0, 0.5 }); 
 	b->setPosition(pos);
-	b->setContentSize(l->getContentSize());
 	b->setZoomScale(0.1f);
 	b->setPressedActionEnabled(true);
 	b->addClickEventListener(std::move(callback));
@@ -233,7 +233,7 @@ cocos2d::ui::CheckBox* HelloWorld::CreateCheckBox(cocos2d::Vec2 const& pos, bool
 
 
 float HelloWorld::GetWidth(cocos2d::Node* const& tar) {
-	return tar->getContentSize().width;
+	return tar->getContentSize().width * tar->getScaleX();
 }
 
 float HelloWorld::GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar) {
@@ -261,6 +261,113 @@ void HelloWorld::CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, s
 
 #pragma endregion
 
+void HelloWorld::EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index) {
+	removeAllChildren();
+
+	// 编辑 action 下某 frame 的碰撞
+
+	// 背景
+	CreateBG(this);
+
+	// 定位到屏幕左上方的位置
+	cocos2d::Vec2 p(margin, H - lineHeight / 2);
+
+	// [Cleanup]
+	auto bCleanup = CreateButton(p, "[Cleanup]", [this, res, action, index](auto) {
+		auto&& frame = action->frames[index];
+		frame->maxCDCircle.x = 0;
+		frame->maxCDCircle.y = 0;
+		frame->maxCDCircle.r = 0;
+		frame->cdCircles.clear();
+		EditFrameCD(res, action, index);
+	});
+
+	// [<--]  idx / max  [-->]                                    [Exit]
+	p.x = lineHeight * 10;
+	p.y = lineHeight / 2;
+	auto bPrev = CreateButton(p, "[<---]", [this, res, action, index](auto) {
+		if (index == 0) return;
+		EditFrameCD(res, action, index - 1);
+	});
+
+	p.x += GetWidth(bPrev) + margin;
+	auto tIndex = CreateLabel(p, xx::ToString(index + 1));
+
+	p.x += GetWidth(tIndex);
+	auto tSplit = CreateLabel(p, " / ");
+	tSplit->setColor(yellow);
+
+	p.x += GetWidth(tSplit);
+	auto tCount = CreateLabel(p, xx::ToString(action->frames.size()));
+
+	p.x += GetWidth(tCount) + margin;
+	auto bNext = CreateButton(p, "[--->]", [this, res, action, index](auto) {
+		if (index + 1 == action->frames.size()) return;
+		EditFrameCD(res, action, index + 1);
+	});
+
+	p.x = W - margin;
+	auto bExit = CreateButton(p, "[Exit]", [this, res, action](auto) {
+		if (auto&& o = xx::As<FishManage::Res2d>(res)) {
+			ConfigSpriteFrame(o, xx::As<FishManage::Action2d>(action));
+		}
+		//else if (auto&& o = xx::As<FishManage::ResSpine>(res)) {
+		//	ConfigSpriteFrame(o, xx::As<FishManage::ActionSpine>(action));
+		//}
+		//else if (auto&& o = xx::As<FishManage::Res3d>(res)) {
+		//	ConfigSpriteFrame(o, xx::As<FishManage::Action3d>(action));
+		//}
+		//else if (auto&& o = xx::As<FishManage::ResCombine>(res)) {
+		//	ConfigSpriteFrame(o, xx::As<FishManage::ActionCombine>(action));
+		//}
+	});
+	bExit->setAnchorPoint({ 1, 0.5 });
+
+
+	// todo: 在中间绘制动作，令帧停在 index 位置. 弄个 DrawNode? 附加 touch listener? 检测到 touch down 就记录一个圆心? touch move 就修改半径?
+	auto drawNode = cocos2d::DrawNode::create();
+	drawNode->setPosition(W / 2, H / 2);
+	//drawNode->setAnchorPoint({ 0.5, 0.5 });
+	drawNode->setContentSize({1280, 720});
+	drawNode->drawCircle({ 0,0 }, 720 / 2, 0, 100, false, cocos2d::Color4F::BLUE);
+	addChild(drawNode);
+
+	auto&& frame = action->frames[index];
+	if (auto&& frame2d = xx::As<FishManage::Frame2d>(frame)) {
+		auto&& sprite = cocos2d::Sprite::createWithSpriteFrameName(frame2d->spriteFrameName);
+		sprite->setScale(res->baseScale);
+		drawNode->addChild(sprite);
+	}
+	//else if (auto&& o = xx::As<FishManage::ResSpine>(res)) {
+	//	ConfigSpriteFrame(o, xx::As<FishManage::ActionSpine>(action));
+	//}
+	//else if (auto&& o = xx::As<FishManage::Res3d>(res)) {
+	//	ConfigSpriteFrame(o, xx::As<FishManage::Action3d>(action));
+	//}
+	//else if (auto&& o = xx::As<FishManage::ResCombine>(res)) {
+	//	ConfigSpriteFrame(o, xx::As<FishManage::ActionCombine>(action));
+	//}
+
+	auto touchListener = cocos2d::EventListenerTouchOneByOne::create();
+	touchListener->setSwallowTouches(true);
+	touchListener->onTouchBegan = [this, drawNode](cocos2d::Touch* t, cocos2d::Event* e) {
+		auto&& tL = t->getLocation();
+		auto&& p = drawNode->convertToNodeSpace(tL);
+		auto&& s = drawNode->getContentSize();
+		cocos2d::Rect r{ -s.width/2,-s.height /2, s.width/2, s.height/2 };
+		auto&& b = r.containsPoint(p);
+		if (b) {
+			PopupMessage(xx::ToString("p = ", p.x, ", ", p.y));
+		}
+		return b;
+	};
+	cocos2d::Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(touchListener, drawNode);
+}
+
+void HelloWorld::EditFrameLock(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index) {
+	// todo
+}
+
 void HelloWorld::ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d) {
 	// 开始遍历 names (sprite frame names) 并加载. 此时可清除之前的内容
 	removeAllChildren();
@@ -272,8 +379,9 @@ void HelloWorld::ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res
 		xx::Convert(editBoxs[1]->getText(), action2d->frameRate);
 		xx::Convert(editBoxs[2]->getText(), action2d->width);
 		xx::Convert(editBoxs[3]->getText(), action2d->height);
-		for (int i = 4; i < (int)editBoxs.size(); ++i) {
-			xx::Convert(editBoxs[i]->getText(), action2d->frames[i - 2]->moveDistance);
+		// editBoxs[4] 用于临时填写 distance
+		for (int i = 5; i < (int)editBoxs.size(); ++i) {
+			xx::Convert(editBoxs[i]->getText(), action2d->frames[i - 5]->moveDistance);
 		}
 	};
 
@@ -289,31 +397,60 @@ void HelloWorld::ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res
 	p.x += GetWidth(tActionName);
 	auto eActionName = CreateEditBox(p, { lineHeight * 8, fontSize * 1.1f }, action2d->name, "");
 
-	p.x += GetWidth(eActionName) + lineHeight * 3;
+	p.x += GetWidth(eActionName) + lineHeight * 2;
 	auto tFrameRate = CreateLabel(p, "frameRate: ");
 
 	p.x += GetWidth(tFrameRate);
 	auto eFrameRate = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, xx::ToString(action2d->frameRate), "");
 	eFrameRate->setInputMode(cocos2d::ui::EditBox::InputMode::NUMERIC);
 
-	p.x += GetWidth(eFrameRate) + lineHeight * 3;
+	// 如果宽高没有填写过，则取第一张图的宽高填入
+	if (action2d->width == 0 || action2d->height == 0) {
+		auto tmp = cocos2d::Sprite::createWithSpriteFrameName(xx::As<FishManage::Frame2d>(action2d->frames[0])->spriteFrameName);
+		auto siz = tmp->getContentSize();
+		action2d->width = siz.width;
+		action2d->height = siz.height;
+	}
+
+	p.x += GetWidth(eFrameRate) + lineHeight * 2;
 	auto tWidth = CreateLabel(p, "width: ");
 
 	p.x += GetWidth(tWidth);
-	auto eWidth = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, xx::ToString(action2d->frameRate), "");
+	auto eWidth = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, xx::ToString(action2d->width), "");
 	eWidth->setInputMode(cocos2d::ui::EditBox::InputMode::NUMERIC);
 
-	p.x += GetWidth(eWidth) + lineHeight * 3;
+	p.x += GetWidth(eWidth) + lineHeight * 2;
 	auto tHeight = CreateLabel(p, "height: ");
 
 	p.x += GetWidth(tHeight);
-	auto eHeight = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, xx::ToString(action2d->frameRate), "");
+	auto eHeight = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, xx::ToString(action2d->height), "");
 	eHeight->setInputMode(cocos2d::ui::EditBox::InputMode::NUMERIC);
+
+	p.x += GetWidth(tHeight) + lineHeight * 2;
+	auto eDistance = CreateEditBox(p, { lineHeight * 3, fontSize * 1.1f }, "1", "");
+	eDistance->setInputMode(cocos2d::ui::EditBox::InputMode::DECIMAL);
+
+	p.x += GetWidth(eDistance) + margin;
+	auto bFillDistance = CreateButton(p, "[Fill All Distance]", [this, res2d, action2d, SaveEditBoxDataToRes](auto) {
+		SaveEditBoxDataToRes();
+		std::string distanceText = editBoxs[4]->getText();
+		if (distanceText.empty()) {
+			PopupMessage("please input distance!");
+			return;
+		}
+		float distance = 0;
+		xx::Convert(distanceText.c_str(), distance);
+		for (size_t i = 0; i < action2d->frames.size(); ++i) {
+			action2d->frames[i]->moveDistance = distance;
+		}
+		ConfigSpriteFrame(res2d, action2d);
+	});
 
 	editBoxs.push_back(eActionName);
 	editBoxs.push_back(eFrameRate);
 	editBoxs.push_back(eWidth);
 	editBoxs.push_back(eHeight);
+	editBoxs.push_back(eDistance);
 
 
 	// 最下方步骤按钮
@@ -401,7 +538,19 @@ void HelloWorld::ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res
 			ConfigSpriteFrame(res2d, action2d);
 		}, sv);
 
-		p.x += GetWidth(bCopy) + lineHeight * 10;
+		p.x += GetWidth(bCopy) + lineHeight * 2;
+		auto bEditCDCircle = CreateButton(p, "[Edit CD]", [this, sv, i = i, res2d, action2d, SaveEditBoxDataToRes](auto) {
+			SaveEditBoxDataToRes();
+			EditFrameCD(res2d, action2d, i);
+		}, sv);
+
+		p.x += GetWidth(bEditCDCircle) + lineHeight * 2;
+		auto bEditLock = CreateButton(p, "[Edit Lock]", [this, sv, i = i, res2d, action2d, SaveEditBoxDataToRes](auto) {
+			SaveEditBoxDataToRes();
+			EditFrameLock(res2d, action2d, i);
+		}, sv);
+
+		p.x += GetWidth(bEditLock) + lineHeight * 10;
 		auto bDelete = CreateButton(p, "[Delete]", [this, sv, i = i, res2d, action2d, SaveEditBoxDataToRes](auto) {
 			SaveEditBoxDataToRes();
 			action2d->frames.erase(action2d->frames.begin() + i);
@@ -1307,13 +1456,7 @@ void HelloWorld::ManageFishs() {
 			p.x = pos.x + itemHeight + margin;
 			p.y -= lineHeight;
 			auto b1 = CreateButton(p, "[Edit Clone]", [this, fish](auto) {
-				// RemoveWeaks + Clone + RestoreWeaks
-				auto&& bak = fish->res.lock();
-				fish->res.reset();
 				auto&& cloneFish = oh.Clone(fish);
-				fish->res = bak;
-				cloneFish->res = fish->res;
-
 				if (auto&& r = xx::As<FishManage::FishNormal>(cloneFish)) {
 					EditFishNormal(r);
 				}

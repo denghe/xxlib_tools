@@ -19,6 +19,9 @@ class ResBase {
 
 	[Desc("动作集合")]
 	List<Shared<ActionBase>> actions;
+
+	[Desc("最后编辑时间")]
+	long lastUpdateTime;
 }
 
 [TypeId(2), Desc("动作基类")]
@@ -28,6 +31,12 @@ class ActionBase {
 
 	[Desc("每秒帧率 / 播放速率. 每条鱼的每个动作都可以配置不同帧率. spine/3d 同样受影响")]
 	float frameRate;
+
+	[Desc("总宽度( 2d sprite frame 默认为图集宽度. spine, 3d, combine 都需要手工设置 )")]
+	float width;
+
+	[Desc("总高度( 2d sprite frame 默认为图集高度. spine, 3d, combine 都需要手工设置 )")]
+	float height;
 
 	[Desc("帧集合")]
 	List<Shared<FrameBase>> frames;
@@ -142,12 +151,13 @@ struct CombineItem {
 
 
 
-
-
 [TypeId(9), Desc("鱼基类")]
 class FishBase {
 	[Desc("鱼名( 用于创建定位 )")]
-	string fishName;
+	string name;
+
+	[Desc("所用资源")]
+	Weak<ResBase> res;
 
 	[Desc("倍率基数")]
 	long coin1;
@@ -158,8 +168,8 @@ class FishBase {
 	[Desc("默认鱼线组名")]
 	string pathwayGroupName;
 
-	[Desc("所用资源")]
-	Weak<ResBase> res;
+	[Desc("最后编辑时间")]
+	long lastUpdateTime;
 }
 
 [TypeId(10), Desc("普通( 所有 BOSS 也算普通鱼. 从普通鱼派生 )")]

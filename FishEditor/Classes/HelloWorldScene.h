@@ -9,10 +9,9 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     float W = 0, H = 0;
 
     // 公共布局参数
-    const float fontSize = 32;
+    const float fontSize = 24;
     const float margin = fontSize / 3.0f;
     const float lineHeight = fontSize * 1.4f;
-    cocos2d::TTFConfig ttfConfig = cocos2d::TTFConfig("arial.ttf", fontSize);
 
     const cocos2d::Color3B yellow = cocos2d::Color3B(255, 207, 64);
     const cocos2d::Color3B blue = cocos2d::Color3B(126, 194, 255);
@@ -110,6 +109,13 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 
     // sprite frame 参数配置 页
     void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
+
+    // 编辑具体某帧的碰撞
+    void EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
+
+    // 编辑具体某帧的锁定点/线
+    void EditFrameLock(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
+
 
     // todo: EditResSpine
     // todo: ChooseAtlas

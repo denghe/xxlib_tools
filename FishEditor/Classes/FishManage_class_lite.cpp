@@ -44,6 +44,16 @@ namespace FishManage {
 }
 
 namespace xx {
+    void CloneFuncs<FishManage::CDCircle>::Clone1(xx::ObjectHelper &oh, FishManage::CDCircle const& in, FishManage::CDCircle &out) {
+        CloneFuncs<float>::Clone1(oh, in.x, out.x);
+        CloneFuncs<float>::Clone1(oh, in.y, out.y);
+        CloneFuncs<float>::Clone1(oh, in.r, out.r);
+    }
+    void CloneFuncs<FishManage::CDCircle>::Clone2(xx::ObjectHelper &oh, FishManage::CDCircle const& in, FishManage::CDCircle &out) {
+        CloneFuncs<float>::Clone2(oh, in.x, out.x);
+        CloneFuncs<float>::Clone2(oh, in.y, out.y);
+        CloneFuncs<float>::Clone2(oh, in.r, out.r);
+    }
 	void DataFuncsEx<FishManage::CDCircle, void>::Write(DataWriterEx& dw, FishManage::CDCircle const& in) {
         dw.Write(in.x);
         dw.Write(in.y);
@@ -69,6 +79,14 @@ namespace xx {
         xx::AppendEx(oh, ",\"y\":", in.y);
         xx::AppendEx(oh, ",\"r\":", in.r);
     }
+    void CloneFuncs<FishManage::LockPoint>::Clone1(xx::ObjectHelper &oh, FishManage::LockPoint const& in, FishManage::LockPoint &out) {
+        CloneFuncs<float>::Clone1(oh, in.x, out.x);
+        CloneFuncs<float>::Clone1(oh, in.y, out.y);
+    }
+    void CloneFuncs<FishManage::LockPoint>::Clone2(xx::ObjectHelper &oh, FishManage::LockPoint const& in, FishManage::LockPoint &out) {
+        CloneFuncs<float>::Clone2(oh, in.x, out.x);
+        CloneFuncs<float>::Clone2(oh, in.y, out.y);
+    }
 	void DataFuncsEx<FishManage::LockPoint, void>::Write(DataWriterEx& dw, FishManage::LockPoint const& in) {
         dw.Write(in.x);
         dw.Write(in.y);
@@ -91,6 +109,14 @@ namespace xx {
         xx::AppendEx(oh, "\"x\":", in.x); 
         xx::AppendEx(oh, ",\"y\":", in.y);
     }
+    void CloneFuncs<FishManage::Data>::Clone1(xx::ObjectHelper &oh, FishManage::Data const& in, FishManage::Data &out) {
+        CloneFuncs<std::vector<std::shared_ptr<FishManage::ResBase>>>::Clone1(oh, in.ress, out.ress);
+        CloneFuncs<std::vector<std::shared_ptr<FishManage::FishBase>>>::Clone1(oh, in.fishs, out.fishs);
+    }
+    void CloneFuncs<FishManage::Data>::Clone2(xx::ObjectHelper &oh, FishManage::Data const& in, FishManage::Data &out) {
+        CloneFuncs<std::vector<std::shared_ptr<FishManage::ResBase>>>::Clone2(oh, in.ress, out.ress);
+        CloneFuncs<std::vector<std::shared_ptr<FishManage::FishBase>>>::Clone2(oh, in.fishs, out.fishs);
+    }
 	void DataFuncsEx<FishManage::Data, void>::Write(DataWriterEx& dw, FishManage::Data const& in) {
         dw.Write(in.ress);
         dw.Write(in.fishs);
@@ -112,6 +138,20 @@ namespace xx {
         }
         xx::AppendEx(oh, "\"ress\":", in.ress); 
         xx::AppendEx(oh, ",\"fishs\":", in.fishs);
+    }
+    void CloneFuncs<FishManage::CombineItem>::Clone1(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
+        CloneFuncs<std::shared_ptr<FishManage::ResBase>>::Clone1(oh, in.res, out.res);
+        CloneFuncs<float>::Clone1(oh, in.offsetX, out.offsetX);
+        CloneFuncs<float>::Clone1(oh, in.offsetY, out.offsetY);
+        CloneFuncs<float>::Clone1(oh, in.baseAngle, out.baseAngle);
+        CloneFuncs<float>::Clone1(oh, in.baseScale, out.baseScale);
+    }
+    void CloneFuncs<FishManage::CombineItem>::Clone2(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
+        CloneFuncs<std::shared_ptr<FishManage::ResBase>>::Clone2(oh, in.res, out.res);
+        CloneFuncs<float>::Clone2(oh, in.offsetX, out.offsetX);
+        CloneFuncs<float>::Clone2(oh, in.offsetY, out.offsetY);
+        CloneFuncs<float>::Clone2(oh, in.baseAngle, out.baseAngle);
+        CloneFuncs<float>::Clone2(oh, in.baseScale, out.baseScale);
     }
 	void DataFuncsEx<FishManage::CombineItem, void>::Write(DataWriterEx& dw, FishManage::CombineItem const& in) {
         dw.Write(in.res);
@@ -158,6 +198,24 @@ namespace FishManage {
         std::swap(this->lastUpdateTime, o.lastUpdateTime);
         return *this;
     }
+    void FishBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::FishBase>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
+        xx::CloneFuncs<std::weak_ptr<FishManage::ResBase>>::Clone1(oh, this->res, o->res);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->coin1, o->coin1);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->coin2, o->coin2);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->pathwayGroupName, o->pathwayGroupName);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->lastUpdateTime, o->lastUpdateTime);
+    }
+    void FishBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::FishBase>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
+        xx::CloneFuncs<std::weak_ptr<FishManage::ResBase>>::Clone2(oh, this->res, o->res);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->coin1, o->coin1);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->coin2, o->coin2);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->pathwayGroupName, o->pathwayGroupName);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->lastUpdateTime, o->lastUpdateTime);
+    }
     uint16_t FishBase::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishBase>;
     }
@@ -179,13 +237,13 @@ namespace FishManage {
         return 0;
     }
     void FishBase::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -209,6 +267,20 @@ namespace FishManage {
         std::swap(this->lastUpdateTime, o.lastUpdateTime);
         return *this;
     }
+    void ResBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::ResBase>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::ActionBase>>>::Clone1(oh, this->actions, o->actions);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->lastUpdateTime, o->lastUpdateTime);
+    }
+    void ResBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::ResBase>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::ActionBase>>>::Clone2(oh, this->actions, o->actions);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->lastUpdateTime, o->lastUpdateTime);
+    }
     uint16_t ResBase::GetTypeId() const {
         return xx::TypeId_v<FishManage::ResBase>;
     }
@@ -226,13 +298,13 @@ namespace FishManage {
         return 0;
     }
     void ResBase::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -255,6 +327,22 @@ namespace FishManage {
         std::swap(this->frames, o.frames);
         return *this;
     }
+    void ActionBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::ActionBase>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
+        xx::CloneFuncs<float>::Clone1(oh, this->frameRate, o->frameRate);
+        xx::CloneFuncs<float>::Clone1(oh, this->width, o->width);
+        xx::CloneFuncs<float>::Clone1(oh, this->height, o->height);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::FrameBase>>>::Clone1(oh, this->frames, o->frames);
+    }
+    void ActionBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::ActionBase>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
+        xx::CloneFuncs<float>::Clone2(oh, this->frameRate, o->frameRate);
+        xx::CloneFuncs<float>::Clone2(oh, this->width, o->width);
+        xx::CloneFuncs<float>::Clone2(oh, this->height, o->height);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::FrameBase>>>::Clone2(oh, this->frames, o->frames);
+    }
     uint16_t ActionBase::GetTypeId() const {
         return xx::TypeId_v<FishManage::ActionBase>;
     }
@@ -274,13 +362,13 @@ namespace FishManage {
         return 0;
     }
     void ActionBase::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -321,6 +409,22 @@ namespace FishManage {
         std::swap(this->lockPoints, o.lockPoints);
         return *this;
     }
+    void FrameBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::FrameBase>(tar);
+        xx::CloneFuncs<float>::Clone1(oh, this->moveDistance, o->moveDistance);
+        xx::CloneFuncs<FishManage::CDCircle>::Clone1(oh, this->maxCDCircle, o->maxCDCircle);
+        xx::CloneFuncs<std::vector<FishManage::CDCircle>>::Clone1(oh, this->cdCircles, o->cdCircles);
+        xx::CloneFuncs<FishManage::LockPoint>::Clone1(oh, this->mainLockPoint, o->mainLockPoint);
+        xx::CloneFuncs<std::vector<FishManage::LockPoint>>::Clone1(oh, this->lockPoints, o->lockPoints);
+    }
+    void FrameBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::FrameBase>(tar);
+        xx::CloneFuncs<float>::Clone2(oh, this->moveDistance, o->moveDistance);
+        xx::CloneFuncs<FishManage::CDCircle>::Clone2(oh, this->maxCDCircle, o->maxCDCircle);
+        xx::CloneFuncs<std::vector<FishManage::CDCircle>>::Clone2(oh, this->cdCircles, o->cdCircles);
+        xx::CloneFuncs<FishManage::LockPoint>::Clone2(oh, this->mainLockPoint, o->mainLockPoint);
+        xx::CloneFuncs<std::vector<FishManage::LockPoint>>::Clone2(oh, this->lockPoints, o->lockPoints);
+    }
     uint16_t FrameBase::GetTypeId() const {
         return xx::TypeId_v<FishManage::FrameBase>;
     }
@@ -340,13 +444,13 @@ namespace FishManage {
         return 0;
     }
     void FrameBase::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -375,6 +479,16 @@ namespace FishManage {
         std::swap(this->numBulletsPerShoot, o.numBulletsPerShoot);
         return *this;
     }
+    void FishFury::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishFury>(tar);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->numBulletsPerShoot, o->numBulletsPerShoot);
+    }
+    void FishFury::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishFury>(tar);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->numBulletsPerShoot, o->numBulletsPerShoot);
+    }
     uint16_t FishFury::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishFury>;
     }
@@ -388,13 +502,13 @@ namespace FishManage {
         return 0;
     }
     void FishFury::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -412,6 +526,16 @@ namespace FishManage {
         std::swap(this->reserveCoin, o.reserveCoin);
         return *this;
     }
+    void FishDrill::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishDrill>(tar);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->reserveCoin, o->reserveCoin);
+    }
+    void FishDrill::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishDrill>(tar);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->reserveCoin, o->reserveCoin);
+    }
     uint16_t FishDrill::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishDrill>;
     }
@@ -425,13 +549,13 @@ namespace FishManage {
         return 0;
     }
     void FishDrill::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -450,6 +574,18 @@ namespace FishManage {
         std::swap(this->timesTo, o.timesTo);
         return *this;
     }
+    void FishBomb::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishBomb>(tar);
+        xx::CloneFuncs<int32_t>::Clone1(oh, this->timesFrom, o->timesFrom);
+        xx::CloneFuncs<int32_t>::Clone1(oh, this->timesTo, o->timesTo);
+    }
+    void FishBomb::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishBomb>(tar);
+        xx::CloneFuncs<int32_t>::Clone2(oh, this->timesFrom, o->timesFrom);
+        xx::CloneFuncs<int32_t>::Clone2(oh, this->timesTo, o->timesTo);
+    }
     uint16_t FishBomb::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishBomb>;
     }
@@ -465,13 +601,13 @@ namespace FishManage {
         return 0;
     }
     void FishBomb::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -489,6 +625,14 @@ namespace FishManage {
         this->BaseType::operator=(std::move(o));
         return *this;
     }
+    void FishNormal::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishNormal>(tar);
+    }
+    void FishNormal::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishNormal>(tar);
+    }
     uint16_t FishNormal::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishNormal>;
     }
@@ -500,13 +644,13 @@ namespace FishManage {
         return 0;
     }
     void FishNormal::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -534,6 +678,16 @@ namespace FishManage {
         std::swap(this->items, o.items);
         return *this;
     }
+    void ResCombine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::ResCombine>(tar);
+        xx::CloneFuncs<std::vector<FishManage::CombineItem>>::Clone1(oh, this->items, o->items);
+    }
+    void ResCombine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::ResCombine>(tar);
+        xx::CloneFuncs<std::vector<FishManage::CombineItem>>::Clone2(oh, this->items, o->items);
+    }
     uint16_t ResCombine::GetTypeId() const {
         return xx::TypeId_v<FishManage::ResCombine>;
     }
@@ -547,13 +701,13 @@ namespace FishManage {
         return 0;
     }
     void ResCombine::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -570,6 +724,14 @@ namespace FishManage {
         this->BaseType::operator=(std::move(o));
         return *this;
     }
+    void ActionSpine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::ActionSpine>(tar);
+    }
+    void ActionSpine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::ActionSpine>(tar);
+    }
     uint16_t ActionSpine::GetTypeId() const {
         return xx::TypeId_v<FishManage::ActionSpine>;
     }
@@ -581,13 +743,13 @@ namespace FishManage {
         return 0;
     }
     void ActionSpine::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -606,6 +768,22 @@ namespace FishManage {
         std::swap(this->baseAngleY, o.baseAngleY);
         std::swap(this->baseAngleZ, o.baseAngleZ);
         return *this;
+    }
+    void Res3d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res3d>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->c3bFileName, o->c3bFileName);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleX, o->baseAngleX);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleY, o->baseAngleY);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleZ, o->baseAngleZ);
+    }
+    void Res3d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res3d>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->c3bFileName, o->c3bFileName);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleX, o->baseAngleX);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleY, o->baseAngleY);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleZ, o->baseAngleZ);
     }
     uint16_t Res3d::GetTypeId() const {
         return xx::TypeId_v<FishManage::Res3d>;
@@ -626,13 +804,13 @@ namespace FishManage {
         return 0;
     }
     void Res3d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -653,6 +831,16 @@ namespace FishManage {
         std::swap(this->sameFishName, o.sameFishName);
         return *this;
     }
+    void FishCyclone::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishCyclone>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->sameFishName, o->sameFishName);
+    }
+    void FishCyclone::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishCyclone>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->sameFishName, o->sameFishName);
+    }
     uint16_t FishCyclone::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishCyclone>;
     }
@@ -666,13 +854,13 @@ namespace FishManage {
         return 0;
     }
     void FishCyclone::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -693,6 +881,22 @@ namespace FishManage {
         std::swap(this->shadowOffsetY, o.shadowOffsetY);
         return *this;
     }
+    void ResSpine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::ResSpine>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->atlasFileName, o->atlasFileName);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetY, o->shadowOffsetY);
+    }
+    void ResSpine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::ResSpine>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->atlasFileName, o->atlasFileName);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetY, o->shadowOffsetY);
+    }
     uint16_t ResSpine::GetTypeId() const {
         return xx::TypeId_v<FishManage::ResSpine>;
     }
@@ -712,13 +916,13 @@ namespace FishManage {
         return 0;
     }
     void ResSpine::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -739,6 +943,16 @@ namespace FishManage {
         std::swap(this->spriteFrameName, o.spriteFrameName);
         return *this;
     }
+    void Frame2d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Frame2d>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->spriteFrameName, o->spriteFrameName);
+    }
+    void Frame2d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Frame2d>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->spriteFrameName, o->spriteFrameName);
+    }
     uint16_t Frame2d::GetTypeId() const {
         return xx::TypeId_v<FishManage::Frame2d>;
     }
@@ -752,13 +966,13 @@ namespace FishManage {
         return 0;
     }
     void Frame2d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -775,6 +989,14 @@ namespace FishManage {
         this->BaseType::operator=(std::move(o));
         return *this;
     }
+    void Action2d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Action2d>(tar);
+    }
+    void Action2d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Action2d>(tar);
+    }
     uint16_t Action2d::GetTypeId() const {
         return xx::TypeId_v<FishManage::Action2d>;
     }
@@ -786,13 +1008,13 @@ namespace FishManage {
         return 0;
     }
     void Action2d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -811,6 +1033,22 @@ namespace FishManage {
         std::swap(this->shadowOffsetX, o.shadowOffsetX);
         std::swap(this->shadowOffsetY, o.shadowOffsetY);
         return *this;
+    }
+    void Res2d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res2d>(tar);
+        xx::CloneFuncs<std::vector<std::string>>::Clone1(oh, this->plistFileNames, o->plistFileNames);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetY, o->shadowOffsetY);
+    }
+    void Res2d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res2d>(tar);
+        xx::CloneFuncs<std::vector<std::string>>::Clone2(oh, this->plistFileNames, o->plistFileNames);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetY, o->shadowOffsetY);
     }
     uint16_t Res2d::GetTypeId() const {
         return xx::TypeId_v<FishManage::Res2d>;
@@ -831,13 +1069,13 @@ namespace FishManage {
         return 0;
     }
     void Res2d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -857,6 +1095,14 @@ namespace FishManage {
         this->BaseType::operator=(std::move(o));
         return *this;
     }
+    void Action3d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Action3d>(tar);
+    }
+    void Action3d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Action3d>(tar);
+    }
     uint16_t Action3d::GetTypeId() const {
         return xx::TypeId_v<FishManage::Action3d>;
     }
@@ -868,13 +1114,13 @@ namespace FishManage {
         return 0;
     }
     void Action3d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
@@ -891,6 +1137,16 @@ namespace FishManage {
         std::swap(this->fishNames, o.fishNames);
         return *this;
     }
+    void FishEater::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::FishEater>(tar);
+        xx::CloneFuncs<std::vector<std::string>>::Clone1(oh, this->fishNames, o->fishNames);
+    }
+    void FishEater::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::FishEater>(tar);
+        xx::CloneFuncs<std::vector<std::string>>::Clone2(oh, this->fishNames, o->fishNames);
+    }
     uint16_t FishEater::GetTypeId() const {
         return xx::TypeId_v<FishManage::FishEater>;
     }
@@ -904,13 +1160,13 @@ namespace FishManage {
         return 0;
     }
     void FishEater::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.ptrOffsets.find((void*)this);
-        if (iter != oh.ptrOffsets.end()) {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            oh.ptrOffsets[(void*)this] = oh.s.size();
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
         xx::AppendEx(oh, "{\"#\":", GetTypeId());
         ToStringCore(oh);
