@@ -6,10 +6,6 @@
 #include <array>
 
 namespace xx {
-    // 在 DataFuncs 对原生数据类型的支持的基础上，继续扩展对 std::shared_ptr  std::weak_ptr 的 Object 基类 序列化支持
-    // 读写器 继承并扩展 针对智能指针的读写函数
-    // 示例参考 代码生成物
-
     /************************************************************************************/
     // Data 序列化 / 反序列化 基础适配模板 for Object, std::shared_ptr, std::weak_ptr
 
@@ -18,6 +14,7 @@ namespace xx {
     struct ObjectHelper;
     struct Object;
 
+    // 默认转发到 DataFunc 模板
     template<typename T, typename ENABLED = void>
     struct DataFuncsEx {
         static inline void Write(DataWriterEx &dw, T const &in) {
@@ -29,12 +26,13 @@ namespace xx {
         }
     };
 
-    // 默认调用 xx::Append(oh.s, in)
+    // 默认转发到 StringFuncs 模板
     template<typename T, typename ENABLED = void>
     struct StringFuncsEx {
         static void Append(ObjectHelper &oh, T const &in);
     };
 
+    // 这是新的适配模板 for clone 功能
     template<typename T, typename ENABLED = void>
     struct CloneFuncs {
         static inline void Clone1(ObjectHelper &oh, T const &in, T &out) {
@@ -163,7 +161,7 @@ namespace xx {
 
     template<typename T, typename ENABLED>
     inline void StringFuncsEx<T, ENABLED>::Append(ObjectHelper &oh, T const &in) {
-        xx::Append(oh.s, in);
+        ::xx::StringFuncs<T>::Append(oh.s, in);
     };
 
     /************************************************************************************/
