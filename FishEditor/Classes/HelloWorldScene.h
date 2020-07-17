@@ -3,10 +3,14 @@
 #include "ui/CocosGUI.h"
 #include "FishManage_class_lite.h"
 #include "ActionPlayer_SpriteFrame.h"
+#include "Circle.h"
 
 struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 缓存 AppDelegate::designWidth/Height
-    float W = 0, H = 0;
+    float W = 0, H = 0, W_2 = 0, H_2 = 0;
+    
+    // 设计尺寸相关
+    float DW = 1280, DH = 720, DW_2 = DW / 2, DH_2 = DH / 2;
 
     // 公共布局参数
     const float fontSize = 24;
@@ -27,6 +31,11 @@ struct HelloWorld : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     float configSpriteFrameScrolledPercentVertical = 0;
     float editRes2dScrolledPercentVertical = 0;
 
+    // touch 状态记录
+    cocos2d::Vec2 lastPos;
+    bool touching = false;
+    Circle* newCircle = nullptr;
+    Circle* currCircle = nullptr;
 
     // 所有数据在此
     FishManage::Data data;

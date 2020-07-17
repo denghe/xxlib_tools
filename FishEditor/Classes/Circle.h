@@ -1,0 +1,35 @@
+#pragma once
+#include "cocos2d.h"
+
+struct HelloWorld;
+struct Circle : public cocos2d::Node {
+	using cocos2d::Node::Node;
+	static Circle* create();
+
+	// 指向总上下文，方便取显示参数
+	HelloWorld* scene;
+
+	// 用于绘制的节点( 直接继承它似乎会导致出现绘制 bug )
+	cocos2d::DrawNode* drawNode = nullptr;
+
+	cocos2d::Color4F color = cocos2d::Color4F::RED;
+
+	// 当前半径
+	float r = 0;
+	float rChange = 0;
+
+	// 上次 touch 位置
+	cocos2d::Vect lastPos;
+
+	// 是否正在 touch
+	bool touching = false;
+
+	// 初始化 touch event listener, 实现拖拽功能. 拖到某区域就是删除
+	bool init() override;
+
+	// 根据 r 半径更新显示
+	void Draw(float const& r);
+
+	// 响应键盘按下 + - 不断改变大小的效果
+	void update(float delta) override;
+};

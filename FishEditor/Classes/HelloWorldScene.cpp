@@ -195,12 +195,14 @@ cocos2d::Sprite* HelloWorld::CreateSpriteFrame(cocos2d::Vec2 const& pos, cocos2d
 	s->setSpriteFrame(spriteFrameName);
 	s->setAnchorPoint({ 0.5, 0.5 });
 	s->setPosition(pos);
-	auto&& cs = s->getContentSize();
-	if (cs.width > cs.height) {
-		s->setScale(siz.width / cs.width);
-	}
-	else {
-		s->setScale(siz.height / cs.height);
+	if (siz.width > 0 && siz.height > 0) {
+		auto&& cs = s->getContentSize();
+		if (cs.width > cs.height) {
+			s->setScale(siz.width / cs.width);
+		}
+		else {
+			s->setScale(siz.height / cs.height);
+		}
 	}
 	if (container) {
 		container->addChild(s);
@@ -269,24 +271,92 @@ void HelloWorld::EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, st
 	// 背景
 	CreateBG(this);
 
+	// 圆圈容器
+	auto nodeCircles = cocos2d::Node::create();
+	nodeCircles->setPosition(W_2, H_2);
+	addChild(nodeCircles);
+
+	// 向圆圈容器创建圆圈
+	auto&& CreateCircle = [this, nodeCircles](cocos2d::Vec2 const& pos, float const& r)->Circle* {
+		auto&& nc = Circle::create();
+		nodeCircles->addChild(nc);
+		nc->scene = this;
+		nc->setPosition(pos);
+		nc->Draw(r);
+		return nc;
+	};
+
+	// 指向当前帧
+	auto&& frame = action->frames[index];
+
+	// 指向包围盒. 如果有的话就绘制
+	auto&& mc = frame->maxCDCircle;
+	if (mc.r != 0) {
+		CreateCircle({ mc.x, mc.y }, mc.r);
+	}
+
+	// 绘制次级小圆
+	for(auto&& c : frame->cdCircles) {
+		CreateCircle({ c.x, c.y }, c.r);
+	}
+
+	// 扫描圆圈容器并保存到 res
+	auto&& SaveCirclesToRes = [this, nodeCircles, action, index] {
+		// 从 nodeCircles 过滤出所有 Circle 节点
+		std::vector<Circle*> ncs;
+		for (auto&& n : nodeCircles->getChildren()) {
+			auto&& nc = dynamic_cast<Circle*>(n);
+			if (nc) {
+				ncs.push_back(nc);
+			}
+		}
+		// 指向当前帧
+		auto&& frame = action->frames[index];
+		// 指向包围盒
+		auto&& mc = frame->maxCDCircle;
+		// 先清 0
+		mc.x = mc.y = mc.r = 0;
+		frame->cdCircles.clear();
+		// 存储包围盒数据
+		if (!ncs.empty()) {
+			auto&& nc = ncs[0];
+			mc.x = nc->getPositionX();
+			mc.y = nc->getPositionY();
+			mc.r = nc->r;
+		}
+		// 存储次级圆圈数据
+		for(size_t i = 1; i < ncs.size(); ++i) {
+			auto&& nc = ncs[i];
+			auto&& c = frame->cdCircles.emplace_back();
+			c.x = nc->getPositionX();
+			c.y = nc->getPositionY();
+			c.r = nc->r;
+		}
+	};
+
 	// 定位到屏幕左上方的位置
 	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 
 	// [Cleanup]
 	auto bCleanup = CreateButton(p, "[Cleanup]", [this, res, action, index](auto) {
 		auto&& frame = action->frames[index];
-		frame->maxCDCircle.x = 0;
-		frame->maxCDCircle.y = 0;
-		frame->maxCDCircle.r = 0;
 		frame->cdCircles.clear();
+		auto&& mc = frame->maxCDCircle;
+		mc.x = mc.y = mc.r = 0;
 		EditFrameCD(res, action, index);
 	});
 
+	p.y -= lineHeight;
+	CreateLabel(p, "please touch or mouse click in the blue box and drag to create CIRCLE. first CIRCLE is BONDING BOX");
+	p.y -= lineHeight;
+	CreateLabel(p, "press + - when selected circle, can change radius.");
+
 	// [<--]  idx / max  [-->]                                    [Exit]
-	p.x = lineHeight * 10;
+	p.x = lineHeight * 8;
 	p.y = lineHeight / 2;
-	auto bPrev = CreateButton(p, "[<---]", [this, res, action, index](auto) {
+	auto bPrev = CreateButton(p, "[<---]", [this, res, action, index, SaveCirclesToRes](auto) {
 		if (index == 0) return;
+		SaveCirclesToRes();
 		EditFrameCD(res, action, index - 1);
 	});
 
@@ -301,13 +371,26 @@ void HelloWorld::EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, st
 	auto tCount = CreateLabel(p, xx::ToString(action->frames.size()));
 
 	p.x += GetWidth(tCount) + margin;
-	auto bNext = CreateButton(p, "[--->]", [this, res, action, index](auto) {
+	auto bNext = CreateButton(p, "[--->]", [this, res, action, index, SaveCirclesToRes](auto) {
 		if (index + 1 == action->frames.size()) return;
+		SaveCirclesToRes();
 		EditFrameCD(res, action, index + 1);
 	});
 
+	if (index) {
+		p.x += GetWidth(bNext) + lineHeight * 8;
+		auto bCopyCircleFromPrev = CreateButton(p, "[Copy Circle From Prev]", [this, res, action, index](auto) {
+			auto&& pf = action->frames[index - 1];
+			auto&& f = action->frames[index];
+			f->maxCDCircle = pf->maxCDCircle;
+			f->cdCircles = pf->cdCircles;
+			EditFrameCD(res, action, index);
+		});
+	}
+
 	p.x = W - margin;
-	auto bExit = CreateButton(p, "[Exit]", [this, res, action](auto) {
+	auto bExit = CreateButton(p, "[Exit]", [this, res, action, SaveCirclesToRes](auto) {
+		SaveCirclesToRes();
 		if (auto&& o = xx::As<FishManage::Res2d>(res)) {
 			ConfigSpriteFrame(o, xx::As<FishManage::Action2d>(action));
 		}
@@ -324,19 +407,19 @@ void HelloWorld::EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, st
 	bExit->setAnchorPoint({ 1, 0.5 });
 
 
-	// todo: 在中间绘制动作，令帧停在 index 位置. 弄个 DrawNode? 附加 touch listener? 检测到 touch down 就记录一个圆心? touch move 就修改半径?
-	auto drawNode = cocos2d::DrawNode::create();
-	drawNode->setPosition(W / 2, H / 2);
-	//drawNode->setAnchorPoint({ 0.5, 0.5 });
-	drawNode->setContentSize({1280, 720});
-	drawNode->drawCircle({ 0,0 }, 720 / 2, 0, 100, false, cocos2d::Color4F::BLUE);
-	addChild(drawNode);
+	// 在中间绘制动作，令帧停在 index 位置. touch 蓝色区域内可绘制圆环, 可移动圆环
 
-	auto&& frame = action->frames[index];
+
+	auto drawNode = cocos2d::DrawNode::create();
+	//drawNode->setPosition(W_2, H_2);
+	drawNode->drawPoint({ 0,0 }, 2, cocos2d::Color4F::BLUE);
+	drawNode->drawRect({ -DW_2, -DH_2 }, { DW_2, DH_2 }, cocos2d::Color4F::BLUE);
+	nodeCircles->addChild(drawNode);
+
+
 	if (auto&& frame2d = xx::As<FishManage::Frame2d>(frame)) {
-		auto&& sprite = cocos2d::Sprite::createWithSpriteFrameName(frame2d->spriteFrameName);
-		sprite->setScale(res->baseScale);
-		drawNode->addChild(sprite);
+		auto&& spr = CreateSpriteFrame({W_2, H_2}, { 0,0 }, frame2d->spriteFrameName);
+		spr->setOpacity(127);
 	}
 	//else if (auto&& o = xx::As<FishManage::ResSpine>(res)) {
 	//	ConfigSpriteFrame(o, xx::As<FishManage::ActionSpine>(action));
@@ -348,20 +431,38 @@ void HelloWorld::EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, st
 	//	ConfigSpriteFrame(o, xx::As<FishManage::ActionCombine>(action));
 	//}
 
+
 	auto touchListener = cocos2d::EventListenerTouchOneByOne::create();
 	touchListener->setSwallowTouches(true);
-	touchListener->onTouchBegan = [this, drawNode](cocos2d::Touch* t, cocos2d::Event* e) {
+	touchListener->onTouchBegan = [this, nodeCircles, CreateCircle](cocos2d::Touch* t, cocos2d::Event* e) {
 		auto&& tL = t->getLocation();
-		auto&& p = drawNode->convertToNodeSpace(tL);
-		auto&& s = drawNode->getContentSize();
-		cocos2d::Rect r{ -s.width/2,-s.height /2, s.width/2, s.height/2 };
-		auto&& b = r.containsPoint(p);
-		if (b) {
+		auto&& p = nodeCircles->convertToNodeSpace(tL);
+		if (p.x >= -DW_2 && p.x <= DW_2 && p.y >= -DH_2 && p.y <= DH_2) {
 			PopupMessage(xx::ToString("p = ", p.x, ", ", p.y));
+			lastPos = p;
+			assert(!newCircle);
+			newCircle = CreateCircle(p, 1);
+			return true;
 		}
-		return b;
+		return false;
 	};
-	cocos2d::Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(touchListener, drawNode);
+	touchListener->onTouchMoved = [this, nodeCircles](cocos2d::Touch* t, cocos2d::Event* e) {
+		if (!newCircle) return false;
+		auto&& tL = t->getLocation();
+		auto&& p = nodeCircles->convertToNodeSpace(tL);
+		auto&& d = p.getDistance(lastPos);
+		newCircle->Draw(d);
+		return true;
+	};
+	touchListener->onTouchEnded = [this, nodeCircles](cocos2d::Touch* t, cocos2d::Event* e) {
+		if (newCircle->r <= 3) {
+			newCircle->removeFromParentAndCleanup(true);
+		}
+		newCircle = nullptr;
+		return false;
+	};
+	touchListener->onTouchCancelled = touchListener->onTouchEnded;
+	cocos2d::Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(touchListener, nodeCircles);
 }
 
 void HelloWorld::EditFrameLock(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index) {
@@ -1542,6 +1643,32 @@ bool HelloWorld::init() {
 
 	W = AppDelegate::designWidth;
 	H = AppDelegate::designHeight;
+	W_2 = W / 2;
+	H_2 = H / 2;
+
+	auto kbListener = cocos2d::EventListenerKeyboard::create();
+	kbListener->onKeyPressed = [this](cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event) {
+		if (!currCircle) return;
+		currCircle->scheduleUpdate();
+		switch (keyCode) {
+		case cocos2d::EventKeyboard::KeyCode::KEY_PLUS:
+		case cocos2d::EventKeyboard::KeyCode::KEY_KP_PLUS:
+			currCircle->rChange = 30;
+			break;
+		case cocos2d::EventKeyboard::KeyCode::KEY_MINUS:
+		case cocos2d::EventKeyboard::KeyCode::KEY_KP_MINUS:
+			currCircle->rChange = -30;
+			break;
+		}
+	};
+	kbListener->onKeyReleased = [this](cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event) {
+		if (!currCircle) return;
+		currCircle->rChange = 0;
+		currCircle->unscheduleUpdate();
+	};
+	cocos2d::Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(kbListener, this);
+
+
 	Welcome();
 
 	return true;
