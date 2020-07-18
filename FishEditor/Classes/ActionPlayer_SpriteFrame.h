@@ -43,4 +43,7 @@ struct ActionPlayer_SpriteFrame : public cocos2d::Sprite {
 
 	// 自动驱动 Next
 	void update(float delta) override;
+
+	// 碰撞检测. 判断某个点是否位于 cdCircles 内
+	bool IsInside(cocos2d::Vec2 const& p);
 };

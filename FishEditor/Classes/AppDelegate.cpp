@@ -22,12 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "AppDelegate.h"
-
-#include <vector>
-#include <string>
-
-#include "HelloWorldScene.h"
+#include "MainScene.h"
 
  //Uncomment the following line to use localize manager
  //#include "editor-support/cocostudio/LocalizationManager.h"
@@ -84,7 +79,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 	//director->setContentScaleFactor(resourceSize.height / designSize.height);
 
 	// Create a scene. it's an autorelease object
-	auto scene = HelloWorld::create();
+	auto scene = MainScene::create();
 
 	// Run
 	director->runWithScene(scene);

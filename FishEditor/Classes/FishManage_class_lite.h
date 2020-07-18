@@ -3,7 +3,7 @@
 #include "FishManage_class_lite.h.inc"  // user create it for extend include files
 namespace FishManage {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<a3e444069efa929f6aac220d7478c948>*#";
+		inline static const std::string value = "#*MD5<bfac2969b1cffed1decb56729aaac245>*#";
     };
 	struct PkgGenTypes {
         static void RegisterTo(xx::ObjectHelper& oh);
@@ -150,7 +150,7 @@ namespace FishManage {
     struct CombineItem {
         XX_GENCODE_STRUCT_H(CombineItem)
         // 指向要用到的资源
-        std::shared_ptr<FishManage::ResBase> res;
+        std::weak_ptr<FishManage::ResBase> res;
         // 俯视情况下围绕 z 轴 0 度的 x, y 显示偏移位置
         float offsetX = 0;
         float offsetY = 0;

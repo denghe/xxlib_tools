@@ -1,4 +1,4 @@
-#include "ActionPlayer_SpriteFrame.h"
+#include "MainScene.h"
 
 ActionPlayer_SpriteFrame* ActionPlayer_SpriteFrame::create() {
 	auto o = new (std::nothrow) ActionPlayer_SpriteFrame();
@@ -61,4 +61,16 @@ void ActionPlayer_SpriteFrame::update(float delta) {
 		ticksPool -= ticksPerFrame;
 		Next();
 	}
+}
+
+bool ActionPlayer_SpriteFrame::IsInside(cocos2d::Vec2 const& p) {
+	auto&& frame = action2d->frames[frameIndex];
+	auto&& s = getScale();
+	if (p.distance({ frame->maxCDCircle.x * s, frame->maxCDCircle.y * s }) <= frame->maxCDCircle.r * s) {
+		if (frame->cdCircles.empty()) return true;
+		for (auto&& c : frame->cdCircles) {
+			if (p.distance({ c.x * s, c.y * s }) <= c.r * s) return true;
+		}
+	}
+	return false;
 }

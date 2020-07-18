@@ -1,5 +1,5 @@
 #include "Circle.h"
-#include "HelloWorldScene.h"
+#include "MainScene.h"
 
 Circle* Circle::create() {
 	auto o = new (std::nothrow) Circle();
@@ -40,6 +40,7 @@ bool Circle::init() {
 		return true;
 	};
 	touchListener->onTouchEnded = [this](cocos2d::Touch* t, cocos2d::Event* e) {
+		if (!touching) return false;
 		// 如果拖拽到蓝线条外，就自杀
 		touching = false;
 		scene->currCircle = nullptr;
@@ -106,6 +107,9 @@ void Circle::DrawLine() {
 void Circle::update(float delta) {
 	if (rChange != 0) {
 		r += delta * rChange;
+		if (rChange < 0 && r < 1) {
+			r = 1;
+		}
 	}
 	Draw(r);
 }

@@ -1,13 +1,13 @@
 #pragma once
 #include "cocos2d.h"
 
-struct HelloWorld;
+struct MainScene;
 struct Circle : public cocos2d::Node {
 	using cocos2d::Node::Node;
 	static Circle* create();
 
 	// 指向总上下文，方便取显示参数
-	HelloWorld* scene;
+	MainScene* scene = nullptr;
 
 	// 用于绘制的节点( 直接继承它似乎会导致出现绘制 bug )
 	cocos2d::DrawNode* drawNode = nullptr;

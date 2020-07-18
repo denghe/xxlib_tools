@@ -140,14 +140,14 @@ namespace xx {
         xx::AppendEx(oh, ",\"fishs\":", in.fishs);
     }
     void CloneFuncs<FishManage::CombineItem>::Clone1(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
-        CloneFuncs<std::shared_ptr<FishManage::ResBase>>::Clone1(oh, in.res, out.res);
+        CloneFuncs<std::weak_ptr<FishManage::ResBase>>::Clone1(oh, in.res, out.res);
         CloneFuncs<float>::Clone1(oh, in.offsetX, out.offsetX);
         CloneFuncs<float>::Clone1(oh, in.offsetY, out.offsetY);
         CloneFuncs<float>::Clone1(oh, in.baseAngle, out.baseAngle);
         CloneFuncs<float>::Clone1(oh, in.baseScale, out.baseScale);
     }
     void CloneFuncs<FishManage::CombineItem>::Clone2(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
-        CloneFuncs<std::shared_ptr<FishManage::ResBase>>::Clone2(oh, in.res, out.res);
+        CloneFuncs<std::weak_ptr<FishManage::ResBase>>::Clone2(oh, in.res, out.res);
         CloneFuncs<float>::Clone2(oh, in.offsetX, out.offsetX);
         CloneFuncs<float>::Clone2(oh, in.offsetY, out.offsetY);
         CloneFuncs<float>::Clone2(oh, in.baseAngle, out.baseAngle);

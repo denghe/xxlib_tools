@@ -135,7 +135,7 @@ class ResCombine : ResBase {
 [Desc("ResCombine 的专用 成员配置")]
 struct CombineItem {
 	[Desc("指向要用到的资源")]
-	Shared<ResBase> res;
+	Weak<ResBase> res;
 
 	[Desc("俯视情况下围绕 z 轴 0 度的 x, y 显示偏移位置")]
 	float offsetX;
