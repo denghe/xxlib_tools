@@ -3,6 +3,7 @@
 bool MainScene::init() {
 	if (!Scene::init()) return false;
 
+
 	FishManage::PkgGenTypes::RegisterTo(oh);
 
 	LoadData();
@@ -11,6 +12,7 @@ bool MainScene::init() {
 	H = AppDelegate::designHeight;
 	W_2 = W / 2;
 	H_2 = H / 2;
+
 
 	auto kbListener = cocos2d::EventListenerKeyboard::create();
 	kbListener->onKeyPressed = [this](cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event) {
@@ -65,6 +67,10 @@ bool MainScene::init() {
 
 
 	Welcome();
+
+
+	Init2();
+
 
 	return true;
 }

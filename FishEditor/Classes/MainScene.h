@@ -11,6 +11,8 @@
 #include "xx_chrono.h"
 
 struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
+    using BaseType = cocos2d::Scene;
+
     // »º´æ AppDelegate::designWidth/Height
     float W = 0, H = 0, W_2 = 0, H_2 = 0;
     
@@ -168,6 +170,17 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 
     // »æÖÆ »¶Ó­Ò³
     virtual bool init() override;
+
+
+
+    // ²âÊÔµã¶«Î÷
+    void Init2();
+    ~MainScene() override;
+    void update(float delta) override;
+    //cocos2d::AmbientLight* _ambientLight = nullptr;
+    //cocos2d::DirectionLight* _directionalLight = nullptr;
+    //cocos2d::PointLight* _pointLight = nullptr;
+    //cocos2d::SpotLight* _spotLight = nullptr;
 
     CREATE_FUNC(MainScene);
 };
