@@ -10,13 +10,13 @@ ActionPlayer_SpriteFrame* ActionPlayer_SpriteFrame::create() {
 	return nullptr;
 }
 
-void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& plistFileNames, std::shared_ptr<FishManage::Action2d> const& action2d) {
+void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& plistFileNames, FishManage::ActionSpriteFrame const& action) {
 	// 预加载 plist
 	for (auto&& fn : plistFileNames) {
 		cocos2d::SpriteFrameCache::getInstance()->addSpriteFramesWithFile(fn);
 	}
-	this->action2d = action2d;
-	SetFrameRate(action2d->frameRate);
+	this->action = action;
+	SetFrameRate(action.frameRate);
 }
 
 void ActionPlayer_SpriteFrame::SetFrameRate(float const& frameRate) {
@@ -29,7 +29,7 @@ void ActionPlayer_SpriteFrame::SetAutoRepeat(bool const& autoRepeat) {
 }
 
 void ActionPlayer_SpriteFrame::Play(int const& beginIndex) {
-	if (action2d->frames.empty()) return;
+	if (action.frames.empty()) return;
 	frameIndex = beginIndex;
 	Draw();
 	ticksPool = 0;
@@ -42,7 +42,7 @@ void ActionPlayer_SpriteFrame::Stop() {
 
 void ActionPlayer_SpriteFrame::Next() {
 	++frameIndex;
-	if (frameIndex >= (int)action2d->frames.size()) {
+	if (frameIndex >= (int)action.frames.size()) {
 		frameIndex = 0;
 		if (!autoRepeat) {
 			unscheduleUpdate();
@@ -52,7 +52,21 @@ void ActionPlayer_SpriteFrame::Next() {
 }
 
 void ActionPlayer_SpriteFrame::Draw() {
-	this->setSpriteFrame(xx::As<FishManage::Frame2d>(action2d->frames[frameIndex])->spriteFrameName);
+	if (auto&& frame = action.frames[frameIndex].lock()) {
+		switch (frame->GetTypeId()) {
+		case xx::TypeId_v<FishManage::ResFrame>:
+			setSpriteFrame(frame->name);
+			break;
+		case xx::TypeId_v<FishManage::ResTexture>:
+			setTexture(frame->name);
+			break;
+		default:
+			throw std::logic_error("unknown type?");
+		}
+	}
+	else {
+		// todo: 帧已失效？用替代图？
+	}
 }
 
 void ActionPlayer_SpriteFrame::update(float delta) {
@@ -64,12 +78,14 @@ void ActionPlayer_SpriteFrame::update(float delta) {
 }
 
 bool ActionPlayer_SpriteFrame::IsInside(cocos2d::Vec2 const& p) {
-	auto&& frame = action2d->frames[frameIndex];
-	auto&& s = getScale();
-	if (p.distance({ frame->maxCDCircle.x * s, frame->maxCDCircle.y * s }) <= frame->maxCDCircle.r * s) {
-		if (frame->cdCircles.empty()) return true;
-		for (auto&& c : frame->cdCircles) {
-			if (p.distance({ c.x * s, c.y * s }) <= c.r * s) return true;
+	if (auto&& frame = action.frames[frameIndex].lock()) {
+		auto&& cd = frame->cdclps;
+		auto&& s = getScale();
+		if (p.distance({ cd.maxCDCircle.x * s, cd.maxCDCircle.y * s }) <= cd.maxCDCircle.r * s) {
+			if (cd.cdCircles.empty()) return true;
+			for (auto&& c : cd.cdCircles) {
+				if (p.distance({ c.x * s, c.y * s }) <= c.r * s) return true;
+			}
 		}
 	}
 	return false;

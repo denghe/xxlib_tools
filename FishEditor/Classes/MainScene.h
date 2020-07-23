@@ -56,6 +56,9 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 存盘文件名
     const std::string dataFileName = "fishs.data";
 
+    // = cocos2d::FileUtils::getInstance()->getSearchPaths()[0]
+    std::string resPath;
+
     // 读档
     void LoadData();
     // 存档
@@ -102,7 +105,7 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     cocos2d::Sprite3D* CreateOrc(cocos2d::Vec2 const& pos, float const& r, cocos2d::Node* const& container = nullptr);
 
     // 创建一个 2d 帧图 动作 预览动画
-    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, std::shared_ptr<FishManage::Action2d> const& action, cocos2d::Node* const& container = nullptr);
+    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::ActionSpriteFrame const& action, cocos2d::Node* const& container = nullptr);
 
     // return tar->getContentSize().width
     float GetWidth(cocos2d::Node* const& tar);
@@ -114,32 +117,32 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 
 
 
-    // 编辑组合鱼
-    void EditResCombine(std::shared_ptr<FishManage::ResCombine> const& resCombine, int const& pageIndex = 0);
+    //// 编辑组合鱼
+    //void EditResCombine(std::shared_ptr<FishManage::ResCombine> const& resCombine, int const& pageIndex = 0);
 
     // 欢迎页
     void Welcome();
 
-    // 资源管理页
-    void ManageResources();
+    //// 资源管理页
+    //void ManageResources();
 
-    // 2d 帧资源编辑页
-    void EditRes2d(std::shared_ptr<FishManage::Res2d> const& res2d);
+    //// 2d 帧资源编辑页
+    //void EditRes2d(std::shared_ptr<FishManage::Res2d> const& res2d);
 
-    // 选 plist 文件页
-    void ChoosePList(std::shared_ptr<FishManage::Res2d> const& res2d);
+    //// 选 plist 文件页
+    //void ChoosePList(std::shared_ptr<FishManage::Res2d> const& res2d);
 
-    // 选 sprite frame 页
-    void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
+    //// 选 sprite frame 页
+    //void ChooseSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
-    // sprite frame 参数配置 页
-    void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
+    //// sprite frame 参数配置 页
+    //void ConfigSpriteFrame(std::shared_ptr<FishManage::Res2d> const& res2d, std::shared_ptr<FishManage::Action2d> const& action2d);
 
-    // 编辑具体某帧的碰撞
-    void EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
+    //// 编辑具体某帧的碰撞
+    //void EditFrameCD(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
 
-    // 编辑具体某帧的锁定点/线
-    void EditFrameLock(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
+    //// 编辑具体某帧的锁定点/线
+    //void EditFrameLock(std::shared_ptr<FishManage::ResBase> const& res, std::shared_ptr<FishManage::ActionBase> const& action, int const& index);
 
 
     // todo: EditResSpine

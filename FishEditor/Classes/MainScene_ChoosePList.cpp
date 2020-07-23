@@ -37,10 +37,8 @@ void MainScene::ChoosePList(std::shared_ptr<FishManage::Res2d> const& res2d) {
 
 
 	// ±éÀúËùÓÐ .plist
-	auto&& sps = cocos2d::FileUtils::getInstance()->getSearchPaths();
-	assert(sps.size() == 1);
 	std::vector<std::filesystem::path> paths;
-	for (auto&& entry : std::filesystem::directory_iterator(sps[0])) {
+	for (auto&& entry : std::filesystem::directory_iterator(resPath)) {
 		if (entry.is_regular_file() && entry.path().extension().u8string() == ".plist") {
 			paths.emplace_back(entry);
 		}

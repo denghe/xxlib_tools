@@ -58,7 +58,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
 		director->setOpenGLView(glview);
 	}
-	glview->setIcon("icons/Icon-60@3x.png");
+	glview->setIcon("Icon-60@3x.png");
 
 	director->setOpenGLView(glview);
 

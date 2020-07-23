@@ -100,7 +100,7 @@ cocos2d::Sprite3D* MainScene::CreateOrc(cocos2d::Vec2 const& pos, float const& r
 	return s;
 }
 
-ActionPlayer_SpriteFrame* MainScene::CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, std::shared_ptr<FishManage::Action2d> const& action, cocos2d::Node* const& container) {
+ActionPlayer_SpriteFrame* MainScene::CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::ActionSpriteFrame const& action, cocos2d::Node* const& container) {
 	auto a = ActionPlayer_SpriteFrame::create();
 	a->setAnchorPoint({ 0.5, 0.5 });
 	a->setPosition(pos);
@@ -240,56 +240,56 @@ float MainScene::GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar
 
 
 cocos2d::Node* MainScene::CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::ResBase> res, cocos2d::Node* const& container) {
-	if (auto&& r = xx::As<FishManage::Res2d>(res)) {
-		return CreateActionPlayer_SpriteFrame(pos, siz, r->plistFileNames, xx::As<FishManage::Action2d>(r->actions[0]), container);
-		// todo: 影子相关
-	}
-	else if (auto&& r = xx::As<FishManage::ResSpine>(res)) {
-		// todo
-	}
-	else if (auto&& r = xx::As<FishManage::Res3d>(res)) {
-		// todo
-	}
-	else if (auto&& r = xx::As<FishManage::ResCombine>(res)) {
-		if (r->items.empty()) return nullptr;
+	//if (auto&& r = xx::As<FishManage::Res2d>(res)) {
+	//	return CreateActionPlayer_SpriteFrame(pos, siz, r->plistFileNames, xx::As<FishManage::Action2d>(r->actions[0]), container);
+	//	// todo: 影子相关
+	//}
+	//else if (auto&& r = xx::As<FishManage::ResSpine>(res)) {
+	//	// todo
+	//}
+	//else if (auto&& r = xx::As<FishManage::Res3d>(res)) {
+	//	// todo
+	//}
+	//else if (auto&& r = xx::As<FishManage::ResCombine>(res)) {
+	//	if (r->items.empty()) return nullptr;
 
-		// 查找边缘
-		float x1 = 99999, y1 = 99999;
-		float x2 = -99999, y2 = -99999;
-		for (auto&& o : r->items) {
-			auto&& res = o.res.lock();
-			auto&& a = res->actions[0];
-			x1 = MIN(x1, o.offsetX - a->width  * o.baseScale / 2);
-			x2 = MAX(x2, o.offsetX + a->width  * o.baseScale / 2);
-			y1 = MIN(y1, o.offsetY - a->height * o.baseScale / 2);
-			y2 = MAX(y2, o.offsetY + a->height * o.baseScale / 2);
-		}
+	//	// 查找边缘
+	//	float x1 = 99999, y1 = 99999;
+	//	float x2 = -99999, y2 = -99999;
+	//	for (auto&& o : r->items) {
+	//		auto&& res = o.res.lock();
+	//		auto&& a = res->actions[0];
+	//		x1 = MIN(x1, o.offsetX - a->width  * o.baseScale / 2);
+	//		x2 = MAX(x2, o.offsetX + a->width  * o.baseScale / 2);
+	//		y1 = MIN(y1, o.offsetY - a->height * o.baseScale / 2);
+	//		y2 = MAX(y2, o.offsetY + a->height * o.baseScale / 2);
+	//	}
 
-		// 以第一条鱼中心点为中心点，得到对称宽度
-		auto&& fo = r->items[0];
-		cocos2d::Size cs(MAX(fo.offsetX - x1, x2 - fo.offsetX) * 2, MAX(fo.offsetY - y1, y2 - fo.offsetY) * 2);
+	//	// 以第一条鱼中心点为中心点，得到对称宽度
+	//	auto&& fo = r->items[0];
+	//	cocos2d::Size cs(MAX(fo.offsetX - x1, x2 - fo.offsetX) * 2, MAX(fo.offsetY - y1, y2 - fo.offsetY) * 2);
 
-		// 计算缩放
-		float scale = 0;
-		if (siz.width != 0 && siz.height != 0) {
-			if (cs.width > cs.height) {
-				scale = siz.width / cs.width;
-			}
-			else {
-				scale = siz.height / cs.height;
-			}
-		}
+	//	// 计算缩放
+	//	float scale = 0;
+	//	if (siz.width != 0 && siz.height != 0) {
+	//		if (cs.width > cs.height) {
+	//			scale = siz.width / cs.width;
+	//		}
+	//		else {
+	//			scale = siz.height / cs.height;
+	//		}
+	//	}
 
-		// 以第一条鱼中心点为中心点，绘制所有鱼
-		for (auto&& o : r->items) {
-			auto&& res = o.res.lock();
-			auto&& a = res->actions[0];
-			auto n = CreateResPreview({ (o.offsetX - fo.offsetX) * scale + pos.x, (o.offsetY - fo.offsetY) * scale + pos.y }, { 0,0 }, res, container);
-			n->setScale(o.baseScale * scale);
-			n->setRotation(o.baseAngle);
-		}
-	}
-	else {
-	}
+	//	// 以第一条鱼中心点为中心点，绘制所有鱼
+	//	for (auto&& o : r->items) {
+	//		auto&& res = o.res.lock();
+	//		auto&& a = res->actions[0];
+	//		auto n = CreateResPreview({ (o.offsetX - fo.offsetX) * scale + pos.x, (o.offsetY - fo.offsetY) * scale + pos.y }, { 0,0 }, res, container);
+	//		n->setScale(o.baseScale * scale);
+	//		n->setRotation(o.baseAngle);
+	//	}
+	//}
+	//else {
+	//}
 	return nullptr;
 }

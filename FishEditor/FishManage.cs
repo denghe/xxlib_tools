@@ -5,7 +5,7 @@ using TemplateLibrary;
 资源，泛指包体内非执行文件部分
 
 以文件类型划分：
-	声音，图片，动画(2d骨骼, 3d, 序列帧, 组合)，脚本 等( 先跳过 视频 粒子 shader 等 )
+	声音，图片，动画(2d骨骼, 3d, 序列帧, 组合)，脚本 等( 先跳过 视频 粒子 shader 字体 图标 等 )
 
 以访问层级划分：
 	1级: 直接用
@@ -23,11 +23,8 @@ using TemplateLibrary;
 		音效
 			mp3, ogg, wav
 
-	图片 (附加 碰撞检测 & 锁定数据)
-		单图/纹理/贴图/材质
-			pkm, webp, png
-		小图块
-			位于 plist 中
+	图片/纹理/贴图/材质 (附加 碰撞检测 & 锁定数据)
+		pkm, webp, png
 
 	图集
 		plist
@@ -37,16 +34,16 @@ using TemplateLibrary;
 	动画 (附加 动作列表: 名字 & 时长 & 宽高 & 帧率 & 每帧的 碰撞检测 & 锁定数据)
 		2d骨骼
 			spine( atlas, json )
-				引用到单图
+				纹理引用到 图片
 		3d
 			c3b
-				引用到单图
+				纹理引用到 图片
 		序列帧
 			配置
-				引用到一组 单图 或 小图块
+				引用到一组 图片 或 小图块
 		组合
 			配置
-				引用到一组 动画
+				引用到一组 动画(含别的组合)
 	脚本
 		lua
 
@@ -58,38 +55,60 @@ using TemplateLibrary;
 
 [Desc("整套配置的数据存档. 鱼 = 资源数据 + 逻辑数据")]
 struct Data {
-	[Desc("所有文件列表")]
-	List<Shared<File>> files;
+	[Desc("所有文件列表. key 为 文件名(带部分路径)")]
+	Dict<string, Shared<File>> files;
 
 	[Desc("所有背景音乐资源列表")]
-	List<Shared<ResMusic>> resMusics;
+	Dict<string, Shared<ResMusic>> resMusics;
 	[Desc("所有音效资源列表")]
-	List<Shared<ResVoice>> resVoices;
+	Dict<string, Shared<ResVoice>> resVoices;
+
 	[Desc("所有纹理资源列表")]
-	List<Shared<ResTexture>> resTextures;
+	Dict<string, Shared<ResTexture>> resTextures;
+
 	[Desc("所有图集资源列表")]
-	List<Shared<ResPList>> resPlists;
-	[Desc("所有图块资源列表( 从 resPlists 汇集 )")]
-	List<Weak<ResFrame>> resFrames;
+	Dict<string, Shared<ResPList>> resPLists;
+	[Desc("所有图块资源列表( 从 resPlists 汇集 ). key 为 name")]
+	Dict<string, Weak<ResFrame>> resFrames;
+
 	[Desc("所有2d骨骼动画资源列表")]
-	List<Shared<ResSpine>> resSpines;
-	[Desc("所有3d模型资源列表")]
-	List<Shared<Res3d>> res3ds;
-	[Desc("所有序列帧资源列表")]
-	List<Shared<ResSpriteFrames>> resSpriteFrames;
+	Dict<string, Shared<ResSpine>> resSpines;
+	[Desc("所有3d模型动画资源列表")]
+	Dict<string, Shared<Res3d>> res3ds;
+	[Desc("所有帧动画资源列表")]
+	Dict<string, Shared<ResFrameAnimation>> resFrameAnimations;
+
 	[Desc("所有组合资源列表")]
-	List<Shared<ResCombine>> resCombine;
+	Dict<string, Shared<ResCombine>> resCombine;
+
+	[Desc("所有脚本资源列表")]
+	Dict<string, Shared<ResScript>> resScripts;
 
 	[Desc("所有鱼列表")]
-	List<Shared<FishBase>> fishs;
+	Dict<string, Shared<FishBase>> fishs;
+}
+
+[Desc("文件扩展名枚举")]
+enum FileExtensions {
+	mp3, ogg, wav, 
+	webp, png, jpg, pkm, tga, bmp, 
+	plist, 
+	atlas, json, 
+	c3b, 
+	lua, 
+	fnt
 }
 
 [TypeId(1), Desc("文件信息")]
 class File {
 	[Desc("文件名: 相对路径, 目录名 + 文件名 + 扩展名，前面不带'/'")]
 	string path;
+	[Desc("文件扩展名 / 类型")]
+	FileExtensions ext;
+	[Desc("文件长度")]
 	long length;
-	string md5;
+	[Desc("校验码")]
+	byte[] md5;
 	// more?
 }
 
@@ -115,7 +134,7 @@ class ResMusic : ResSound {
 
 
 [TypeId(5), Desc("声音/音效类资源")]
-class ResVoice : ResBase {
+class ResVoice : ResSound {
 }
 
 [TypeId(6), Desc("图集类资源")]
@@ -123,8 +142,8 @@ class ResPList : ResBase {
 	[Desc("对应哪个物理文件")]
 	Weak<File> file;
 
-	[Desc("引用到的纹理资源集合")]
-	List<Weak<ResTexture>> textures;
+	[Desc("引用到的纹理资源")]
+	Weak<ResTexture> texture;
 
 	[Desc("含有的帧图资源集合")]
 	List<Shared<ResFrame>> frames;
@@ -132,24 +151,20 @@ class ResPList : ResBase {
 
 [TypeId(7), Desc("图片类资源")]
 class ResPicture : ResBase {
+	[Desc("碰撞检测 & 锁定点线 集合")]
+	CDCirclesLockPoints cdclps;
 }
 
 [TypeId(8), Desc("图片/纹理类资源")]
 class ResTexture : ResPicture {
 	[Desc("对应哪个物理文件")]
 	Weak<File> file;
-
-	[Desc("碰撞检测 & 锁定点线 集合")]
-	CDCirclesLockPoints cdclps;
 }
 
 [TypeId(9), Desc("图片/图块类资源")]
 class ResFrame : ResPicture {
 	[Desc("所在 plist 资源")]
 	Weak<ResPList> owner;
-
-	[Desc("碰撞检测 & 锁定点线 集合")]
-	CDCirclesLockPoints cdclps;
 }
 
 [TypeId(10), Desc("动画类资源")]
@@ -190,10 +205,7 @@ class Res3d : ResAnimation {
 }
 
 [TypeId(13), Desc("动画/序列帧类资源. actions 的成员为 ActionSpriteFrame 类型")]
-class ResSpriteFrames : ResAnimation {
-	[Desc("跨所有动作的图块对应到的所有 plist 文件")]
-	List<Weak<File>> plistFiles;
-
+class ResFrameAnimation : ResAnimation {
 	[Desc("含有的动作列表")]
 	List<ActionSpriteFrame> actions;
 }
@@ -251,7 +263,7 @@ class ActionBase {
 [Struct, Desc("序列帧的动作：附加帧集合（每帧有自己的 碰撞检测圆 + 锁定点线 的配置）")]
 class ActionSpriteFrame : ActionBase {
 	[Desc("帧集合")]
-	List<Weak<ResFrame>> frames;
+	List<Weak<ResPicture>> frames;
 }
 
 [Struct, Desc("非序列帧的动作：直接附加 碰撞检测圆 + 锁定点线 集合 的 集合( 对应每一帧的数据)")]
@@ -330,8 +342,8 @@ class FishBase {
 
 [Struct]
 class FishState {
-	[Desc("对应的动作名")]
-	string actionName;
+	[Desc("状态名")]
+	string name;
 
 	[Desc("对应的动作名")]
 	string actionName;
