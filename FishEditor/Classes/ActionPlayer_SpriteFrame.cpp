@@ -10,9 +10,17 @@ ActionPlayer_SpriteFrame* ActionPlayer_SpriteFrame::create() {
 	return nullptr;
 }
 
-void ActionPlayer_SpriteFrame::SetActionData(std::vector<std::string> const& plistFileNames, FishManage::ActionSpriteFrame const& action) {
+void ActionPlayer_SpriteFrame::SetActionData(FishManage::FrameAction const& action) {
 	// 预加载 plist
-	for (auto&& fn : plistFileNames) {
+	std::set<std::string> plists;
+	for (auto&& ptr : action.pictures) {
+		if (auto&& picture = ptr.lock()) {
+			if (auto&& plistFile = picture->atPList.lock()) {
+				plists.insert(plistFile->name);
+			}
+		}
+	}
+	for (auto&& fn : plists) {
 		cocos2d::SpriteFrameCache::getInstance()->addSpriteFramesWithFile(fn);
 	}
 	this->action = action;
@@ -29,7 +37,7 @@ void ActionPlayer_SpriteFrame::SetAutoRepeat(bool const& autoRepeat) {
 }
 
 void ActionPlayer_SpriteFrame::Play(int const& beginIndex) {
-	if (action.frames.empty()) return;
+	if (action.pictures.empty()) return;
 	frameIndex = beginIndex;
 	Draw();
 	ticksPool = 0;
@@ -42,7 +50,7 @@ void ActionPlayer_SpriteFrame::Stop() {
 
 void ActionPlayer_SpriteFrame::Next() {
 	++frameIndex;
-	if (frameIndex >= (int)action.frames.size()) {
+	if (frameIndex >= (int)action.pictures.size()) {
 		frameIndex = 0;
 		if (!autoRepeat) {
 			unscheduleUpdate();
@@ -52,21 +60,15 @@ void ActionPlayer_SpriteFrame::Next() {
 }
 
 void ActionPlayer_SpriteFrame::Draw() {
-	if (auto&& frame = action.frames[frameIndex].lock()) {
-		switch (frame->GetTypeId()) {
-		case xx::TypeId_v<FishManage::ResFrame>:
-			setSpriteFrame(frame->name);
-			break;
-		case xx::TypeId_v<FishManage::ResTexture>:
-			setTexture(frame->name);
-			break;
-		default:
-			throw std::logic_error("unknown type?");
+	if (auto&& picture = action.pictures[frameIndex].lock()) {
+		if (auto&& plistFile = picture->atPList.lock()) {
+			setSpriteFrame(picture->name);
+		}
+		else {
+			setTexture(picture->name);
 		}
 	}
-	else {
-		// todo: 帧已失效？用替代图？
-	}
+	// todo: 帧已失效？用替代图？
 }
 
 void ActionPlayer_SpriteFrame::update(float delta) {
@@ -78,7 +80,7 @@ void ActionPlayer_SpriteFrame::update(float delta) {
 }
 
 bool ActionPlayer_SpriteFrame::IsInside(cocos2d::Vec2 const& p) {
-	if (auto&& frame = action.frames[frameIndex].lock()) {
+	if (auto&& frame = action.pictures[frameIndex].lock()) {
 		auto&& cd = frame->cdclps;
 		auto&& s = getScale();
 		if (p.distance({ cd.maxCDCircle.x * s, cd.maxCDCircle.y * s }) <= cd.maxCDCircle.r * s) {

@@ -3,20 +3,24 @@
 namespace FishManage {
 	void PkgGenTypes::RegisterTo(xx::ObjectHelper& oh) {
 	    oh.Register<FishManage::File>();
-	    oh.Register<FishManage::ResBase>();
-	    oh.Register<FishManage::ResSound>();
-	    oh.Register<FishManage::ResMusic>();
-	    oh.Register<FishManage::ResVoice>();
-	    oh.Register<FishManage::ResPList>();
-	    oh.Register<FishManage::ResPicture>();
-	    oh.Register<FishManage::ResTexture>();
-	    oh.Register<FishManage::ResFrame>();
-	    oh.Register<FishManage::ResAnimation>();
-	    oh.Register<FishManage::ResSpine>();
-	    oh.Register<FishManage::Res3d>();
-	    oh.Register<FishManage::ResFrameAnimation>();
-	    oh.Register<FishManage::ResCombine>();
-	    oh.Register<FishManage::ResScript>();
+	    oh.Register<FishManage::File_FrameAnimation>();
+	    oh.Register<FishManage::File_Real>();
+	    oh.Register<FishManage::File_Lua>();
+	    oh.Register<FishManage::File_Sound>();
+	    oh.Register<FishManage::File_Picture>();
+	    oh.Register<FishManage::File_Bag>();
+	    oh.Register<FishManage::File_Animation>();
+	    oh.Register<FishManage::File_Spine>();
+	    oh.Register<FishManage::File_C3b>();
+	    oh.Register<FishManage::File_Combine>();
+	    oh.Register<FishManage::Res>();
+	    oh.Register<FishManage::Res_Script>();
+	    oh.Register<FishManage::Res_Sound>();
+	    oh.Register<FishManage::Res_Picture>();
+	    oh.Register<FishManage::Res_FrameAnimation>();
+	    oh.Register<FishManage::Res_Spine>();
+	    oh.Register<FishManage::Res_3d>();
+	    oh.Register<FishManage::Res_Combine>();
 	    oh.Register<FishManage::FishBase>();
 	    oh.Register<FishManage::FishNormal>();
 	    oh.Register<FishManage::FishBomb>();
@@ -133,6 +137,56 @@ namespace xx {
         xx::AppendEx(oh, ",\"mainLockPoint\":", in.mainLockPoint);
         xx::AppendEx(oh, ",\"lockPoints\":", in.lockPoints);
     }
+    void CloneFuncs<FishManage::Action>::Clone1(xx::ObjectHelper &oh, FishManage::Action const& in, FishManage::Action &out) {
+        CloneFuncs<std::string>::Clone1(oh, in.name, out.name);
+        CloneFuncs<float>::Clone1(oh, in.seconds, out.seconds);
+        CloneFuncs<float>::Clone1(oh, in.frameRate, out.frameRate);
+        CloneFuncs<float>::Clone1(oh, in.width, out.width);
+        CloneFuncs<float>::Clone1(oh, in.height, out.height);
+        CloneFuncs<std::vector<FishManage::CDCirclesLockPoints>>::Clone1(oh, in.cdclpss, out.cdclpss);
+    }
+    void CloneFuncs<FishManage::Action>::Clone2(xx::ObjectHelper &oh, FishManage::Action const& in, FishManage::Action &out) {
+        CloneFuncs<std::string>::Clone2(oh, in.name, out.name);
+        CloneFuncs<float>::Clone2(oh, in.seconds, out.seconds);
+        CloneFuncs<float>::Clone2(oh, in.frameRate, out.frameRate);
+        CloneFuncs<float>::Clone2(oh, in.width, out.width);
+        CloneFuncs<float>::Clone2(oh, in.height, out.height);
+        CloneFuncs<std::vector<FishManage::CDCirclesLockPoints>>::Clone2(oh, in.cdclpss, out.cdclpss);
+    }
+	void DataFuncsEx<FishManage::Action, void>::Write(DataWriterEx& dw, FishManage::Action const& in) {
+        dw.Write(in.name);
+        dw.Write(in.seconds);
+        dw.Write(in.frameRate);
+        dw.Write(in.width);
+        dw.Write(in.height);
+        dw.Write(in.cdclpss);
+    }
+	int DataFuncsEx<FishManage::Action, void>::Read(DataReaderEx& d, FishManage::Action& out) {
+        if (int r = d.Read(out.name)) return r;
+        if (int r = d.Read(out.seconds)) return r;
+        if (int r = d.Read(out.frameRate)) return r;
+        if (int r = d.Read(out.width)) return r;
+        if (int r = d.Read(out.height)) return r;
+        if (int r = d.Read(out.cdclpss)) return r;
+        return 0;
+    }
+	void StringFuncsEx<FishManage::Action, void>::Append(ObjectHelper &oh, FishManage::Action const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
+    }
+	void StringFuncsEx<FishManage::Action, void>::AppendCore(ObjectHelper &oh, FishManage::Action const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
+        }
+        xx::AppendEx(oh, "\"name\":", in.name); 
+        xx::AppendEx(oh, ",\"seconds\":", in.seconds);
+        xx::AppendEx(oh, ",\"frameRate\":", in.frameRate);
+        xx::AppendEx(oh, ",\"width\":", in.width);
+        xx::AppendEx(oh, ",\"height\":", in.height);
+        xx::AppendEx(oh, ",\"cdclpss\":", in.cdclpss);
+    }
     void CloneFuncs<FishManage::FishState>::Clone1(xx::ObjectHelper &oh, FishManage::FishState const& in, FishManage::FishState &out) {
         CloneFuncs<std::string>::Clone1(oh, in.name, out.name);
         CloneFuncs<std::string>::Clone1(oh, in.actionName, out.actionName);
@@ -173,108 +227,63 @@ namespace xx {
         xx::AppendEx(oh, ",\"moveActionFrameDistances\":", in.moveActionFrameDistances);
         xx::AppendEx(oh, ",\"pathwayGroupName\":", in.pathwayGroupName);
     }
-    void CloneFuncs<FishManage::ActionBase>::Clone1(xx::ObjectHelper &oh, FishManage::ActionBase const& in, FishManage::ActionBase &out) {
-        CloneFuncs<std::string>::Clone1(oh, in.name, out.name);
-        CloneFuncs<float>::Clone1(oh, in.seconds, out.seconds);
-        CloneFuncs<float>::Clone1(oh, in.frameRate, out.frameRate);
-        CloneFuncs<float>::Clone1(oh, in.width, out.width);
-        CloneFuncs<float>::Clone1(oh, in.height, out.height);
+    void CloneFuncs<FishManage::FrameAction>::Clone1(xx::ObjectHelper &oh, FishManage::FrameAction const& in, FishManage::FrameAction &out) {
+        CloneFuncs<FishManage::Action>::Clone1(oh, in, out);
+        CloneFuncs<std::vector<std::weak_ptr<FishManage::File_Picture>>>::Clone1(oh, in.pictures, out.pictures);
     }
-    void CloneFuncs<FishManage::ActionBase>::Clone2(xx::ObjectHelper &oh, FishManage::ActionBase const& in, FishManage::ActionBase &out) {
-        CloneFuncs<std::string>::Clone2(oh, in.name, out.name);
-        CloneFuncs<float>::Clone2(oh, in.seconds, out.seconds);
-        CloneFuncs<float>::Clone2(oh, in.frameRate, out.frameRate);
-        CloneFuncs<float>::Clone2(oh, in.width, out.width);
-        CloneFuncs<float>::Clone2(oh, in.height, out.height);
+    void CloneFuncs<FishManage::FrameAction>::Clone2(xx::ObjectHelper &oh, FishManage::FrameAction const& in, FishManage::FrameAction &out) {
+        CloneFuncs<FishManage::Action>::Clone2(oh, in, out);
+        CloneFuncs<std::vector<std::weak_ptr<FishManage::File_Picture>>>::Clone2(oh, in.pictures, out.pictures);
     }
-	void DataFuncsEx<FishManage::ActionBase, void>::Write(DataWriterEx& dw, FishManage::ActionBase const& in) {
-        dw.Write(in.name);
-        dw.Write(in.seconds);
-        dw.Write(in.frameRate);
-        dw.Write(in.width);
-        dw.Write(in.height);
+	void DataFuncsEx<FishManage::FrameAction, void>::Write(DataWriterEx& dw, FishManage::FrameAction const& in) {
+        DataFuncsEx<FishManage::Action>::Write(dw, in);
+        dw.Write(in.pictures);
     }
-	int DataFuncsEx<FishManage::ActionBase, void>::Read(DataReaderEx& d, FishManage::ActionBase& out) {
-        if (int r = d.Read(out.name)) return r;
-        if (int r = d.Read(out.seconds)) return r;
-        if (int r = d.Read(out.frameRate)) return r;
-        if (int r = d.Read(out.width)) return r;
-        if (int r = d.Read(out.height)) return r;
+	int DataFuncsEx<FishManage::FrameAction, void>::Read(DataReaderEx& d, FishManage::FrameAction& out) {
+        if (int r = DataFuncsEx<FishManage::Action>::Read(d, out)) return r;
+        if (int r = d.Read(out.pictures)) return r;
         return 0;
     }
-	void StringFuncsEx<FishManage::ActionBase, void>::Append(ObjectHelper &oh, FishManage::ActionBase const& in) {
+	void StringFuncsEx<FishManage::FrameAction, void>::Append(ObjectHelper &oh, FishManage::FrameAction const& in) {
         oh.s.push_back('{');
         AppendCore(oh, in);
         oh.s.push_back('}');
     }
-	void StringFuncsEx<FishManage::ActionBase, void>::AppendCore(ObjectHelper &oh, FishManage::ActionBase const& in) {
+	void StringFuncsEx<FishManage::FrameAction, void>::AppendCore(ObjectHelper &oh, FishManage::FrameAction const& in) {
         auto sizeBak = oh.s.size();
+        StringFuncsEx<FishManage::Action>::AppendCore(oh, in);
         if (sizeBak == oh.s.size()) {
             oh.s.push_back(',');
         }
-        xx::AppendEx(oh, "\"name\":", in.name); 
-        xx::AppendEx(oh, ",\"seconds\":", in.seconds);
-        xx::AppendEx(oh, ",\"frameRate\":", in.frameRate);
-        xx::AppendEx(oh, ",\"width\":", in.width);
-        xx::AppendEx(oh, ",\"height\":", in.height);
-    }
-    void CloneFuncs<FishManage::ActionOthers>::Clone1(xx::ObjectHelper &oh, FishManage::ActionOthers const& in, FishManage::ActionOthers &out) {
-        CloneFuncs<FishManage::ActionBase>::Clone1(oh, in, out);
-        CloneFuncs<std::vector<FishManage::CDCirclesLockPoints>>::Clone1(oh, in.cdclpss, out.cdclpss);
-    }
-    void CloneFuncs<FishManage::ActionOthers>::Clone2(xx::ObjectHelper &oh, FishManage::ActionOthers const& in, FishManage::ActionOthers &out) {
-        CloneFuncs<FishManage::ActionBase>::Clone2(oh, in, out);
-        CloneFuncs<std::vector<FishManage::CDCirclesLockPoints>>::Clone2(oh, in.cdclpss, out.cdclpss);
-    }
-	void DataFuncsEx<FishManage::ActionOthers, void>::Write(DataWriterEx& dw, FishManage::ActionOthers const& in) {
-        DataFuncsEx<FishManage::ActionBase>::Write(dw, in);
-        dw.Write(in.cdclpss);
-    }
-	int DataFuncsEx<FishManage::ActionOthers, void>::Read(DataReaderEx& d, FishManage::ActionOthers& out) {
-        if (int r = DataFuncsEx<FishManage::ActionBase>::Read(d, out)) return r;
-        if (int r = d.Read(out.cdclpss)) return r;
-        return 0;
-    }
-	void StringFuncsEx<FishManage::ActionOthers, void>::Append(ObjectHelper &oh, FishManage::ActionOthers const& in) {
-        oh.s.push_back('{');
-        AppendCore(oh, in);
-        oh.s.push_back('}');
-    }
-	void StringFuncsEx<FishManage::ActionOthers, void>::AppendCore(ObjectHelper &oh, FishManage::ActionOthers const& in) {
-        auto sizeBak = oh.s.size();
-        StringFuncsEx<FishManage::ActionBase>::AppendCore(oh, in);
-        if (sizeBak == oh.s.size()) {
-            oh.s.push_back(',');
-        }
-        xx::AppendEx(oh, "\"cdclpss\":", in.cdclpss); 
+        xx::AppendEx(oh, "\"pictures\":", in.pictures); 
     }
     void CloneFuncs<FishManage::CombineItem>::Clone1(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
-        CloneFuncs<std::weak_ptr<FishManage::ResAnimation>>::Clone1(oh, in.res, out.res);
+        CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, in.file, out.file);
         CloneFuncs<float>::Clone1(oh, in.offsetX, out.offsetX);
         CloneFuncs<float>::Clone1(oh, in.offsetY, out.offsetY);
-        CloneFuncs<float>::Clone1(oh, in.baseAngle, out.baseAngle);
-        CloneFuncs<float>::Clone1(oh, in.baseScale, out.baseScale);
+        CloneFuncs<float>::Clone1(oh, in.angle, out.angle);
+        CloneFuncs<float>::Clone1(oh, in.scale, out.scale);
     }
     void CloneFuncs<FishManage::CombineItem>::Clone2(xx::ObjectHelper &oh, FishManage::CombineItem const& in, FishManage::CombineItem &out) {
-        CloneFuncs<std::weak_ptr<FishManage::ResAnimation>>::Clone2(oh, in.res, out.res);
+        CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, in.file, out.file);
         CloneFuncs<float>::Clone2(oh, in.offsetX, out.offsetX);
         CloneFuncs<float>::Clone2(oh, in.offsetY, out.offsetY);
-        CloneFuncs<float>::Clone2(oh, in.baseAngle, out.baseAngle);
-        CloneFuncs<float>::Clone2(oh, in.baseScale, out.baseScale);
+        CloneFuncs<float>::Clone2(oh, in.angle, out.angle);
+        CloneFuncs<float>::Clone2(oh, in.scale, out.scale);
     }
 	void DataFuncsEx<FishManage::CombineItem, void>::Write(DataWriterEx& dw, FishManage::CombineItem const& in) {
-        dw.Write(in.res);
+        dw.Write(in.file);
         dw.Write(in.offsetX);
         dw.Write(in.offsetY);
-        dw.Write(in.baseAngle);
-        dw.Write(in.baseScale);
+        dw.Write(in.angle);
+        dw.Write(in.scale);
     }
 	int DataFuncsEx<FishManage::CombineItem, void>::Read(DataReaderEx& d, FishManage::CombineItem& out) {
-        if (int r = d.Read(out.res)) return r;
+        if (int r = d.Read(out.file)) return r;
         if (int r = d.Read(out.offsetX)) return r;
         if (int r = d.Read(out.offsetY)) return r;
-        if (int r = d.Read(out.baseAngle)) return r;
-        if (int r = d.Read(out.baseScale)) return r;
+        if (int r = d.Read(out.angle)) return r;
+        if (int r = d.Read(out.scale)) return r;
         return 0;
     }
 	void StringFuncsEx<FishManage::CombineItem, void>::Append(ObjectHelper &oh, FishManage::CombineItem const& in) {
@@ -287,96 +296,54 @@ namespace xx {
         if (sizeBak == oh.s.size()) {
             oh.s.push_back(',');
         }
-        xx::AppendEx(oh, "\"res\":", in.res); 
+        xx::AppendEx(oh, "\"file\":", in.file); 
         xx::AppendEx(oh, ",\"offsetX\":", in.offsetX);
         xx::AppendEx(oh, ",\"offsetY\":", in.offsetY);
-        xx::AppendEx(oh, ",\"baseAngle\":", in.baseAngle);
-        xx::AppendEx(oh, ",\"baseScale\":", in.baseScale);
-    }
-    void CloneFuncs<FishManage::ActionSpriteFrame>::Clone1(xx::ObjectHelper &oh, FishManage::ActionSpriteFrame const& in, FishManage::ActionSpriteFrame &out) {
-        CloneFuncs<FishManage::ActionBase>::Clone1(oh, in, out);
-        CloneFuncs<std::vector<std::weak_ptr<FishManage::ResPicture>>>::Clone1(oh, in.frames, out.frames);
-    }
-    void CloneFuncs<FishManage::ActionSpriteFrame>::Clone2(xx::ObjectHelper &oh, FishManage::ActionSpriteFrame const& in, FishManage::ActionSpriteFrame &out) {
-        CloneFuncs<FishManage::ActionBase>::Clone2(oh, in, out);
-        CloneFuncs<std::vector<std::weak_ptr<FishManage::ResPicture>>>::Clone2(oh, in.frames, out.frames);
-    }
-	void DataFuncsEx<FishManage::ActionSpriteFrame, void>::Write(DataWriterEx& dw, FishManage::ActionSpriteFrame const& in) {
-        DataFuncsEx<FishManage::ActionBase>::Write(dw, in);
-        dw.Write(in.frames);
-    }
-	int DataFuncsEx<FishManage::ActionSpriteFrame, void>::Read(DataReaderEx& d, FishManage::ActionSpriteFrame& out) {
-        if (int r = DataFuncsEx<FishManage::ActionBase>::Read(d, out)) return r;
-        if (int r = d.Read(out.frames)) return r;
-        return 0;
-    }
-	void StringFuncsEx<FishManage::ActionSpriteFrame, void>::Append(ObjectHelper &oh, FishManage::ActionSpriteFrame const& in) {
-        oh.s.push_back('{');
-        AppendCore(oh, in);
-        oh.s.push_back('}');
-    }
-	void StringFuncsEx<FishManage::ActionSpriteFrame, void>::AppendCore(ObjectHelper &oh, FishManage::ActionSpriteFrame const& in) {
-        auto sizeBak = oh.s.size();
-        StringFuncsEx<FishManage::ActionBase>::AppendCore(oh, in);
-        if (sizeBak == oh.s.size()) {
-            oh.s.push_back(',');
-        }
-        xx::AppendEx(oh, "\"frames\":", in.frames); 
+        xx::AppendEx(oh, ",\"angle\":", in.angle);
+        xx::AppendEx(oh, ",\"scale\":", in.scale);
     }
     void CloneFuncs<FishManage::Data>::Clone1(xx::ObjectHelper &oh, FishManage::Data const& in, FishManage::Data &out) {
         CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::File>>>::Clone1(oh, in.files, out.files);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResMusic>>>::Clone1(oh, in.resMusics, out.resMusics);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResVoice>>>::Clone1(oh, in.resVoices, out.resVoices);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResTexture>>>::Clone1(oh, in.resTextures, out.resTextures);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResPList>>>::Clone1(oh, in.resPLists, out.resPLists);
-        CloneFuncs<std::map<std::string, std::weak_ptr<FishManage::ResFrame>>>::Clone1(oh, in.resFrames, out.resFrames);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResSpine>>>::Clone1(oh, in.resSpines, out.resSpines);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res3d>>>::Clone1(oh, in.res3ds, out.res3ds);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResFrameAnimation>>>::Clone1(oh, in.resFrameAnimations, out.resFrameAnimations);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResCombine>>>::Clone1(oh, in.resCombine, out.resCombine);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResScript>>>::Clone1(oh, in.resScripts, out.resScripts);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Script>>>::Clone1(oh, in.resScripts, out.resScripts);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Sound>>>::Clone1(oh, in.resSounds, out.resSounds);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Picture>>>::Clone1(oh, in.resPictures, out.resPictures);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_FrameAnimation>>>::Clone1(oh, in.resFrameAnimations, out.resFrameAnimations);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Spine>>>::Clone1(oh, in.resSpines, out.resSpines);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_3d>>>::Clone1(oh, in.res3ds, out.res3ds);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Combine>>>::Clone1(oh, in.resCombines, out.resCombines);
         CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::FishBase>>>::Clone1(oh, in.fishs, out.fishs);
     }
     void CloneFuncs<FishManage::Data>::Clone2(xx::ObjectHelper &oh, FishManage::Data const& in, FishManage::Data &out) {
         CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::File>>>::Clone2(oh, in.files, out.files);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResMusic>>>::Clone2(oh, in.resMusics, out.resMusics);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResVoice>>>::Clone2(oh, in.resVoices, out.resVoices);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResTexture>>>::Clone2(oh, in.resTextures, out.resTextures);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResPList>>>::Clone2(oh, in.resPLists, out.resPLists);
-        CloneFuncs<std::map<std::string, std::weak_ptr<FishManage::ResFrame>>>::Clone2(oh, in.resFrames, out.resFrames);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResSpine>>>::Clone2(oh, in.resSpines, out.resSpines);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res3d>>>::Clone2(oh, in.res3ds, out.res3ds);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResFrameAnimation>>>::Clone2(oh, in.resFrameAnimations, out.resFrameAnimations);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResCombine>>>::Clone2(oh, in.resCombine, out.resCombine);
-        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::ResScript>>>::Clone2(oh, in.resScripts, out.resScripts);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Script>>>::Clone2(oh, in.resScripts, out.resScripts);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Sound>>>::Clone2(oh, in.resSounds, out.resSounds);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Picture>>>::Clone2(oh, in.resPictures, out.resPictures);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_FrameAnimation>>>::Clone2(oh, in.resFrameAnimations, out.resFrameAnimations);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Spine>>>::Clone2(oh, in.resSpines, out.resSpines);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_3d>>>::Clone2(oh, in.res3ds, out.res3ds);
+        CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::Res_Combine>>>::Clone2(oh, in.resCombines, out.resCombines);
         CloneFuncs<std::map<std::string, std::shared_ptr<FishManage::FishBase>>>::Clone2(oh, in.fishs, out.fishs);
     }
 	void DataFuncsEx<FishManage::Data, void>::Write(DataWriterEx& dw, FishManage::Data const& in) {
         dw.Write(in.files);
-        dw.Write(in.resMusics);
-        dw.Write(in.resVoices);
-        dw.Write(in.resTextures);
-        dw.Write(in.resPLists);
-        dw.Write(in.resFrames);
+        dw.Write(in.resScripts);
+        dw.Write(in.resSounds);
+        dw.Write(in.resPictures);
+        dw.Write(in.resFrameAnimations);
         dw.Write(in.resSpines);
         dw.Write(in.res3ds);
-        dw.Write(in.resFrameAnimations);
-        dw.Write(in.resCombine);
-        dw.Write(in.resScripts);
+        dw.Write(in.resCombines);
         dw.Write(in.fishs);
     }
 	int DataFuncsEx<FishManage::Data, void>::Read(DataReaderEx& d, FishManage::Data& out) {
         if (int r = d.Read(out.files)) return r;
-        if (int r = d.Read(out.resMusics)) return r;
-        if (int r = d.Read(out.resVoices)) return r;
-        if (int r = d.Read(out.resTextures)) return r;
-        if (int r = d.Read(out.resPLists)) return r;
-        if (int r = d.Read(out.resFrames)) return r;
+        if (int r = d.Read(out.resScripts)) return r;
+        if (int r = d.Read(out.resSounds)) return r;
+        if (int r = d.Read(out.resPictures)) return r;
+        if (int r = d.Read(out.resFrameAnimations)) return r;
         if (int r = d.Read(out.resSpines)) return r;
         if (int r = d.Read(out.res3ds)) return r;
-        if (int r = d.Read(out.resFrameAnimations)) return r;
-        if (int r = d.Read(out.resCombine)) return r;
-        if (int r = d.Read(out.resScripts)) return r;
+        if (int r = d.Read(out.resCombines)) return r;
         if (int r = d.Read(out.fishs)) return r;
         return 0;
     }
@@ -391,99 +358,45 @@ namespace xx {
             oh.s.push_back(',');
         }
         xx::AppendEx(oh, "\"files\":", in.files); 
-        xx::AppendEx(oh, ",\"resMusics\":", in.resMusics);
-        xx::AppendEx(oh, ",\"resVoices\":", in.resVoices);
-        xx::AppendEx(oh, ",\"resTextures\":", in.resTextures);
-        xx::AppendEx(oh, ",\"resPLists\":", in.resPLists);
-        xx::AppendEx(oh, ",\"resFrames\":", in.resFrames);
+        xx::AppendEx(oh, ",\"resScripts\":", in.resScripts);
+        xx::AppendEx(oh, ",\"resSounds\":", in.resSounds);
+        xx::AppendEx(oh, ",\"resPictures\":", in.resPictures);
+        xx::AppendEx(oh, ",\"resFrameAnimations\":", in.resFrameAnimations);
         xx::AppendEx(oh, ",\"resSpines\":", in.resSpines);
         xx::AppendEx(oh, ",\"res3ds\":", in.res3ds);
-        xx::AppendEx(oh, ",\"resFrameAnimations\":", in.resFrameAnimations);
-        xx::AppendEx(oh, ",\"resCombine\":", in.resCombine);
-        xx::AppendEx(oh, ",\"resScripts\":", in.resScripts);
+        xx::AppendEx(oh, ",\"resCombines\":", in.resCombines);
         xx::AppendEx(oh, ",\"fishs\":", in.fishs);
     }
 }
 namespace FishManage {
-    ResBase::ResBase(ResBase&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ResBase& ResBase::operator=(ResBase&& o) noexcept {
-        std::swap(this->name, o.name);
-        return *this;
-    }
-    void ResBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        auto&& o = xx::As<FishManage::ResBase>(tar);
-        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
-    }
-    void ResBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        auto&& o = xx::As<FishManage::ResBase>(tar);
-        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
-    }
-    uint16_t ResBase::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResBase>;
-    }
-    void ResBase::Serialize(xx::DataWriterEx& dw) const {
-        dw.Write(this->name);
-    }
-    int ResBase::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = dr.Read(this->name)) return r;
-        return 0;
-    }
-    void ResBase::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.objOffsets.find((void*)this);
-        if (iter != oh.objOffsets.end()) {
-        	xx::AppendEx(oh, iter->second);
-        	return;
-        }
-        else {
-            oh.objOffsets[(void*)this] = oh.s.size();
-        }
-        xx::AppendEx(oh, "{\"#\":", GetTypeId());
-        ToStringCore(oh);
-        oh.s.push_back('}');
-    }
-    void ResBase::ToStringCore(xx::ObjectHelper &oh) const {
-        xx::AppendEx(oh, ",\"name\":", this->name);
-    }
     File::File(File&& o) noexcept {
         this->operator=(std::move(o));
     }
     File& File::operator=(File&& o) noexcept {
-        std::swap(this->path, o.path);
+        std::swap(this->name, o.name);
         std::swap(this->ext, o.ext);
-        std::swap(this->length, o.length);
-        std::swap(this->md5, o.md5);
         return *this;
     }
     void File::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         auto&& o = xx::As<FishManage::File>(tar);
-        xx::CloneFuncs<std::string>::Clone1(oh, this->path, o->path);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
         xx::CloneFuncs<FishManage::FileExtensions>::Clone1(oh, this->ext, o->ext);
-        xx::CloneFuncs<int64_t>::Clone1(oh, this->length, o->length);
-        xx::CloneFuncs<xx::Data>::Clone1(oh, this->md5, o->md5);
     }
     void File::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         auto&& o = xx::As<FishManage::File>(tar);
-        xx::CloneFuncs<std::string>::Clone2(oh, this->path, o->path);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
         xx::CloneFuncs<FishManage::FileExtensions>::Clone2(oh, this->ext, o->ext);
-        xx::CloneFuncs<int64_t>::Clone2(oh, this->length, o->length);
-        xx::CloneFuncs<xx::Data>::Clone2(oh, this->md5, o->md5);
     }
     uint16_t File::GetTypeId() const {
         return xx::TypeId_v<FishManage::File>;
     }
     void File::Serialize(xx::DataWriterEx& dw) const {
-        dw.Write(this->path);
+        dw.Write(this->name);
         dw.Write(this->ext);
-        dw.Write(this->length);
-        dw.Write(this->md5);
     }
     int File::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = dr.Read(this->path)) return r;
+        if (int r = dr.Read(this->name)) return r;
         if (int r = dr.Read(this->ext)) return r;
-        if (int r = dr.Read(this->length)) return r;
-        if (int r = dr.Read(this->md5)) return r;
         return 0;
     }
     void File::ToString(xx::ObjectHelper &oh) const {
@@ -500,52 +413,45 @@ namespace FishManage {
         oh.s.push_back('}');
     }
     void File::ToStringCore(xx::ObjectHelper &oh) const {
-        xx::AppendEx(oh, ",\"path\":", this->path);
+        xx::AppendEx(oh, ",\"name\":", this->name);
         xx::AppendEx(oh, ",\"ext\":", this->ext);
-        xx::AppendEx(oh, ",\"length\":", this->length);
-        xx::AppendEx(oh, ",\"md5\":", this->md5);
     }
-    ResAnimation::ResAnimation(ResAnimation&& o) noexcept {
+    File_Real::File_Real(File_Real&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResAnimation& ResAnimation::operator=(ResAnimation&& o) noexcept {
+    File_Real& File_Real::operator=(File_Real&& o) noexcept {
         this->BaseType::operator=(std::move(o));
-        std::swap(this->shadowScale, o.shadowScale);
-        std::swap(this->shadowOffsetX, o.shadowOffsetX);
-        std::swap(this->shadowOffsetY, o.shadowOffsetY);
+        std::swap(this->length, o.length);
+        std::swap(this->md5, o.md5);
         return *this;
     }
-    void ResAnimation::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Real::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResAnimation>(tar);
-        xx::CloneFuncs<float>::Clone1(oh, this->shadowScale, o->shadowScale);
-        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetX, o->shadowOffsetX);
-        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetY, o->shadowOffsetY);
+        auto&& o = xx::As<FishManage::File_Real>(tar);
+        xx::CloneFuncs<int64_t>::Clone1(oh, this->length, o->length);
+        xx::CloneFuncs<xx::Data>::Clone1(oh, this->md5, o->md5);
     }
-    void ResAnimation::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Real::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResAnimation>(tar);
-        xx::CloneFuncs<float>::Clone2(oh, this->shadowScale, o->shadowScale);
-        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetX, o->shadowOffsetX);
-        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetY, o->shadowOffsetY);
+        auto&& o = xx::As<FishManage::File_Real>(tar);
+        xx::CloneFuncs<int64_t>::Clone2(oh, this->length, o->length);
+        xx::CloneFuncs<xx::Data>::Clone2(oh, this->md5, o->md5);
     }
-    uint16_t ResAnimation::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResAnimation>;
+    uint16_t File_Real::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Real>;
     }
-    void ResAnimation::Serialize(xx::DataWriterEx& dw) const {
+    void File_Real::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
-        dw.Write(this->shadowScale);
-        dw.Write(this->shadowOffsetX);
-        dw.Write(this->shadowOffsetY);
+        dw.Write(this->length);
+        dw.Write(this->md5);
     }
-    int ResAnimation::Deserialize(xx::DataReaderEx& dr) {
+    int File_Real::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->shadowScale)) return r;
-        if (int r = dr.Read(this->shadowOffsetX)) return r;
-        if (int r = dr.Read(this->shadowOffsetY)) return r;
+        if (int r = dr.Read(this->length)) return r;
+        if (int r = dr.Read(this->md5)) return r;
         return 0;
     }
-    void ResAnimation::ToString(xx::ObjectHelper &oh) const {
+    void File_Real::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -558,11 +464,51 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResAnimation::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Real::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"shadowScale\":", this->shadowScale);
-        xx::AppendEx(oh, ",\"shadowOffsetX\":", this->shadowOffsetX);
-        xx::AppendEx(oh, ",\"shadowOffsetY\":", this->shadowOffsetY);
+        xx::AppendEx(oh, ",\"length\":", this->length);
+        xx::AppendEx(oh, ",\"md5\":", this->md5);
+    }
+    Res::Res(Res&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res& Res::operator=(Res&& o) noexcept {
+        std::swap(this->name, o.name);
+        return *this;
+    }
+    void Res::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::Res>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
+    }
+    void Res::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<FishManage::Res>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
+    }
+    uint16_t Res::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res>;
+    }
+    void Res::Serialize(xx::DataWriterEx& dw) const {
+        dw.Write(this->name);
+    }
+    int Res::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = dr.Read(this->name)) return r;
+        return 0;
+    }
+    void Res::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"name\":", this->name);
     }
     LockPoint::LockPoint(LockPoint&& o) noexcept {
         this->operator=(std::move(o));
@@ -581,59 +527,6 @@ namespace FishManage {
         std::swap(this->r, o.r);
         return *this;
     }
-    ResSound::ResSound(ResSound&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ResSound& ResSound::operator=(ResSound&& o) noexcept {
-        this->BaseType::operator=(std::move(o));
-        std::swap(this->file, o.file);
-        std::swap(this->seconds, o.seconds);
-        return *this;
-    }
-    void ResSound::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResSound>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->file, o->file);
-        xx::CloneFuncs<float>::Clone1(oh, this->seconds, o->seconds);
-    }
-    void ResSound::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResSound>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->file, o->file);
-        xx::CloneFuncs<float>::Clone2(oh, this->seconds, o->seconds);
-    }
-    uint16_t ResSound::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResSound>;
-    }
-    void ResSound::Serialize(xx::DataWriterEx& dw) const {
-        this->BaseType::Serialize(dw);
-        dw.Write(this->file);
-        dw.Write(this->seconds);
-    }
-    int ResSound::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->file)) return r;
-        if (int r = dr.Read(this->seconds)) return r;
-        return 0;
-    }
-    void ResSound::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.objOffsets.find((void*)this);
-        if (iter != oh.objOffsets.end()) {
-        	xx::AppendEx(oh, iter->second);
-        	return;
-        }
-        else {
-            oh.objOffsets[(void*)this] = oh.s.size();
-        }
-        xx::AppendEx(oh, "{\"#\":", GetTypeId());
-        ToStringCore(oh);
-        oh.s.push_back('}');
-    }
-    void ResSound::ToStringCore(xx::ObjectHelper &oh) const {
-        this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"file\":", this->file);
-        xx::AppendEx(oh, ",\"seconds\":", this->seconds);
-    }
     CDCirclesLockPoints::CDCirclesLockPoints(CDCirclesLockPoints&& o) noexcept {
         this->operator=(std::move(o));
     }
@@ -644,37 +537,37 @@ namespace FishManage {
         std::swap(this->lockPoints, o.lockPoints);
         return *this;
     }
-    ResScript::ResScript(ResScript&& o) noexcept {
+    File_Bag::File_Bag(File_Bag&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResScript& ResScript::operator=(ResScript&& o) noexcept {
+    File_Bag& File_Bag::operator=(File_Bag&& o) noexcept {
         this->BaseType::operator=(std::move(o));
-        std::swap(this->file, o.file);
+        std::swap(this->childs, o.childs);
         return *this;
     }
-    void ResScript::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Bag::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResScript>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->file, o->file);
+        auto&& o = xx::As<FishManage::File_Bag>(tar);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::File_Real>>>::Clone1(oh, this->childs, o->childs);
     }
-    void ResScript::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Bag::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResScript>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->file, o->file);
+        auto&& o = xx::As<FishManage::File_Bag>(tar);
+        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::File_Real>>>::Clone2(oh, this->childs, o->childs);
     }
-    uint16_t ResScript::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResScript>;
+    uint16_t File_Bag::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Bag>;
     }
-    void ResScript::Serialize(xx::DataWriterEx& dw) const {
+    void File_Bag::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
-        dw.Write(this->file);
+        dw.Write(this->childs);
     }
-    int ResScript::Deserialize(xx::DataReaderEx& dr) {
+    int File_Bag::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->file)) return r;
+        if (int r = dr.Read(this->childs)) return r;
         return 0;
     }
-    void ResScript::ToString(xx::ObjectHelper &oh) const {
+    void File_Bag::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -687,36 +580,36 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResScript::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Bag::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"file\":", this->file);
+        xx::AppendEx(oh, ",\"childs\":", this->childs);
     }
-    ResVoice::ResVoice(ResVoice&& o) noexcept {
+    File_Lua::File_Lua(File_Lua&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResVoice& ResVoice::operator=(ResVoice&& o) noexcept {
+    File_Lua& File_Lua::operator=(File_Lua&& o) noexcept {
         this->BaseType::operator=(std::move(o));
         return *this;
     }
-    void ResVoice::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Lua::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResVoice>(tar);
+        auto&& o = xx::As<FishManage::File_Lua>(tar);
     }
-    void ResVoice::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Lua::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResVoice>(tar);
+        auto&& o = xx::As<FishManage::File_Lua>(tar);
     }
-    uint16_t ResVoice::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResVoice>;
+    uint16_t File_Lua::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Lua>;
     }
-    void ResVoice::Serialize(xx::DataWriterEx& dw) const {
+    void File_Lua::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
     }
-    int ResVoice::Deserialize(xx::DataReaderEx& dr) {
+    int File_Lua::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void ResVoice::ToString(xx::ObjectHelper &oh) const {
+    void File_Lua::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -729,40 +622,40 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResVoice::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Lua::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
     }
-    ResPicture::ResPicture(ResPicture&& o) noexcept {
+    File_Sound::File_Sound(File_Sound&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResPicture& ResPicture::operator=(ResPicture&& o) noexcept {
+    File_Sound& File_Sound::operator=(File_Sound&& o) noexcept {
         this->BaseType::operator=(std::move(o));
-        std::swap(this->cdclps, o.cdclps);
+        std::swap(this->seconds, o.seconds);
         return *this;
     }
-    void ResPicture::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Sound::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResPicture>(tar);
-        xx::CloneFuncs<FishManage::CDCirclesLockPoints>::Clone1(oh, this->cdclps, o->cdclps);
+        auto&& o = xx::As<FishManage::File_Sound>(tar);
+        xx::CloneFuncs<float>::Clone1(oh, this->seconds, o->seconds);
     }
-    void ResPicture::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Sound::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResPicture>(tar);
-        xx::CloneFuncs<FishManage::CDCirclesLockPoints>::Clone2(oh, this->cdclps, o->cdclps);
+        auto&& o = xx::As<FishManage::File_Sound>(tar);
+        xx::CloneFuncs<float>::Clone2(oh, this->seconds, o->seconds);
     }
-    uint16_t ResPicture::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResPicture>;
+    uint16_t File_Sound::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Sound>;
     }
-    void ResPicture::Serialize(xx::DataWriterEx& dw) const {
+    void File_Sound::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
-        dw.Write(this->cdclps);
+        dw.Write(this->seconds);
     }
-    int ResPicture::Deserialize(xx::DataReaderEx& dr) {
+    int File_Sound::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->cdclps)) return r;
+        if (int r = dr.Read(this->seconds)) return r;
         return 0;
     }
-    void ResPicture::ToString(xx::ObjectHelper &oh) const {
+    void File_Sound::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -775,9 +668,115 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResPicture::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Sound::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"cdclps\":", this->cdclps);
+        xx::AppendEx(oh, ",\"seconds\":", this->seconds);
+    }
+    Action::Action(Action&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Action& Action::operator=(Action&& o) noexcept {
+        std::swap(this->name, o.name);
+        std::swap(this->seconds, o.seconds);
+        std::swap(this->frameRate, o.frameRate);
+        std::swap(this->width, o.width);
+        std::swap(this->height, o.height);
+        std::swap(this->cdclpss, o.cdclpss);
+        return *this;
+    }
+    Res_Sound::Res_Sound(Res_Sound&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res_Sound& Res_Sound::operator=(Res_Sound&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
+        return *this;
+    }
+    void Res_Sound::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Sound>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Sound>>>::Clone1(oh, this->files, o->files);
+    }
+    void Res_Sound::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Sound>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Sound>>>::Clone2(oh, this->files, o->files);
+    }
+    uint16_t Res_Sound::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_Sound>;
+    }
+    void Res_Sound::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->files);
+    }
+    int Res_Sound::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
+        return 0;
+    }
+    void Res_Sound::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res_Sound::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
+    }
+    Res_Script::Res_Script(Res_Script&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res_Script& Res_Script::operator=(Res_Script&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
+        return *this;
+    }
+    void Res_Script::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Script>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Lua>>>::Clone1(oh, this->files, o->files);
+    }
+    void Res_Script::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Script>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Lua>>>::Clone2(oh, this->files, o->files);
+    }
+    uint16_t Res_Script::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_Script>;
+    }
+    void Res_Script::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->files);
+    }
+    int Res_Script::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
+        return 0;
+    }
+    void Res_Script::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res_Script::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
     }
     FishState::FishState(FishState&& o) noexcept {
         this->operator=(std::move(o));
@@ -806,10 +805,10 @@ namespace FishManage {
     void FishBase::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         auto&& o = xx::As<FishManage::FishBase>(tar);
         xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResVoice>>::Clone1(oh, this->resVoiceForDead, o->resVoiceForDead);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResAnimation>>::Clone1(oh, this->resAnimation, o->resAnimation);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res_Sound>>::Clone1(oh, this->resVoiceForDead, o->resVoiceForDead);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res>>::Clone1(oh, this->resAnimation, o->resAnimation);
         xx::CloneFuncs<std::vector<FishManage::FishState>>::Clone1(oh, this->fishStates, o->fishStates);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResScript>>::Clone1(oh, this->resScript, o->resScript);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res_Script>>::Clone1(oh, this->resScript, o->resScript);
         xx::CloneFuncs<int64_t>::Clone1(oh, this->coin1, o->coin1);
         xx::CloneFuncs<int64_t>::Clone1(oh, this->coin2, o->coin2);
         xx::CloneFuncs<int64_t>::Clone1(oh, this->lastUpdateTime, o->lastUpdateTime);
@@ -817,10 +816,10 @@ namespace FishManage {
     void FishBase::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         auto&& o = xx::As<FishManage::FishBase>(tar);
         xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResVoice>>::Clone2(oh, this->resVoiceForDead, o->resVoiceForDead);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResAnimation>>::Clone2(oh, this->resAnimation, o->resAnimation);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res_Sound>>::Clone2(oh, this->resVoiceForDead, o->resVoiceForDead);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res>>::Clone2(oh, this->resAnimation, o->resAnimation);
         xx::CloneFuncs<std::vector<FishManage::FishState>>::Clone2(oh, this->fishStates, o->fishStates);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResScript>>::Clone2(oh, this->resScript, o->resScript);
+        xx::CloneFuncs<std::weak_ptr<FishManage::Res_Script>>::Clone2(oh, this->resScript, o->resScript);
         xx::CloneFuncs<int64_t>::Clone2(oh, this->coin1, o->coin1);
         xx::CloneFuncs<int64_t>::Clone2(oh, this->coin2, o->coin2);
         xx::CloneFuncs<int64_t>::Clone2(oh, this->lastUpdateTime, o->lastUpdateTime);
@@ -872,48 +871,77 @@ namespace FishManage {
         xx::AppendEx(oh, ",\"coin2\":", this->coin2);
         xx::AppendEx(oh, ",\"lastUpdateTime\":", this->lastUpdateTime);
     }
-    ActionBase::ActionBase(ActionBase&& o) noexcept {
+    File_Picture::File_Picture(File_Picture&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ActionBase& ActionBase::operator=(ActionBase&& o) noexcept {
-        std::swap(this->name, o.name);
-        std::swap(this->seconds, o.seconds);
-        std::swap(this->frameRate, o.frameRate);
-        std::swap(this->width, o.width);
-        std::swap(this->height, o.height);
-        return *this;
-    }
-    ResTexture::ResTexture(ResTexture&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ResTexture& ResTexture::operator=(ResTexture&& o) noexcept {
+    File_Picture& File_Picture::operator=(File_Picture&& o) noexcept {
         this->BaseType::operator=(std::move(o));
-        std::swap(this->file, o.file);
+        std::swap(this->cdclps, o.cdclps);
+        std::swap(this->baseScale, o.baseScale);
+        std::swap(this->baseAngle, o.baseAngle);
+        std::swap(this->offsetX, o.offsetX);
+        std::swap(this->offsetY, o.offsetY);
+        std::swap(this->shadowScale, o.shadowScale);
+        std::swap(this->shadowOffsetX, o.shadowOffsetX);
+        std::swap(this->shadowOffsetY, o.shadowOffsetY);
+        std::swap(this->atPList, o.atPList);
         return *this;
     }
-    void ResTexture::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Picture::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResTexture>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->file, o->file);
+        auto&& o = xx::As<FishManage::File_Picture>(tar);
+        xx::CloneFuncs<FishManage::CDCirclesLockPoints>::Clone1(oh, this->cdclps, o->cdclps);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngle, o->baseAngle);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetY, o->offsetY);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetY, o->shadowOffsetY);
+        xx::CloneFuncs<std::weak_ptr<FishManage::File_Bag>>::Clone1(oh, this->atPList, o->atPList);
     }
-    void ResTexture::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Picture::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResTexture>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->file, o->file);
+        auto&& o = xx::As<FishManage::File_Picture>(tar);
+        xx::CloneFuncs<FishManage::CDCirclesLockPoints>::Clone2(oh, this->cdclps, o->cdclps);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngle, o->baseAngle);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetY, o->offsetY);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetY, o->shadowOffsetY);
+        xx::CloneFuncs<std::weak_ptr<FishManage::File_Bag>>::Clone2(oh, this->atPList, o->atPList);
     }
-    uint16_t ResTexture::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResTexture>;
+    uint16_t File_Picture::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Picture>;
     }
-    void ResTexture::Serialize(xx::DataWriterEx& dw) const {
+    void File_Picture::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
-        dw.Write(this->file);
+        dw.Write(this->cdclps);
+        dw.Write(this->baseScale);
+        dw.Write(this->baseAngle);
+        dw.Write(this->offsetX);
+        dw.Write(this->offsetY);
+        dw.Write(this->shadowScale);
+        dw.Write(this->shadowOffsetX);
+        dw.Write(this->shadowOffsetY);
+        dw.Write(this->atPList);
     }
-    int ResTexture::Deserialize(xx::DataReaderEx& dr) {
+    int File_Picture::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->file)) return r;
+        if (int r = dr.Read(this->cdclps)) return r;
+        if (int r = dr.Read(this->baseScale)) return r;
+        if (int r = dr.Read(this->baseAngle)) return r;
+        if (int r = dr.Read(this->offsetX)) return r;
+        if (int r = dr.Read(this->offsetY)) return r;
+        if (int r = dr.Read(this->shadowScale)) return r;
+        if (int r = dr.Read(this->shadowOffsetX)) return r;
+        if (int r = dr.Read(this->shadowOffsetY)) return r;
+        if (int r = dr.Read(this->atPList)) return r;
         return 0;
     }
-    void ResTexture::ToString(xx::ObjectHelper &oh) const {
+    void File_Picture::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -926,233 +954,115 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResTexture::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Picture::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"file\":", this->file);
+        xx::AppendEx(oh, ",\"cdclps\":", this->cdclps);
+        xx::AppendEx(oh, ",\"baseScale\":", this->baseScale);
+        xx::AppendEx(oh, ",\"baseAngle\":", this->baseAngle);
+        xx::AppendEx(oh, ",\"offsetX\":", this->offsetX);
+        xx::AppendEx(oh, ",\"offsetY\":", this->offsetY);
+        xx::AppendEx(oh, ",\"shadowScale\":", this->shadowScale);
+        xx::AppendEx(oh, ",\"shadowOffsetX\":", this->shadowOffsetX);
+        xx::AppendEx(oh, ",\"shadowOffsetY\":", this->shadowOffsetY);
+        xx::AppendEx(oh, ",\"atPList\":", this->atPList);
     }
-    ActionOthers::ActionOthers(ActionOthers&& o) noexcept {
+    File_Animation::File_Animation(File_Animation&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ActionOthers& ActionOthers::operator=(ActionOthers&& o) noexcept {
-        this->FishManage::ActionBase::operator=(std::move(o));
-        std::swap(this->cdclpss, o.cdclpss);
+    File_Animation& File_Animation::operator=(File_Animation&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->actions, o.actions);
+        return *this;
+    }
+    void File_Animation::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::File_Animation>(tar);
+        xx::CloneFuncs<std::vector<FishManage::Action>>::Clone1(oh, this->actions, o->actions);
+    }
+    void File_Animation::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::File_Animation>(tar);
+        xx::CloneFuncs<std::vector<FishManage::Action>>::Clone2(oh, this->actions, o->actions);
+    }
+    uint16_t File_Animation::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Animation>;
+    }
+    void File_Animation::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->actions);
+    }
+    int File_Animation::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->actions)) return r;
+        return 0;
+    }
+    void File_Animation::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void File_Animation::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"actions\":", this->actions);
+    }
+    FrameAction::FrameAction(FrameAction&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    FrameAction& FrameAction::operator=(FrameAction&& o) noexcept {
+        this->FishManage::Action::operator=(std::move(o));
+        std::swap(this->pictures, o.pictures);
         return *this;
     }
     CombineItem::CombineItem(CombineItem&& o) noexcept {
         this->operator=(std::move(o));
     }
     CombineItem& CombineItem::operator=(CombineItem&& o) noexcept {
-        std::swap(this->res, o.res);
+        std::swap(this->file, o.file);
         std::swap(this->offsetX, o.offsetX);
         std::swap(this->offsetY, o.offsetY);
-        std::swap(this->baseAngle, o.baseAngle);
-        std::swap(this->baseScale, o.baseScale);
+        std::swap(this->angle, o.angle);
+        std::swap(this->scale, o.scale);
         return *this;
     }
-    ResFrame::ResFrame(ResFrame&& o) noexcept {
+    File_Combine::File_Combine(File_Combine&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResFrame& ResFrame::operator=(ResFrame&& o) noexcept {
-        this->BaseType::operator=(std::move(o));
-        std::swap(this->owner, o.owner);
-        return *this;
-    }
-    void ResFrame::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResFrame>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResPList>>::Clone1(oh, this->owner, o->owner);
-    }
-    void ResFrame::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResFrame>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResPList>>::Clone2(oh, this->owner, o->owner);
-    }
-    uint16_t ResFrame::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResFrame>;
-    }
-    void ResFrame::Serialize(xx::DataWriterEx& dw) const {
-        this->BaseType::Serialize(dw);
-        dw.Write(this->owner);
-    }
-    int ResFrame::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->owner)) return r;
-        return 0;
-    }
-    void ResFrame::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.objOffsets.find((void*)this);
-        if (iter != oh.objOffsets.end()) {
-        	xx::AppendEx(oh, iter->second);
-        	return;
-        }
-        else {
-            oh.objOffsets[(void*)this] = oh.s.size();
-        }
-        xx::AppendEx(oh, "{\"#\":", GetTypeId());
-        ToStringCore(oh);
-        oh.s.push_back('}');
-    }
-    void ResFrame::ToStringCore(xx::ObjectHelper &oh) const {
-        this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"owner\":", this->owner);
-    }
-    ResPList::ResPList(ResPList&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ResPList& ResPList::operator=(ResPList&& o) noexcept {
-        this->BaseType::operator=(std::move(o));
-        std::swap(this->file, o.file);
-        std::swap(this->texture, o.texture);
-        std::swap(this->frames, o.frames);
-        return *this;
-    }
-    void ResPList::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResPList>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->file, o->file);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResTexture>>::Clone1(oh, this->texture, o->texture);
-        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::ResFrame>>>::Clone1(oh, this->frames, o->frames);
-    }
-    void ResPList::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResPList>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->file, o->file);
-        xx::CloneFuncs<std::weak_ptr<FishManage::ResTexture>>::Clone2(oh, this->texture, o->texture);
-        xx::CloneFuncs<std::vector<std::shared_ptr<FishManage::ResFrame>>>::Clone2(oh, this->frames, o->frames);
-    }
-    uint16_t ResPList::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResPList>;
-    }
-    void ResPList::Serialize(xx::DataWriterEx& dw) const {
-        this->BaseType::Serialize(dw);
-        dw.Write(this->file);
-        dw.Write(this->texture);
-        dw.Write(this->frames);
-    }
-    int ResPList::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->file)) return r;
-        if (int r = dr.Read(this->texture)) return r;
-        if (int r = dr.Read(this->frames)) return r;
-        return 0;
-    }
-    void ResPList::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.objOffsets.find((void*)this);
-        if (iter != oh.objOffsets.end()) {
-        	xx::AppendEx(oh, iter->second);
-        	return;
-        }
-        else {
-            oh.objOffsets[(void*)this] = oh.s.size();
-        }
-        xx::AppendEx(oh, "{\"#\":", GetTypeId());
-        ToStringCore(oh);
-        oh.s.push_back('}');
-    }
-    void ResPList::ToStringCore(xx::ObjectHelper &oh) const {
-        this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"file\":", this->file);
-        xx::AppendEx(oh, ",\"texture\":", this->texture);
-        xx::AppendEx(oh, ",\"frames\":", this->frames);
-    }
-    ActionSpriteFrame::ActionSpriteFrame(ActionSpriteFrame&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ActionSpriteFrame& ActionSpriteFrame::operator=(ActionSpriteFrame&& o) noexcept {
-        this->FishManage::ActionBase::operator=(std::move(o));
-        std::swap(this->frames, o.frames);
-        return *this;
-    }
-    Res3d::Res3d(Res3d&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    Res3d& Res3d::operator=(Res3d&& o) noexcept {
-        this->BaseType::operator=(std::move(o));
-        std::swap(this->file, o.file);
-        std::swap(this->textures, o.textures);
-        std::swap(this->actions, o.actions);
-        return *this;
-    }
-    void Res3d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::Res3d>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->file, o->file);
-        xx::CloneFuncs<std::vector<std::weak_ptr<FishManage::ResTexture>>>::Clone1(oh, this->textures, o->textures);
-        xx::CloneFuncs<std::vector<FishManage::ActionOthers>>::Clone1(oh, this->actions, o->actions);
-    }
-    void Res3d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
-        this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::Res3d>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->file, o->file);
-        xx::CloneFuncs<std::vector<std::weak_ptr<FishManage::ResTexture>>>::Clone2(oh, this->textures, o->textures);
-        xx::CloneFuncs<std::vector<FishManage::ActionOthers>>::Clone2(oh, this->actions, o->actions);
-    }
-    uint16_t Res3d::GetTypeId() const {
-        return xx::TypeId_v<FishManage::Res3d>;
-    }
-    void Res3d::Serialize(xx::DataWriterEx& dw) const {
-        this->BaseType::Serialize(dw);
-        dw.Write(this->file);
-        dw.Write(this->textures);
-        dw.Write(this->actions);
-    }
-    int Res3d::Deserialize(xx::DataReaderEx& dr) {
-        if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->file)) return r;
-        if (int r = dr.Read(this->textures)) return r;
-        if (int r = dr.Read(this->actions)) return r;
-        return 0;
-    }
-    void Res3d::ToString(xx::ObjectHelper &oh) const {
-        auto&& iter = oh.objOffsets.find((void*)this);
-        if (iter != oh.objOffsets.end()) {
-        	xx::AppendEx(oh, iter->second);
-        	return;
-        }
-        else {
-            oh.objOffsets[(void*)this] = oh.s.size();
-        }
-        xx::AppendEx(oh, "{\"#\":", GetTypeId());
-        ToStringCore(oh);
-        oh.s.push_back('}');
-    }
-    void Res3d::ToStringCore(xx::ObjectHelper &oh) const {
-        this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"file\":", this->file);
-        xx::AppendEx(oh, ",\"textures\":", this->textures);
-        xx::AppendEx(oh, ",\"actions\":", this->actions);
-    }
-    ResCombine::ResCombine(ResCombine&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    ResCombine& ResCombine::operator=(ResCombine&& o) noexcept {
+    File_Combine& File_Combine::operator=(File_Combine&& o) noexcept {
         this->BaseType::operator=(std::move(o));
         std::swap(this->items, o.items);
         return *this;
     }
-    void ResCombine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Combine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResCombine>(tar);
+        auto&& o = xx::As<FishManage::File_Combine>(tar);
         xx::CloneFuncs<std::vector<FishManage::CombineItem>>::Clone1(oh, this->items, o->items);
     }
-    void ResCombine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_Combine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResCombine>(tar);
+        auto&& o = xx::As<FishManage::File_Combine>(tar);
         xx::CloneFuncs<std::vector<FishManage::CombineItem>>::Clone2(oh, this->items, o->items);
     }
-    uint16_t ResCombine::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResCombine>;
+    uint16_t File_Combine::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Combine>;
     }
-    void ResCombine::Serialize(xx::DataWriterEx& dw) const {
+    void File_Combine::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
         dw.Write(this->items);
     }
-    int ResCombine::Deserialize(xx::DataReaderEx& dr) {
+    int File_Combine::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         if (int r = dr.Read(this->items)) return r;
         return 0;
     }
-    void ResCombine::ToString(xx::ObjectHelper &oh) const {
+    void File_Combine::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -1165,41 +1075,207 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResCombine::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_Combine::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
         xx::AppendEx(oh, ",\"items\":", this->items);
     }
-    ResFrameAnimation::ResFrameAnimation(ResFrameAnimation&& o) noexcept {
+    File_C3b::File_C3b(File_C3b&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResFrameAnimation& ResFrameAnimation::operator=(ResFrameAnimation&& o) noexcept {
+    File_C3b& File_C3b::operator=(File_C3b&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->baseScale, o.baseScale);
+        std::swap(this->baseAngleX, o.baseAngleX);
+        std::swap(this->baseAngleY, o.baseAngleY);
+        std::swap(this->baseAngleZ, o.baseAngleZ);
+        std::swap(this->offsetX, o.offsetX);
+        std::swap(this->offsetY, o.offsetY);
+        std::swap(this->offsetZ, o.offsetZ);
+        return *this;
+    }
+    void File_C3b::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::File_C3b>(tar);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleX, o->baseAngleX);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleY, o->baseAngleY);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngleZ, o->baseAngleZ);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetY, o->offsetY);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetZ, o->offsetZ);
+    }
+    void File_C3b::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::File_C3b>(tar);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleX, o->baseAngleX);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleY, o->baseAngleY);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngleZ, o->baseAngleZ);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetY, o->offsetY);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetZ, o->offsetZ);
+    }
+    uint16_t File_C3b::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_C3b>;
+    }
+    void File_C3b::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->baseScale);
+        dw.Write(this->baseAngleX);
+        dw.Write(this->baseAngleY);
+        dw.Write(this->baseAngleZ);
+        dw.Write(this->offsetX);
+        dw.Write(this->offsetY);
+        dw.Write(this->offsetZ);
+    }
+    int File_C3b::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->baseScale)) return r;
+        if (int r = dr.Read(this->baseAngleX)) return r;
+        if (int r = dr.Read(this->baseAngleY)) return r;
+        if (int r = dr.Read(this->baseAngleZ)) return r;
+        if (int r = dr.Read(this->offsetX)) return r;
+        if (int r = dr.Read(this->offsetY)) return r;
+        if (int r = dr.Read(this->offsetZ)) return r;
+        return 0;
+    }
+    void File_C3b::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void File_C3b::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"baseScale\":", this->baseScale);
+        xx::AppendEx(oh, ",\"baseAngleX\":", this->baseAngleX);
+        xx::AppendEx(oh, ",\"baseAngleY\":", this->baseAngleY);
+        xx::AppendEx(oh, ",\"baseAngleZ\":", this->baseAngleZ);
+        xx::AppendEx(oh, ",\"offsetX\":", this->offsetX);
+        xx::AppendEx(oh, ",\"offsetY\":", this->offsetY);
+        xx::AppendEx(oh, ",\"offsetZ\":", this->offsetZ);
+    }
+    File_Spine::File_Spine(File_Spine&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    File_Spine& File_Spine::operator=(File_Spine&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->shadowScale, o.shadowScale);
+        std::swap(this->shadowOffsetX, o.shadowOffsetX);
+        std::swap(this->shadowOffsetY, o.shadowOffsetY);
+        std::swap(this->baseScale, o.baseScale);
+        std::swap(this->baseAngle, o.baseAngle);
+        std::swap(this->offsetX, o.offsetX);
+        std::swap(this->offsetY, o.offsetY);
+        return *this;
+    }
+    void File_Spine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::File_Spine>(tar);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->shadowOffsetY, o->shadowOffsetY);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone1(oh, this->baseAngle, o->baseAngle);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone1(oh, this->offsetY, o->offsetY);
+    }
+    void File_Spine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::File_Spine>(tar);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowScale, o->shadowScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetX, o->shadowOffsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->shadowOffsetY, o->shadowOffsetY);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseScale, o->baseScale);
+        xx::CloneFuncs<float>::Clone2(oh, this->baseAngle, o->baseAngle);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetX, o->offsetX);
+        xx::CloneFuncs<float>::Clone2(oh, this->offsetY, o->offsetY);
+    }
+    uint16_t File_Spine::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_Spine>;
+    }
+    void File_Spine::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->shadowScale);
+        dw.Write(this->shadowOffsetX);
+        dw.Write(this->shadowOffsetY);
+        dw.Write(this->baseScale);
+        dw.Write(this->baseAngle);
+        dw.Write(this->offsetX);
+        dw.Write(this->offsetY);
+    }
+    int File_Spine::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->shadowScale)) return r;
+        if (int r = dr.Read(this->shadowOffsetX)) return r;
+        if (int r = dr.Read(this->shadowOffsetY)) return r;
+        if (int r = dr.Read(this->baseScale)) return r;
+        if (int r = dr.Read(this->baseAngle)) return r;
+        if (int r = dr.Read(this->offsetX)) return r;
+        if (int r = dr.Read(this->offsetY)) return r;
+        return 0;
+    }
+    void File_Spine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void File_Spine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"shadowScale\":", this->shadowScale);
+        xx::AppendEx(oh, ",\"shadowOffsetX\":", this->shadowOffsetX);
+        xx::AppendEx(oh, ",\"shadowOffsetY\":", this->shadowOffsetY);
+        xx::AppendEx(oh, ",\"baseScale\":", this->baseScale);
+        xx::AppendEx(oh, ",\"baseAngle\":", this->baseAngle);
+        xx::AppendEx(oh, ",\"offsetX\":", this->offsetX);
+        xx::AppendEx(oh, ",\"offsetY\":", this->offsetY);
+    }
+    File_FrameAnimation::File_FrameAnimation(File_FrameAnimation&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    File_FrameAnimation& File_FrameAnimation::operator=(File_FrameAnimation&& o) noexcept {
         this->BaseType::operator=(std::move(o));
         std::swap(this->actions, o.actions);
         return *this;
     }
-    void ResFrameAnimation::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_FrameAnimation::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResFrameAnimation>(tar);
-        xx::CloneFuncs<std::vector<FishManage::ActionSpriteFrame>>::Clone1(oh, this->actions, o->actions);
+        auto&& o = xx::As<FishManage::File_FrameAnimation>(tar);
+        xx::CloneFuncs<std::vector<FishManage::FrameAction>>::Clone1(oh, this->actions, o->actions);
     }
-    void ResFrameAnimation::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void File_FrameAnimation::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResFrameAnimation>(tar);
-        xx::CloneFuncs<std::vector<FishManage::ActionSpriteFrame>>::Clone2(oh, this->actions, o->actions);
+        auto&& o = xx::As<FishManage::File_FrameAnimation>(tar);
+        xx::CloneFuncs<std::vector<FishManage::FrameAction>>::Clone2(oh, this->actions, o->actions);
     }
-    uint16_t ResFrameAnimation::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResFrameAnimation>;
+    uint16_t File_FrameAnimation::GetTypeId() const {
+        return xx::TypeId_v<FishManage::File_FrameAnimation>;
     }
-    void ResFrameAnimation::Serialize(xx::DataWriterEx& dw) const {
+    void File_FrameAnimation::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
         dw.Write(this->actions);
     }
-    int ResFrameAnimation::Deserialize(xx::DataReaderEx& dr) {
+    int File_FrameAnimation::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         if (int r = dr.Read(this->actions)) return r;
         return 0;
     }
-    void ResFrameAnimation::ToString(xx::ObjectHelper &oh) const {
+    void File_FrameAnimation::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -1212,56 +1288,41 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResFrameAnimation::ToStringCore(xx::ObjectHelper &oh) const {
+    void File_FrameAnimation::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
         xx::AppendEx(oh, ",\"actions\":", this->actions);
     }
-    ResSpine::ResSpine(ResSpine&& o) noexcept {
+    Res_Picture::Res_Picture(Res_Picture&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResSpine& ResSpine::operator=(ResSpine&& o) noexcept {
+    Res_Picture& Res_Picture::operator=(Res_Picture&& o) noexcept {
         this->BaseType::operator=(std::move(o));
-        std::swap(this->atlasFile, o.atlasFile);
-        std::swap(this->textures, o.textures);
-        std::swap(this->jsonFile, o.jsonFile);
-        std::swap(this->actions, o.actions);
+        std::swap(this->files, o.files);
         return *this;
     }
-    void ResSpine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void Res_Picture::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResSpine>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->atlasFile, o->atlasFile);
-        xx::CloneFuncs<std::vector<std::weak_ptr<FishManage::ResTexture>>>::Clone1(oh, this->textures, o->textures);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone1(oh, this->jsonFile, o->jsonFile);
-        xx::CloneFuncs<std::vector<FishManage::ActionOthers>>::Clone1(oh, this->actions, o->actions);
+        auto&& o = xx::As<FishManage::Res_Picture>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Picture>>>::Clone1(oh, this->files, o->files);
     }
-    void ResSpine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void Res_Picture::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResSpine>(tar);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->atlasFile, o->atlasFile);
-        xx::CloneFuncs<std::vector<std::weak_ptr<FishManage::ResTexture>>>::Clone2(oh, this->textures, o->textures);
-        xx::CloneFuncs<std::weak_ptr<FishManage::File>>::Clone2(oh, this->jsonFile, o->jsonFile);
-        xx::CloneFuncs<std::vector<FishManage::ActionOthers>>::Clone2(oh, this->actions, o->actions);
+        auto&& o = xx::As<FishManage::Res_Picture>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Picture>>>::Clone2(oh, this->files, o->files);
     }
-    uint16_t ResSpine::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResSpine>;
+    uint16_t Res_Picture::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_Picture>;
     }
-    void ResSpine::Serialize(xx::DataWriterEx& dw) const {
+    void Res_Picture::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
-        dw.Write(this->atlasFile);
-        dw.Write(this->textures);
-        dw.Write(this->jsonFile);
-        dw.Write(this->actions);
+        dw.Write(this->files);
     }
-    int ResSpine::Deserialize(xx::DataReaderEx& dr) {
+    int Res_Picture::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
-        if (int r = dr.Read(this->atlasFile)) return r;
-        if (int r = dr.Read(this->textures)) return r;
-        if (int r = dr.Read(this->jsonFile)) return r;
-        if (int r = dr.Read(this->actions)) return r;
+        if (int r = dr.Read(this->files)) return r;
         return 0;
     }
-    void ResSpine::ToString(xx::ObjectHelper &oh) const {
+    void Res_Picture::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -1274,39 +1335,41 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResSpine::ToStringCore(xx::ObjectHelper &oh) const {
+    void Res_Picture::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
-        xx::AppendEx(oh, ",\"atlasFile\":", this->atlasFile);
-        xx::AppendEx(oh, ",\"textures\":", this->textures);
-        xx::AppendEx(oh, ",\"jsonFile\":", this->jsonFile);
-        xx::AppendEx(oh, ",\"actions\":", this->actions);
+        xx::AppendEx(oh, ",\"files\":", this->files);
     }
-    ResMusic::ResMusic(ResMusic&& o) noexcept {
+    Res_FrameAnimation::Res_FrameAnimation(Res_FrameAnimation&& o) noexcept {
         this->operator=(std::move(o));
     }
-    ResMusic& ResMusic::operator=(ResMusic&& o) noexcept {
+    Res_FrameAnimation& Res_FrameAnimation::operator=(Res_FrameAnimation&& o) noexcept {
         this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
         return *this;
     }
-    void ResMusic::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void Res_FrameAnimation::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone1(oh, tar);
-        auto&& o = xx::As<FishManage::ResMusic>(tar);
+        auto&& o = xx::As<FishManage::Res_FrameAnimation>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_FrameAnimation>>>::Clone1(oh, this->files, o->files);
     }
-    void ResMusic::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+    void Res_FrameAnimation::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
         this->BaseType::Clone2(oh, tar);
-        auto&& o = xx::As<FishManage::ResMusic>(tar);
+        auto&& o = xx::As<FishManage::Res_FrameAnimation>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_FrameAnimation>>>::Clone2(oh, this->files, o->files);
     }
-    uint16_t ResMusic::GetTypeId() const {
-        return xx::TypeId_v<FishManage::ResMusic>;
+    uint16_t Res_FrameAnimation::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_FrameAnimation>;
     }
-    void ResMusic::Serialize(xx::DataWriterEx& dw) const {
+    void Res_FrameAnimation::Serialize(xx::DataWriterEx& dw) const {
         this->BaseType::Serialize(dw);
+        dw.Write(this->files);
     }
-    int ResMusic::Deserialize(xx::DataReaderEx& dr) {
+    int Res_FrameAnimation::Deserialize(xx::DataReaderEx& dr) {
         if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
         return 0;
     }
-    void ResMusic::ToString(xx::ObjectHelper &oh) const {
+    void Res_FrameAnimation::ToString(xx::ObjectHelper &oh) const {
         auto&& iter = oh.objOffsets.find((void*)this);
         if (iter != oh.objOffsets.end()) {
         	xx::AppendEx(oh, iter->second);
@@ -1319,8 +1382,150 @@ namespace FishManage {
         ToStringCore(oh);
         oh.s.push_back('}');
     }
-    void ResMusic::ToStringCore(xx::ObjectHelper &oh) const {
+    void Res_FrameAnimation::ToStringCore(xx::ObjectHelper &oh) const {
         this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
+    }
+    Res_Spine::Res_Spine(Res_Spine&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res_Spine& Res_Spine::operator=(Res_Spine&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
+        return *this;
+    }
+    void Res_Spine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Spine>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Spine>>>::Clone1(oh, this->files, o->files);
+    }
+    void Res_Spine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Spine>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Spine>>>::Clone2(oh, this->files, o->files);
+    }
+    uint16_t Res_Spine::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_Spine>;
+    }
+    void Res_Spine::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->files);
+    }
+    int Res_Spine::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
+        return 0;
+    }
+    void Res_Spine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res_Spine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
+    }
+    Res_3d::Res_3d(Res_3d&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res_3d& Res_3d::operator=(Res_3d&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
+        return *this;
+    }
+    void Res_3d::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res_3d>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_C3b>>>::Clone1(oh, this->files, o->files);
+    }
+    void Res_3d::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res_3d>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_C3b>>>::Clone2(oh, this->files, o->files);
+    }
+    uint16_t Res_3d::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_3d>;
+    }
+    void Res_3d::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->files);
+    }
+    int Res_3d::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
+        return 0;
+    }
+    void Res_3d::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res_3d::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
+    }
+    Res_Combine::Res_Combine(Res_Combine&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Res_Combine& Res_Combine::operator=(Res_Combine&& o) noexcept {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->files, o.files);
+        return *this;
+    }
+    void Res_Combine::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Combine>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Combine>>>::Clone1(oh, this->files, o->files);
+    }
+    void Res_Combine::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<FishManage::Res_Combine>(tar);
+        xx::CloneFuncs<std::vector<std::pair<int32_t, FishManage::File_Combine>>>::Clone2(oh, this->files, o->files);
+    }
+    uint16_t Res_Combine::GetTypeId() const {
+        return xx::TypeId_v<FishManage::Res_Combine>;
+    }
+    void Res_Combine::Serialize(xx::DataWriterEx& dw) const {
+        this->BaseType::Serialize(dw);
+        dw.Write(this->files);
+    }
+    int Res_Combine::Deserialize(xx::DataReaderEx& dr) {
+        if (int r = this->BaseType::Deserialize(dr)) return r;
+        if (int r = dr.Read(this->files)) return r;
+        return 0;
+    }
+    void Res_Combine::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
+        	return;
+        }
+        else {
+            oh.objOffsets[(void*)this] = oh.s.size();
+        }
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
+    }
+    void Res_Combine::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"files\":", this->files);
     }
     FishFury::FishFury(FishFury&& o) noexcept {
         this->operator=(std::move(o));
@@ -1421,16 +1626,13 @@ namespace FishManage {
     }
     Data& Data::operator=(Data&& o) noexcept {
         std::swap(this->files, o.files);
-        std::swap(this->resMusics, o.resMusics);
-        std::swap(this->resVoices, o.resVoices);
-        std::swap(this->resTextures, o.resTextures);
-        std::swap(this->resPLists, o.resPLists);
-        std::swap(this->resFrames, o.resFrames);
+        std::swap(this->resScripts, o.resScripts);
+        std::swap(this->resSounds, o.resSounds);
+        std::swap(this->resPictures, o.resPictures);
+        std::swap(this->resFrameAnimations, o.resFrameAnimations);
         std::swap(this->resSpines, o.resSpines);
         std::swap(this->res3ds, o.res3ds);
-        std::swap(this->resFrameAnimations, o.resFrameAnimations);
-        std::swap(this->resCombine, o.resCombine);
-        std::swap(this->resScripts, o.resScripts);
+        std::swap(this->resCombines, o.resCombines);
         std::swap(this->fishs, o.fishs);
         return *this;
     }

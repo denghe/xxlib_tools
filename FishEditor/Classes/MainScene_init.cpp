@@ -9,19 +9,13 @@ void CalcMD5(void* const& buf, size_t const& len, void* out) {
 	MD5_Final((unsigned char*)out, &c);
 }
 
-// 扫出 plist 里的 sprite frame names
-std::vector<std::string> GetPListItems(std::string const& plistFileName, std::string& outTexturePath) {
-	std::vector<std::string> names;
+// 扫出 plist 里的 texture
+std::string GetPListTextureName(std::string const& plistFileName) {
 	auto&& fu = cocos2d::FileUtils::getInstance();
 
 	// 写法确保与 addSpriteFramesWithFile 函数内部一致
 	std::string fullPath = fu->fullPathForFilename(plistFileName);
 	auto&& dict = fu->getValueMapFromFile(fullPath);
-	auto&& framesDict = dict["frames"].asValueMap();
-	for (auto&& iter : framesDict) {
-		auto&& frameDict = iter.second.asValueMap();
-		names.push_back(iter.first);
-	}
 
 	std::string texturePath;
 	if (dict.find("metadata") != dict.end()) {
@@ -39,7 +33,23 @@ std::vector<std::string> GetPListItems(std::string const& plistFileName, std::st
 		}
 		texturePath = texturePath.append(".png");
 	}
-	outTexturePath = fu->fullPathForFilename(texturePath);
+	return fu->fullPathForFilename(texturePath);
+}
+
+// 扫出 plist 里的 sprite frame names
+std::vector<std::string> GetPListItems(std::string const& plistFileName) {
+	std::vector<std::string> names;
+	auto&& fu = cocos2d::FileUtils::getInstance();
+
+	// 写法确保与 addSpriteFramesWithFile 函数内部一致
+	std::string fullPath = fu->fullPathForFilename(plistFileName);
+	auto&& dict = fu->getValueMapFromFile(fullPath);
+
+	auto&& framesDict = dict["frames"].asValueMap();
+	for (auto&& iter : framesDict) {
+		auto&& frameDict = iter.second.asValueMap();
+		names.push_back(iter.first);
+	}
 
 	//// 排序( 如果含有数字，以其中的数字部分大小来排 )
 	//std::sort(names.begin(), names.end(), [](std::string const& a, std::string const& b)->bool {
@@ -123,12 +133,9 @@ bool MainScene::init() {
 	resPath = sps[0];
 
 
-	// todo: 
 	// 遍历文件，形成 File list，然后和 data.files 对比. 看看是否存在差异. 做差异同步。移除不见了的文件，添加新的文件。同名文件如果内容不同，更新
 
-	//std::vector<std::filesystem::path> paths;
-	//std::vector<std::string> fns;	// 去掉了 resPath 部分 剩下的
-
+	// 已知扩展名映射
 	std::unordered_map<std::string, FishManage::FileExtensions> exts
 	{
 		{ "mp3", FishManage::FileExtensions::mp3   },
@@ -139,6 +146,8 @@ bool MainScene::init() {
 		{ "png", FishManage::FileExtensions::png   },
 		{ "pkm", FishManage::FileExtensions::pkm   },
 		{ "jpg", FishManage::FileExtensions::jpg   },
+		{ "tga", FishManage::FileExtensions::tga   },
+		{ "bmp", FishManage::FileExtensions::bmp   },
 
 		{ "plist", FishManage::FileExtensions::plist },
 
@@ -152,122 +161,157 @@ bool MainScene::init() {
 		{ "fnt", FishManage::FileExtensions::fnt   },
 	};
 
-	std::map<std::string, std::shared_ptr<FishManage::File>> files;
+	// 根据已知扩展名，先填充文件信息到此
+	std::map<std::string, std::shared_ptr<FishManage::File_Real>> files;
 	xx::Data d;
 
+	// 针对 resPath 创建跨目录文件枚举器
 	std::filesystem::recursive_directory_iterator filesIterator(resPath);
+
+	// 开始扫文件，创建 File_Real 对象, 填充到 files
 	for (auto&& item : filesIterator) {
 		// 不是文件
 		if (!item.is_regular_file()) continue;
-		auto&& path = item.path();
-		// 没有扩展名
-		if (!path.has_extension()) continue;
-		auto&& ext = path.extension().string().substr(1);
-		// 未知扩展名
-		auto&& iter = exts.find(ext);
-		if (iter == exts.end()) continue;
 
-		// 创建并填充
-		auto&& file = xx::Make<FishManage::File>();
-		file->path = path.string().substr(resPath.size());
-		file->ext = iter->second;
+		// 没有扩展名
+		auto&& path = item.path();
+		if (!path.has_extension()) continue;
+
+		// 未知扩展名
+		auto&& extStr = path.extension().string().substr(1);
+		auto&& iter = exts.find(extStr);
+		if (iter == exts.end()) continue;
+		auto&& ext = iter->second;
+
+		// 切割出 短path + name.ext
+		auto&& name = path.string().substr(resPath.size());
+
+		// 根据扩展名路由创建不同的 File_Xxxxxx
+		std::shared_ptr<FishManage::File_Real> file;
+		switch (ext) {
+			case FishManage::FileExtensions::mp3:
+			case FishManage::FileExtensions::ogg:
+			case FishManage::FileExtensions::wav: {
+				auto&& o = xx::Make<FishManage::File_Sound>();
+				file = o;
+				// o->seconds = ????
+				break;
+			}
+			case FishManage::FileExtensions::webp :
+			case FishManage::FileExtensions::png  :
+			case FishManage::FileExtensions::jpg  :
+			case FishManage::FileExtensions::pkm  :
+			case FishManage::FileExtensions::tga  :
+			case FishManage::FileExtensions::bmp  : {
+				auto&& o = xx::Make<FishManage::File_Picture>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			case FishManage::FileExtensions::atlas: {
+				auto&& o = xx::Make<FishManage::File_Spine>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			case FishManage::FileExtensions::json : {
+				auto&& o = xx::Make<FishManage::File_Real>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			case FishManage::FileExtensions::c3b  : {
+				auto&& o = xx::Make<FishManage::File_C3b>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			case FishManage::FileExtensions::plist:
+			case FishManage::FileExtensions::fnt  : {
+				auto&& o = xx::Make<FishManage::File_Bag>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			case FishManage::FileExtensions::lua  : {
+				auto&& o = xx::Make<FishManage::File_Lua>();
+				file = o;
+				// todo: fill o.xxxxxxx
+				break;
+			}
+			default:
+				throw std::logic_error(xx::ToString("unknown ext type: ", extStr));
+		}
+
+		// 填充 物理文件信息. 别的后续填充
+		file->name = name;
+		file->ext = ext;
 		file->length = item.file_size();
 		xx::ReadAllBytes(path, d);
 		file->md5.Resize(16);
 		CalcMD5(d.buf, d.len, file->md5.buf);
-		files[file->path] = file;
+		files[name] = file;
 	}
-
 	d.Clear(true);
 
+	// 待删除列表
+	std::vector<std::string> dels;
+	std::map<std::string, std::string> framePlistMap;
 
-	// 当 File 失效时，清理相关 Res
-	auto&& CleanupRess = [this] {
-		// resMusics
-		for (auto&& iter = data.resMusics.begin(); iter != data.resMusics.end();) {
-			if (iter->second->file.lock()) {
-				++iter;
+	// 归并父子关系的文件. 针对特定扩展名
+	for (auto&& kv : files) {
+		auto&& file = kv.second;
+		auto&& fileName = kv.first;
+		switch (file->ext) {
+		case FishManage::FileExtensions::plist: {
+			// 按贴图名找到 file 归并到 childs
+			auto&& textureName = GetPListTextureName(fileName).substr(resPath.size());
+			auto&& textureIter = files.find(textureName);
+			if (textureIter == files.end()) {
+				throw std::logic_error(xx::ToString("can't find texture name: ", textureName, " for plist file: ", fileName));
 			}
-			else {
-				iter = data.resMusics.erase(iter);
+			xx::As<FishManage::File_Bag>(file)->childs.push_back(textureIter->second);
+			dels.push_back(textureName);
+
+			// 按图块名找到 file 设置其 mapTo
+			auto&& frames = GetPListItems(fileName);
+			for (auto&& frame : frames) {
+				// 跨 plist 将图块名放入字典，以检查是否有重复的存在（cocos sprite frame engine 不支持重复）
+				if (framePlistMap.find(frame) != framePlistMap.end()) {
+					throw std::logic_error(xx::ToString("duplicate sprite frame name: ", frame, " at plist file: ", fileName, " with plist file:", framePlistMap[frame]));
+				}
+				framePlistMap.emplace(frame, fileName);
+
+				// 寻找同名单图并对应
+				auto&& picIter = files.find(frame);
+				if (picIter != files.end()) {
+					xx::As<FishManage::File_Picture>(picIter->second)->atPList = xx::As<FishManage::File_Bag>(file);
+				}
+				// else 警告该图块对应的单图找不到？
 			}
+			break;
 		}
-
-		// resVoices
-		for (auto&& iter = data.resVoices.begin(); iter != data.resVoices.end();) {
-			if (iter->second->file.lock()) {
-				++iter;
-			}
-			else {
-				iter = data.resVoices.erase(iter);
-			}
+		case FishManage::FileExtensions::atlas: {
+			// todo: GetXXXXXXXXXXXTextureName    dels.push_back(textureName);
+			break;
 		}
-
-		// resTextures
-		for (auto&& iter = data.resTextures.begin(); iter != data.resTextures.end();) {
-			if (iter->second->file.lock()) {
-				++iter;
-			}
-			else {
-				iter = data.resTextures.erase(iter);
-			}
+		case FishManage::FileExtensions::c3b: {
+			// todo: GetXXXXXXXXXXXTextureName     dels.push_back(textureName);
+			break;
 		}
-
-		// resPLists
-		for (auto&& iter = data.resPLists.begin(); iter != data.resPLists.end();) {
-			if (iter->second->file.lock()) {
-				++iter;
-			}
-			else {
-				iter = data.resPLists.erase(iter);
-			}
+		case FishManage::FileExtensions::fnt: {
+			// todo: GetXXXXXXXXXXXTextureName    dels.push_back(textureName);
 		}
-
-		// resFrames
-		for (auto&& iter = data.resFrames.begin(); iter != data.resFrames.end();) {
-			if (iter->second.lock()) {
-				++iter;
-			}
-			else {
-				iter = data.resFrames.erase(iter);
-			}
 		}
+	}
 
-		// resSpines
-		for (auto&& iter = data.resSpines.begin(); iter != data.resSpines.end();) {
-			if (iter->second->atlasFile.lock() && iter->second->jsonFile.lock()) {
-				// todo: textures 根据 内容直接重建
-				++iter;
-			}
-			iter = data.resSpines.erase(iter);
-		}
+	for (auto&& d : dels) {
+		files.erase(d);
+	}
+	dels.clear();
 
-		// res3ds
-		for (auto&& iter = data.res3ds.begin(); iter != data.res3ds.end();) {
-			if (iter->second->file.lock()) {
-				// todo: textures 根据 内容直接重建
-				++iter;
-			}
-			iter = data.res3ds.erase(iter);
-		}
-
-		// resFrameAnimations
-		// todo: plistFiles 根据 actions.frames 相关文件重建
-
-		// todo: resCombine 有效性判断
-
-		// resScripts
-		for (auto&& iter = data.resScripts.begin(); iter != data.resScripts.end();) {
-			if (iter->second->file.lock()) {
-				++iter;
-			}
-			iter = data.resScripts.erase(iter);
-		}
-	};
-
-	// files 和 data.files 做对比, 差异更新
-	// 步骤：1. 删掉不见了的，2. 更新同名的，3. 添加新增的
-	// 1.
+	// files 和 data.files 做对比, 差异更新. 1. 删掉不见了的    2. 更新同名的      3. 添加新增的
+	// 1. 删掉不见了的
 	for (auto&& iter = data.files.begin(); iter != data.files.end();) {
 		if (files.find(iter->first) != files.end()) {
 			++iter;
@@ -276,153 +320,93 @@ bool MainScene::init() {
 			iter = data.files.erase(iter);
 		}
 	}
-	CleanupRess();
 
-	// 2.
+	// 2. 更新同名的( 尽量保留配置数据 ）
 	for (auto&& kv : data.files) {
-		auto&& a = *kv.second;
-		auto&& b = *files[kv.first];
-		if (a.length == b.length && a.md5 == b.md5) continue;
-		a.length = b.length;
-		a.md5 = b.md5;
-
-		// 凡是有引用到别的资源的对象，都需要检查是否发生了改变
-		switch (a.ext) {
-		case FishManage::FileExtensions::plist:
-		{
-
-			break;
+		auto&& oldFile = kv.second;
+		auto&& newFile = files[kv.first];
+		if (oldFile->GetTypeId() != newFile->GetTypeId()) {
+			oldFile = newFile;
 		}
-		case FishManage::FileExtensions::atlas:
-			break;
-		case FishManage::FileExtensions::c3b:
-			break;
-		case FishManage::FileExtensions::fnt:
-			break;
-		}
-
-		//// 如果是 plist 则看看图块列表是否发生了改变
-		//if (a.ext == FishManage::FileExtensions::plist) {
-		//	auto&& frameNames = GetPListItems(a.path);
-		//	// todo
-		//}
-	}
-
-	// 3.
-	// 先把不依赖别的资源的文件类型弄了
-	for (auto&& kv : files) {
-		auto&& name = kv.first;
-		auto&& file = kv.second;
-		if (data.files.find(name) != data.files.end()) continue;
 		else {
-			// 根据文件类型创建相应的 res
-			switch (file->ext) {
+			switch (oldFile->ext) {
+			case FishManage::FileExtensions::mp3:
+			case FishManage::FileExtensions::ogg:
+			case FishManage::FileExtensions::wav: {
+				auto&& o = xx::As<FishManage::File_Sound>(oldFile);
+				auto&& n = xx::As<FishManage::File_Sound>(newFile);
+				if (o->length == n->length && o->md5 == n->md5) continue;
+				o->length = n->length;
+				o->md5 = n->md5;
+				// seconds 不覆盖
+				break;
+			}
 			case FishManage::FileExtensions::webp:
 			case FishManage::FileExtensions::png:
 			case FishManage::FileExtensions::jpg:
 			case FishManage::FileExtensions::pkm:
 			case FishManage::FileExtensions::tga:
-			case FishManage::FileExtensions::bmp:
-			{
-				auto&& res = xx::Make<FishManage::ResTexture>();
-				res->file = file;
-				res->name = name;
-				assert(data.resTextures.find(name) == data.resTextures.end());
-				data.resTextures[name] = res;
+			case FishManage::FileExtensions::bmp: {
+				auto&& o = xx::As<FishManage::File_Picture>(oldFile);
+				auto&& n = xx::As<FishManage::File_Picture>(newFile);
+				if (o->length == n->length && o->md5 == n->md5) continue;
+				o->length = n->length;
+				o->md5 = n->md5;
+				o->atPList = n->atPList;
 				break;
 			}
-			case FishManage::FileExtensions::mp3:
-			{
-				auto&& res = xx::Make<FishManage::ResMusic>();
-				res->file = file;
-				res->name = name;
-				// todo: res->seconds = ???? 待填
-				assert(data.resMusics.find(name) == data.resMusics.end());
-				data.resMusics[name] = res;
+			case FishManage::FileExtensions::atlas: {
+				auto&& o = xx::As<FishManage::File_Spine>(oldFile);
+				auto&& n = xx::As<FishManage::File_Spine>(newFile);
+				if (o->length == n->length && o->md5 == n->md5) continue;
+				o->length = n->length;
+				o->md5 = n->md5;
+				o->childs = n->childs;
+				// todo: 对比 actions 差异更新
 				break;
 			}
-			case FishManage::FileExtensions::ogg:
-			case FishManage::FileExtensions::wav:
-			{
-				auto&& res = xx::Make<FishManage::ResVoice>();
-				res->file = file;
-				res->name = name;
-				// todo: res->seconds = ???? 待填
-				assert(data.resVoices.find(name) == data.resVoices.end());
-				data.resVoices[name] = res;
+			case FishManage::FileExtensions::json: {
+				auto&& o = xx::As<FishManage::File_Real>(oldFile);
+				auto&& n = xx::As<FishManage::File_Real>(newFile);
+				oh.Clone(n, o);
 				break;
 			}
-			case FishManage::FileExtensions::lua:
-			{
-				auto&& res = xx::Make<FishManage::ResScript>();
-				res->file = file;
-				res->name = name;
-				assert(data.resScripts.find(name) == data.resScripts.end());
-				data.resScripts[name] = res;
+			case FishManage::FileExtensions::c3b: {
+				auto&& o = xx::As<FishManage::File_C3b>(oldFile);
+				auto&& n = xx::As<FishManage::File_C3b>(newFile);
+				if (o->length == n->length && o->md5 == n->md5) continue;
+				o->length = n->length;
+				o->md5 = n->md5;
+				o->childs = n->childs;
+				// todo: 对比 actions 差异更新
+				break;
+			}
+			case FishManage::FileExtensions::plist:
+			case FishManage::FileExtensions::fnt: {
+				auto&& o = xx::As<FishManage::File_Bag>(oldFile);
+				auto&& n = xx::As<FishManage::File_Bag>(newFile);
+				oh.Clone(n, o);
+				break;
+			}
+			case FishManage::FileExtensions::lua: {
+				auto&& o = xx::As<FishManage::File_Lua>(oldFile);
+				auto&& n = xx::As<FishManage::File_Lua>(newFile);
+				oh.Clone(n, o);
 				break;
 			}
 			default:
-				continue;
+				throw std::logic_error(xx::ToString("unknown ext type: ", (int)oldFile->ext));
 			}
-			data.files[name] = file;
 		}
 	}
 
+	// 3. 添加新增的
 	for (auto&& kv : files) {
-		auto&& name = kv.first;
-		auto&& file = kv.second;
-		if (data.files.find(name) != data.files.end()) continue;
-		else {
-			data.files[name] = file;
-
-			// 根据文件类型创建相应的 res
-			switch (file->ext) {
-			case FishManage::FileExtensions::plist:
-			{
-				std::string texturePath;
-				auto&& frameNames = GetPListItems(file->path, texturePath);
-				texturePath = texturePath.substr(resPath.size());
-				if (files.find(texturePath) == files.end()) {
-					throw std::logic_error(xx::ToString("can't find plist texture file: ", texturePath, " at plist file: ", name));
-				}
-				if (data.resTextures.find(texturePath) == data.resTextures.end()) {
-					throw std::logic_error(xx::ToString("can't find texture res name: ", texturePath));
-				}
-				if (data.resPLists.find(name) != data.resPLists.end()) {
-					throw std::logic_error(xx::ToString("duplicate ResPList name: ", name));
-				}
-				for (auto&& fn : frameNames) {
-					if (data.resFrames.find(fn) != data.resFrames.end()) {
-						throw std::logic_error(xx::ToString("duplicate sprite frame name: ", fn, " at plist file: ", name));
-					}
-				}
-
-				auto&& res = xx::Make<FishManage::ResPList>();
-				data.resPLists[name] = res;
-				res->name = name;
-				res->file = file;
-				res->texture = data.resTextures[texturePath];
-				for (auto&& fn : frameNames) {
-					auto&& resFrame = res->frames.emplace_back(xx::Make<FishManage::ResFrame>());
-					resFrame->name = fn;
-					resFrame->owner = res;
-					//if (data.resFrames.find(fn) != data.resFrames.end()) continue;	// 发现有些资源就是重复打包了 先跳
-					data.resFrames[fn] = resFrame;
-				}
-				break;
-			}
-			case FishManage::FileExtensions::atlas:
-				// todo
-				break;
-			case FishManage::FileExtensions::c3b:
-				// todo
-				break;
-			case FishManage::FileExtensions::fnt:
-				// todo
-				break;
-			}
-		}
+		data.files.emplace(kv.first, kv.second);
 	}
+
+	// 存盘
+	SaveData();
 
 
 	// 加载首页

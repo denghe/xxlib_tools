@@ -93,6 +93,16 @@ namespace xx {
         }
     };
 
+    // 适配 std::string_view( 前后加引号 )
+    template<typename T>
+    struct StringFuncs<T, std::enable_if_t<std::is_base_of_v<std::string_view, T>>> {
+        static inline void Append(std::string& s, T const& in) {
+            s.push_back('\"');
+            s.append(in);
+            s.push_back('\"');
+        }
+    };
+
     // 适配所有数字
     template<typename T>
     struct StringFuncs<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
@@ -207,6 +217,18 @@ namespace xx {
             else {
                 s.push_back(']');
             }
+        }
+    };
+
+    // 适配 std::pair<K, V>
+    template<typename K, typename V>
+    struct StringFuncs<std::pair<K, V>, void> {
+        static inline void Append(std::string& s, std::pair<K, V> const& in) {
+            s.push_back('[');
+            ::xx::Append(s, in.first);
+            s.push_back(',');
+            ::xx::Append(s, in.second);
+            s.push_back(']');
         }
     };
 

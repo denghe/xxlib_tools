@@ -105,14 +105,14 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     cocos2d::Sprite3D* CreateOrc(cocos2d::Vec2 const& pos, float const& r, cocos2d::Node* const& container = nullptr);
 
     // 创建一个 2d 帧图 动作 预览动画
-    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::ActionSpriteFrame const& action, cocos2d::Node* const& container = nullptr);
+    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, FishManage::FrameAction const& action, cocos2d::Node* const& container = nullptr);
 
     // return tar->getContentSize().width
     float GetWidth(cocos2d::Node* const& tar);
     float GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar);
 
     // 创建资源预览( 锚点 中心 ). 显示为指定 siz 大小( 对 spine, 3d 需要取出 bounding box 结合指定 siz 来算 scale )
-    cocos2d::Node* CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::ResBase> res, cocos2d::Node* const& container = nullptr);
+    cocos2d::Node* CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::Res> res, cocos2d::Node* const& container = nullptr);
 
 
 

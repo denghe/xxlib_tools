@@ -59,7 +59,7 @@ void DraggingRes::update(float delta) {
 		auto scale = getScale();
 		scale += delta * rChange;
 		if (rChange < 0 && scale < 0.1) {
-			scale = 0.1;
+			scale = 0.1f;
 		}
 		setScale(scale);
 	}

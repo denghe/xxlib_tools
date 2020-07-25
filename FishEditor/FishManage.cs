@@ -17,6 +17,10 @@ using TemplateLibrary;
 
 1 ~ 4 级资源，都需要不同程度的附加一些 跑逻辑所需数据
 
+以物理/逻辑划分：
+	物理：真实存在的文件
+	逻辑：虚拟文件
+
 具体结构：
 	声音 (附加播放时长)
 		背景音乐
@@ -40,22 +44,19 @@ using TemplateLibrary;
 			c3b
 				纹理引用到 单图
 		序列帧
-			配置
-				引用到一组 单图 或 小图块( 通过单图的附加信息映射 )
+			frameAnimation（虚拟文件）
+				引用到一组 单图 或 小图块( 通过单图的附加信息定位 )
 		组合
-			配置
-				引用到一组 动画(含别的组合)
+			combine（虚拟文件）
+				多子多级嵌套动画
 	脚本
-		lua
+		lua（附加实现的什么接口的说明）
 
 其中 序列帧, 组合 比较特殊，cocos 并未内置相关物理存储结构，故将其直接创建到 配置 当中
-
-考虑到 plist 属于动态内容，所有附加配置都不基于它，工具只通过单图 路径/文件名 和 plist 里的图块 建立使用映射关系
-即单图资源 附加一个指向所在 plist 文件的配置, 该配置自动生成。要求 图块名和单图 路径/文件名 完全对应
+plist 文件类型不被视作固定资源, 只是为单图的替代做简单映射
 
 
 考虑到多语言的情况，所有资源和文件的对应，均通过 字典 来实现一对多。代码中只针对 资源名，不触碰物理文件名
-
 */
 
 
@@ -65,33 +66,34 @@ struct Data {
 	[Desc("所有 文件 列表. key 为 文件名(带部分路径)")]
 	Dict<string, Shared<File>> files;
 
-	[Desc("所有 背景音乐 资源列表")]
-	Dict<string, Shared<ResMusic>> resMusics;
-	[Desc("所有 音效 资源列表")]
-	Dict<string, Shared<ResVoice>> resVoices;
 
-	[Desc("所有 单图 资源列表")]
-	Dict<string, Shared<ResPicture>> resTextures;
-	[Desc("所有 图集 资源列表")]
-	Dict<string, Shared<ResPList>> resPLists;
-
-	[Desc("所有 2d骨骼动画 资源列表")]
-	Dict<string, Shared<ResSpine>> resSpines;
-	[Desc("所有 3d模型动画 资源列表")]
-	Dict<string, Shared<Res3d>> res3ds;
-	[Desc("所有 帧动画 资源列表")]
-	Dict<string, Shared<ResFrameAnimation>> resFrameAnimations;
-
-	[Desc("所有 组合 资源列表")]
-	Dict<string, Shared<ResCombine>> resCombine;
 
 	[Desc("所有 脚本 资源列表")]
-	Dict<string, Shared<ResScript>> resScripts;
+	Dict<string, Shared<Res_Script>> resScripts;
+
+	[Desc("所有 背景音乐 & 音效 资源列表")]
+	Dict<string, Shared<Res_Sound>> resSounds;
+
+	[Desc("所有 单图 资源列表")]
+	Dict<string, Shared<Res_Picture>> resPictures;
+
+	[Desc("所有 帧动画 资源列表")]
+	Dict<string, Shared<Res_FrameAnimation>> resFrameAnimations;
+
+	[Desc("所有 2d骨骼动画 资源列表")]
+	Dict<string, Shared<Res_Spine>> resSpines;
+
+	[Desc("所有 3d模型动画 资源列表")]
+	Dict<string, Shared<Res_3d>> res3ds;
+
+	[Desc("所有 组合 资源列表")]
+	Dict<string, Shared<Res_Combine>> resCombines;
+
+
 
 	[Desc("所有 鱼 列表")]
 	Dict<string, Shared<FishBase>> fishs;
 }
-
 
 [Desc("文件扩展名枚举")]
 enum FileExtensions {
@@ -101,169 +103,176 @@ enum FileExtensions {
 	atlas, json, 
 	c3b, 
 	lua, 
-	fnt
+	fnt,
+	[Desc("虚拟文件扩展名: 帧动画")]
+	frameAnimation,
+	[Desc("虚拟文件扩展名: 帧动画")]
+	combine
 }
 
-[TypeId(1), Desc("文件信息")]
+[TypeId(1), Desc("文件( 可能是 物理存在的 或 虚拟的 )")]
 class File {
 	[Desc("文件名: 相对路径, 目录名 + 文件名 + 扩展名，前面不带'/'")]
-	string path;
+	string name;
 
 	[Desc("文件扩展名 / 类型")]
 	FileExtensions ext;
+}
 
+[TypeId(24), Desc("虚拟文件: 帧动画 含动作数据配置集合")]
+class File_FrameAnimation : File {
+    [Desc("动作数据配置集合")]
+    List<FrameAction> actions;
+}
+
+[TypeId(25), Desc("真实文件 附加内容长度 校验码")]
+class File_Real : File {
 	[Desc("文件长度")]
 	long length;
 
 	[Desc("校验码")]
 	byte[] md5;
+}
 
-	[Desc("附带文件集( 例如 plist 附带 texture, atlas 附带 json & texture 等 ). 不被 资源 直接引用")]
-	List<Shared<File>> childs;
-
-	[Desc("如果是图片，和某 plist 的图块 path == name，则指向该 plist. 运行时如果缺单图可从 plist 加载")]
-	Weak<File> mapTo;	// todo: 需要考虑语言因素。不同语言 plist 可能不同
+[TypeId(26), Desc("lua 脚本文件")]
+class File_Lua : File_Real {
+	// todo: 附加 实现了何种接口的描述?? 以方便 选择 bind ?
 }
 
 
-[Struct, Desc("属于特定语言的文件描述")]
-class LangFile {
-	[Desc("语言id. 0 代表通用")]
-	int langId;
-
-	[Desc("指向文件")]
-	Weak<File> file;
-}
-
-
-[TypeId(2), Desc("资源基类")]
-class ResBase {
-	[Desc("资源名( 初创时以 path+文件名 为资源名 )")]
-	string name;
-
-	[Desc("对应到语言&文件. 至少有一条 语言id == 0 的数据. ")]
-	List<LangFile> files;
-}
-
-
-[TypeId(3), Desc("声音类资源")]
-class ResSound : ResBase {
-	[Desc("播放时长")]
+[TypeId(2), Desc("声音文件 附加播放时长")]
+class File_Sound : File_Real {
+	[Desc("播放时长( 秒 )")]
 	float seconds;
+
+	// todo: 可以增加时间点 trigger 配置. 播放到某个时长时产生某名称事件
 }
 
-[TypeId(4), Desc("声音/背景音乐类资源")]
-class ResMusic : ResSound {
-}
-
-[TypeId(5), Desc("声音/音效类资源")]
-class ResVoice : ResSound {
-}
-
-
-[TypeId(7), Desc("图片类资源")]
-class ResPicture : ResBase {
+[TypeId(3), Desc("图片文件信息 附加碰撞等额外数据 以及位于某 plist")]
+class File_Picture : File_Real {
 	[Desc("碰撞检测 & 锁定点线 集合")]
 	CDCirclesLockPoints cdclps;
+
+	[Desc("基础缩放比例( 默认 1. 如果有降低过图片分辨率 / 精度，但又需要显示到和原先同样大小，则需要设置这个 )")]
+	float baseScale = 1;
+
+	[Desc("围绕 z 轴的 基础旋转角度( 默认 0. 图片逻辑上在坐标系中 正方向为 x 轴+ )")]
+	float baseAngle;
+
+	[Desc("显示坐标偏移调整( 默认 0 )")]
+	float offsetX;
+	float offsetY;
+
+	[Desc("影子显示时的放大系数. 平时与 scale 相等. 部分 boss 影子比身体小")]
+	float shadowScale = 1;
+
+	[Desc("影子的偏移坐标")]
+	float shadowOffsetX = 3;
+	float shadowOffsetY = 3;
+
+	[Desc("如果文件名和某 plist 的图块名相同，则指向该 plist. 运行时优先从 plist 加载")]
+	Weak<File_Bag> atPList;
 }
 
-[TypeId(6), Desc("图集类资源( 无法直接使用的资源. 只用来查找对单图和图块的应关系 )")]
-class ResPList : ResBase {
-	[Desc("含有的帧图资源集合")]
-	List<string> frames;
+[TypeId(4), Desc("打包文件信息 附加其他包含子文件( 例如 plist 附带 texture, atlas 附带 json & texture 等 )")]
+class File_Bag : File_Real {
+	[Desc("附带文件集. 不被 资源 直接引用")]
+	List<Shared<File_Real>> childs;
 }
 
-
-[TypeId(10), Desc("动画类资源")]
-class ResAnimation : ResBase {
-    [Desc("影子显示时的放大系数. 平时与 scale 相等. 部分 boss 影子比身体小")]
-    float shadowScale;
-
-    [Desc("影子的偏移坐标")]
-    float shadowOffsetX;
-    float shadowOffsetY;
+[TypeId(5), Desc("动画打包文件信息 附加 动作数据配置集合")]
+class File_Animation : File_Bag {
+	[Desc("动作数据配置集合")]
+	List<Action> actions;
 }
 
-[TypeId(11), Desc("动画/Spine类资源")]
-class ResSpine : ResAnimation {
-	[Desc("含有的动作列表")]
-	List<ActionOthers> actions;
+[TypeId(6), Desc("spine 动画打包文件信息")]
+class File_Spine : File_Animation {
+	[Desc("影子显示时的放大系数. 平时与 scale 相等. 部分 boss 影子比身体小")]
+	float shadowScale = 1;
+
+	[Desc("影子的偏移坐标")]
+	float shadowOffsetX = 3;
+	float shadowOffsetY = 3;
+
+	[Desc("基础缩放比例( 默认 1. 如果有降低过图片分辨率 / 精度，但又需要显示到和原先同样大小，则需要设置这个 )")]
+	float baseScale = 1;
+
+	[Desc("围绕 z 轴的 基础旋转角度( 默认 0. 图片逻辑上在坐标系中 正方向为 x 轴+ )")]
+	float baseAngle;
+
+	[Desc("显示坐标偏移调整( 默认 0 )")]
+	float offsetX;
+	float offsetY;
 }
 
-[TypeId(12), Desc("动画/3d类资源")]
-class Res3d : ResAnimation {
-	[Desc("含有的动作列表")]
-	List<ActionOthers> actions;
+[TypeId(7), Desc("spine 动画打包文件信息")]
+class File_C3b : File_Animation {
+	[Desc("基础缩放比例( 默认 1. 如果模型小到看不见或者非常巨大，则需要设置这个 )")]
+	float baseScale = 1;
+
+	[Desc("基础旋转角度( 默认 0. 图片逻辑上在坐标系中 正方向为 趴在x 轴+ )")]
+	float baseAngleX;
+	float baseAngleY;
+	float baseAngleZ;
+
+	[Desc("显示坐标偏移调整( 默认 0 )")]
+	float offsetX;
+	float offsetY;
+	float offsetZ;
 }
 
-[TypeId(13), Desc("动画/序列帧类资源")]
-class ResFrameAnimation : ResAnimation {
-	[Desc("含有的动作列表")]
-	List<ActionSpriteFrame> actions;
-}
-
-[TypeId(14), Desc("动画/组合类资源")]
-class ResCombine : ResAnimation {
+[TypeId(27), Desc("虚拟文件: 组合动画")]
+class File_Combine : File {
 	[Desc("成员列表( 运行时其共有的动作名可用 )（绘制保存时，第一个 item 的 offsetXY 将遍历减去，之后置 0, 即 以第一个 item 为中心点）")]
 	List<CombineItem> items;
 }
 
-[TypeId(8), Desc("脚本类资源")]
-class ResScript : ResBase {
-	// todo: 功能？作用？接口？存储？
-}
-
-
-
 [Struct, Desc("ResCombine 的专用 成员配置")]
 class CombineItem {
-	[Desc("指向要用到的资源名")]
-	string resName;
-	[Desc("指向要用到的资源")]
-	Weak<ResAnimation> res;
+	[Desc("指向要用到的文件( 图片 / 帧动画 / spine / 3d / combine )")]
+	Weak<File> file;
 
-	[Desc("3d: 俯视情况下围绕 z 轴 0 度的 x, y 显示偏移位置")]
+	[Desc("二次调整 俯视情况下围绕 z 轴 0 度的 x, y 显示偏移位置")]
 	float offsetX;
 	float offsetY;
 
-	[Desc("3d 下 angle 指的是 围绕 z 的旋转角度")]
-	float baseAngle;
+	[Desc("二次调整 围绕 z 的旋转角度")]
+	float angle;
 
-	[Desc("调整缩放比")]
-	float baseScale;
+	[Desc("二次调整缩放比")]
+	float scale = 1;
 }
 
-[Struct, Desc("动作基类")]
-class ActionBase {
+[Struct, Desc("动作描述")]
+class Action {
 	[Desc("动作名( 用于播放定位 )")]
 	string name;
 
-	[Desc("播放时长")]
+	[Desc("播放时长( 秒 )")]
 	float seconds;
 
-	[Desc("每秒帧率 / 播放速率")]
-	float frameRate;
+	[Desc("每秒帧率 / 播放速率( 关系到 原始碰撞数据的密度 )")]
+	float frameRate = 60;
 
 	[Desc("包围盒宽度( 2d sprite frame 默认为图集宽度. spine, 3d, combine 都需要手工设置 )")]
 	float width;
 
 	[Desc("包围盒高度( 2d sprite frame 默认为图集高度. spine, 3d, combine 都需要手工设置 )")]
 	float height;
-}
 
-[Struct, Desc("序列帧的动作：附加帧集合（每帧有自己的 碰撞检测圆 + 锁定点线 的配置）")]
-class ActionSpriteFrame : ActionBase {
-	[Desc("帧集合")]
-	List<Weak<ResPicture>> frames;
-	[Desc("帧名集合")]
-	List<string> frameNames;
-}
-
-[Struct, Desc("非序列帧的动作：直接附加 碰撞检测圆 + 锁定点线 集合 的 集合( 对应每一帧的数据)")]
-class ActionOthers : ActionBase {
-	[Desc("碰撞检测圆 + 锁定点线 集合 的 集合( 对应每一帧的数据)")]
+	[Desc("碰撞检测圆 + 锁定点线 集合 的 集合( size() == seconds * frameRate )")]
 	List<CDCirclesLockPoints> cdclpss;
+
+	// todo: 可以增加时间点 trigger 配置. 播放到某个时长时产生某名称事件
 }
+
+[Struct, Desc("动作描述 附带具体每一帧的图的引用")]
+class FrameAction : Action {
+	[Desc("图片集合")]
+	List<Weak<File_Picture>> pictures;
+}
+
 
 [Struct, Desc("碰撞检测圆")]
 class CDCircle {
@@ -296,6 +305,53 @@ class CDCirclesLockPoints {
 
 
 
+[TypeId(8), Desc("资源基类")]
+class Res {
+	[Desc("资源名( 初创时以 path+文件名 为资源名 )")]
+	string name;
+}
+
+[TypeId(15), Desc("脚本类资源")]
+class Res_Script : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_Lua>> files;
+}
+
+[TypeId(10), Desc("声音类资源")]
+class Res_Sound : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_Sound>> files;
+}
+
+[TypeId(11), Desc("图片类资源")]
+class Res_Picture : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_Picture>> files;
+}
+
+[TypeId(12), Desc("帧动画类资源")]
+class Res_FrameAnimation : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_FrameAnimation>> files;
+}
+
+[TypeId(13), Desc("动画/Spine类资源")]
+class Res_Spine : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_Spine>> files;
+}
+
+[TypeId(14), Desc("动画/3d类资源")]
+class Res_3d : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_C3b>> files;
+}
+
+[TypeId(16), Desc("动画/组合类资源")]
+class Res_Combine : Res {
+	[Desc("语言id & 文件. 至少有一条 语言 id == 0 的数据. 应该第一条就是")]
+	List<Pair<int, File_Combine>> files;
+}
 
 
 
@@ -303,20 +359,17 @@ class CDCirclesLockPoints {
 
 
 
-[TypeId(15), Desc("鱼基类")]
+
+[TypeId(17), Desc("鱼基类")]
 class FishBase {
 	[Desc("鱼名( 用于创建定位 )")]
 	string name;
 
 	[Desc("引用到声音资源( 通常死亡的时候有一定概率播放 ). 可空")]
-	Weak<ResVoice> resVoiceForDead;
-	[Desc("引用到声音资源名")]
-	string resVoiceNameForDead;
+	Weak<Res_Sound> resVoiceForDead;
 
-	[Desc("引用到动画资源( 通常含有两个动作：idle/move, die/dead ). 必填")]
-	Weak<ResAnimation> resAnimation;
-	[Desc("引用到动画资源名")]
-	string resAnimationName;
+	[Desc("引用到带动画的资源: spine c3b frameAnimation combine. 通常含有两个动作：idle/move, die/dead. 必填")]
+	Weak<Res> resAnimation;
 
 	[Desc("鱼状态列表( 初始为第一个状态 ). 必填")]
 	List<FishState> fishStates;
@@ -325,9 +378,7 @@ class FishBase {
 	// lua 可通过映射函数获取当前鱼的数据? 以及读取整个场景的数据? 可以修改鱼的坐标？朝向？缩放？切状态？暂停/继续播放动画？
 
 	[Desc("引用到脚本资源（不填则表示不用）. 可空")]
-	Weak<ResScript> resScript;
-	[Desc("引用到脚本资源名")]
-	string resScriptName;
+	Weak<Res_Script> resScript;
 
 	[Desc("倍率基数")]
 	long coin1;
@@ -354,12 +405,12 @@ class FishState {
 	string pathwayGroupName;
 }
 
-[TypeId(16), Desc("普通( 所有 BOSS 也算普通鱼. 从普通鱼派生 )")]
+[TypeId(18), Desc("普通( 所有 BOSS 也算普通鱼. 从普通鱼派生 )")]
 class FishNormal : FishBase {
 }
 
 
-[TypeId(17), Desc("炸弹( 子弹的一种，原地或移动 延迟爆炸 N 次 )")]
+[TypeId(19), Desc("炸弹( 子弹的一种，原地或移动 延迟爆炸 N 次 )")]
 class FishBomb : FishBase {
 	[Desc("炸弹: 至少连续爆炸多少次")]
     int timesFrom;
@@ -368,25 +419,25 @@ class FishBomb : FishBase {
     int timesTo;
 }
 
-[TypeId(18), Desc("钻头( 子弹的一种，先变为图标飞向炮台，再经由炮台选角度一次性发射 )")]
+[TypeId(20), Desc("钻头( 子弹的一种，先变为图标飞向炮台，再经由炮台选角度一次性发射 )")]
 class FishDrill : FishBase {
     [Desc("保留多少倍率用于爆炸")]
     long reserveCoin;
 }
 
-[TypeId(19), Desc("烈焰风暴( 子弹的一种，先变为图标飞向炮台，再经由炮台不断发射，威力比普通子弹大 )")]
+[TypeId(21), Desc("烈焰风暴( 子弹的一种，先变为图标飞向炮台，再经由炮台不断发射，威力比普通子弹大 )")]
 class FishFury : FishBase {
 	[Desc("烈焰风暴: 每次发射的子弹的倍率系数( 以体现威力大 ). 最后一发剩多少算多少")]
 	long numBulletsPerShoot;
 }
 
-[TypeId(20), Desc("旋风( 倍率为同屏所有同类鱼的叠加 )")]
+[TypeId(22), Desc("旋风( 倍率为同屏所有同类鱼的叠加 )")]
 class FishCyclone : FishBase {
 	[Desc("同类鱼的名字")]
 	string sameFishName;
 }
 
-[TypeId(9), Desc("捕食者( 李逵啥的，接近别的鱼会吞噬对方，倍率相应增加 )")]
+[TypeId(23), Desc("捕食者( 李逵啥的，接近别的鱼会吞噬对方，倍率相应增加 )")]
 class FishEater : FishBase {
 	[Desc("允许被吃掉的鱼的名称列表")]
 	List<string> fishNames;

@@ -100,11 +100,11 @@ cocos2d::Sprite3D* MainScene::CreateOrc(cocos2d::Vec2 const& pos, float const& r
 	return s;
 }
 
-ActionPlayer_SpriteFrame* MainScene::CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, std::vector<std::string> const& plists, FishManage::ActionSpriteFrame const& action, cocos2d::Node* const& container) {
+ActionPlayer_SpriteFrame* MainScene::CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, FishManage::FrameAction const& action, cocos2d::Node* const& container) {
 	auto a = ActionPlayer_SpriteFrame::create();
 	a->setAnchorPoint({ 0.5, 0.5 });
 	a->setPosition(pos);
-	a->SetActionData(plists, action);
+	a->SetActionData(action);
 	a->Play();
 	if (siz.width != 0 && siz.height != 0) {
 		auto&& cs = a->getContentSize();
@@ -239,7 +239,7 @@ float MainScene::GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar
 }
 
 
-cocos2d::Node* MainScene::CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::ResBase> res, cocos2d::Node* const& container) {
+cocos2d::Node* MainScene::CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::Res> res, cocos2d::Node* const& container) {
 	//if (auto&& r = xx::As<FishManage::Res2d>(res)) {
 	//	return CreateActionPlayer_SpriteFrame(pos, siz, r->plistFileNames, xx::As<FishManage::Action2d>(r->actions[0]), container);
 	//	// todo: 影子相关
