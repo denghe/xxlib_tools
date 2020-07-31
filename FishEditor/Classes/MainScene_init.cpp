@@ -1,5 +1,6 @@
 #include "MainScene.h"
 #include "md5.h"
+#include <regex>
 
 // out len == 16
 void CalcMD5(void* const& buf, size_t const& len, void* out) {
@@ -58,6 +59,137 @@ std::vector<std::string> GetPListItems(std::string const& plistFileName) {
 
 	return names;
 }
+
+// 获取 spine 文件关联的的 .json 和包含的贴图文件名列表
+std::vector<std::string> GetAtlasResNames(std::string const& atlasFileName) {
+	std::vector<std::string> rtv;
+	// json 文件的文件名部分相同, 扩展名不同
+	auto&& jsonFileName = rtv.emplace_back();
+	jsonFileName.assign(atlasFileName.data(), atlasFileName.size() - 6);
+	jsonFileName.append(".json");
+
+	// atlas 文件内容 第 2 行是引用到的图片文件名
+	std::string fullPath = cocos2d::FileUtils::getInstance()->fullPathForFilename(atlasFileName);
+	xx::Data d;
+	xx::ReadAllBytes(fullPath, d);
+	uint32_t from = 0;
+	for (; from < d.len; ++from) {
+		if (d.buf[from] != '\r' && d.buf[from] != '\n') break;
+	}
+	uint32_t to = from + 1;
+	for (; to < d.len; ++to) {
+		if (d.buf[to] == '\r' || d.buf[to] == '\n') break;
+	}
+	auto&& textureFileName = rtv.emplace_back();
+	textureFileName.assign(d.buf + from, to - from);
+	return rtv;
+}
+
+// 获取 c3b 包含的贴图文件名列表
+std::vector<std::string> GetC3bResNames(std::string const& c3bFileName) {
+	// c3b 数据格式："C3B\0" + 版本号(1字节)*2 + 引用个数(4字节) for( 引用id(string:长度4字节+内容) + 类型(4字节) + 偏移(4字节) )
+	// 这里只关心 类型 == BUNDLE_TYPE_MATERIAL( 16 ) 的引用。
+	// 直接跳转到相应偏移 并继续读：材质个数(4字节) for( 材质id(string) + float(4字节)*14 + 贴图个数(4字节) for( 贴图明细 ) )
+	// float(4字节)*14 = diffuse(3) + ambient(3) + emissive(3) + opacity(1) + specular(3) + shininess(1)
+	// 贴图明细 = 贴图id(string) + 贴图文件名(string) + uv映射(float*4) + GL贴图类型(string) + wrapS(string) + wrapT(string)
+	std::vector<std::string> rtv;
+	xx::Data d;
+	xx::ReadAllBytes(cocos2d::FileUtils::getInstance()->fullPathForFilename(c3bFileName), d);
+	xx::DataReader dr(d);
+	// 弄个读字串的常用函数
+	auto&& ReadString = [&](std::string& out)->int {
+		uint32_t len = 0;
+		if (int r = dr.ReadFixed(len)) return r;
+		out.resize(len);
+		return dr.ReadBuf(out.data(), len);
+	};
+	char head[4];
+	if (dr.ReadFixed(head) || memcmp(head, "C3B", sizeof(head))) throw std::logic_error("read c3b header error.");
+	char ver[2];
+	if (dr.ReadFixed(ver) || ver[0] != 0 || ver[1] != 3) throw std::logic_error("read c3b version error.");
+	uint32_t referenceCount = 0;
+	if (dr.ReadFixed(referenceCount)) throw std::logic_error("read c3b reference Count error.");
+	for (uint32_t i = 0; i < referenceCount; ++i) {
+		// 引用id(string:长度4字节+内容) + 类型(4字节) + 偏移(4字节)
+		std::string referenceId;
+		if (ReadString(referenceId) || referenceId.empty()) throw std::logic_error("read c3b reference Id error.");
+		uint32_t referenceType = 0;
+		if (dr.ReadFixed(referenceType)) throw std::logic_error("read c3b reference Type error.");
+		uint32_t referenceOffset = 0;
+		if (dr.ReadFixed(referenceOffset)) throw std::logic_error("read c3b reference Offset error.");
+		if (referenceType == 16) {
+			// 类型 == BUNDLE_TYPE_MATERIAL, 临时跳过去读, 备份读取偏移
+			auto offsetBak = std::exchange(dr.offset, referenceOffset);
+			{
+				uint32_t meterialCount = 0;
+				if (dr.ReadFixed(meterialCount)) throw std::logic_error("read c3b meterial Count error.");
+				for (uint32_t j = 0; j < meterialCount; ++j) {
+					// 材质id(string) + float(4字节)*14 + 贴图个数(4字节) for( 贴图明细 )
+					std::string meterialId;
+					if (ReadString(meterialId) || meterialId.empty()) throw std::logic_error("read c3b meterial Id error.");
+					float args[14];
+					if (dr.ReadFixed(args)) throw std::logic_error("read c3b meterial( diffuse, ambient, ...... ) error.");
+					uint32_t textureCount = 0;
+					if (dr.ReadFixed(textureCount)) throw std::logic_error("read c3b texture Count error.");
+					for (uint32_t k = 0; k < textureCount; ++k) {
+						// 贴图id(string) + 贴图文件名(string) + uv映射(float*4) + GL贴图类型(string) + wrapS(string) + wrapT(string)
+						std::string textureId;
+						if (ReadString(textureId) || textureId.empty()) throw std::logic_error("read c3b texture Id error.");
+						std::string textureFileName;
+						if (ReadString(textureFileName) || textureFileName.empty()) throw std::logic_error("read c3b texture FileName error.");
+						rtv.emplace_back(std::move(textureFileName));	// 放入返回容器
+						float textureUV[4];
+						if (dr.ReadFixed(textureUV)) throw std::logic_error("read c3b texture uvmapping error.");
+						std::string textureGLType;
+						if (ReadString(textureGLType) || textureGLType.empty()) throw std::logic_error("read c3b texture GLType error.");
+						std::string textureWrapS;
+						if (ReadString(textureWrapS) || textureWrapS.empty()) throw std::logic_error("read c3b texture wrapS error.");
+						std::string textureWrapT;
+						if (ReadString(textureWrapT) || textureWrapT.empty()) throw std::logic_error("read c3b texture wrapT error.");
+					}
+				}
+			}
+			// 还原读取偏移
+			dr.offset = offsetBak;
+		}
+	}
+	return rtv;
+}
+
+
+// 获取 fnt 包含的贴图文件名列表
+std::vector<std::string> GetFntResNames(std::string const& fntFileName) {
+	// 从第三行开始，含图片文件名的内容长相如下：( 找出所有 file="" )
+	// page id=0 file="a_0.png"
+	// page id=1 file="a_1.png"
+	std::vector<std::string> rtv;
+	xx::Data d;
+	xx::ReadAllBytes(cocos2d::FileUtils::getInstance()->fullPathForFilename(fntFileName), d);
+	std::string s(d.buf, d.len);
+	std::regex r("file=\"(.*)\"");
+	std::smatch m;
+	for (auto&& iter = s.cbegin(); std::regex_search(iter, s.cend(), m, r); iter = m[0].second) {
+		rtv.push_back(m[1]);
+	}
+	return rtv;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 bool MainScene::init() {
@@ -189,58 +321,47 @@ bool MainScene::init() {
 		// 根据扩展名路由创建不同的 File_Xxxxxx
 		std::shared_ptr<FishManage::File_Real> file;
 		switch (ext) {
-			case FishManage::FileExtensions::mp3:
-			case FishManage::FileExtensions::ogg:
-			case FishManage::FileExtensions::wav: {
-				auto&& o = xx::Make<FishManage::File_Sound>();
-				file = o;
-				// o->seconds = ????
-				break;
-			}
-			case FishManage::FileExtensions::webp :
-			case FishManage::FileExtensions::png  :
-			case FishManage::FileExtensions::jpg  :
-			case FishManage::FileExtensions::pkm  :
-			case FishManage::FileExtensions::tga  :
-			case FishManage::FileExtensions::bmp  : {
-				auto&& o = xx::Make<FishManage::File_Picture>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			case FishManage::FileExtensions::atlas: {
-				auto&& o = xx::Make<FishManage::File_Spine>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			case FishManage::FileExtensions::json : {
-				auto&& o = xx::Make<FishManage::File_Real>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			case FishManage::FileExtensions::c3b  : {
-				auto&& o = xx::Make<FishManage::File_C3b>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			case FishManage::FileExtensions::plist:
-			case FishManage::FileExtensions::fnt  : {
-				auto&& o = xx::Make<FishManage::File_Bag>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			case FishManage::FileExtensions::lua  : {
-				auto&& o = xx::Make<FishManage::File_Lua>();
-				file = o;
-				// todo: fill o.xxxxxxx
-				break;
-			}
-			default:
-				throw std::logic_error(xx::ToString("unknown ext type: ", extStr));
+		case FishManage::FileExtensions::mp3:
+		case FishManage::FileExtensions::ogg:
+		case FishManage::FileExtensions::wav: {
+			auto&& o = xx::Make<FishManage::File_Sound>();
+			file = o;
+			// o->seconds = ????
+			break;
+		}
+		case FishManage::FileExtensions::webp:
+		case FishManage::FileExtensions::png:
+		case FishManage::FileExtensions::jpg:
+		case FishManage::FileExtensions::pkm:
+		case FishManage::FileExtensions::tga:
+		case FishManage::FileExtensions::bmp: {
+			file = xx::Make<FishManage::File_Picture>();
+			// atPList 不在这里填充
+			break;
+		}
+		case FishManage::FileExtensions::atlas: {
+			file = xx::Make<FishManage::File_Spine>();
+			break;
+		}
+		case FishManage::FileExtensions::json: {
+			file = xx::Make<FishManage::File_Real>();
+			break;
+		}
+		case FishManage::FileExtensions::c3b: {
+			file = xx::Make<FishManage::File_C3b>();
+			break;
+		}
+		case FishManage::FileExtensions::plist:
+		case FishManage::FileExtensions::fnt: {
+			file = xx::Make<FishManage::File_Bag>();
+			break;
+		}
+		case FishManage::FileExtensions::lua: {
+			file = xx::Make<FishManage::File_Lua>();
+			break;
+		}
+		default:
+			throw std::logic_error(xx::ToString("unknown ext type: ", extStr));
 		}
 
 		// 填充 物理文件信息. 别的后续填充
@@ -292,21 +413,46 @@ bool MainScene::init() {
 			break;
 		}
 		case FishManage::FileExtensions::atlas: {
-			// todo: GetXXXXXXXXXXXTextureName    dels.push_back(textureName);
+			auto&& ns = GetAtlasResNames(fileName);
+			for (auto&& n : ns) {
+				auto&& iter = files.find(n);
+				if (iter == files.end()) {
+					throw std::logic_error(xx::ToString("can't find name: ", n, " for atlas file: ", fileName));
+				}
+				xx::As<FishManage::File_Bag>(file)->childs.push_back(iter->second);
+				dels.push_back(n);
+			}
 			break;
 		}
 		case FishManage::FileExtensions::c3b: {
-			// todo: GetXXXXXXXXXXXTextureName     dels.push_back(textureName);
+			auto&& ns = GetC3bResNames(fileName);
+			for (auto&& n : ns) {
+				auto&& iter = files.find(n);
+				if (iter == files.end()) {
+					throw std::logic_error(xx::ToString("can't find name: ", n, " for c3b file: ", fileName));
+				}
+				xx::As<FishManage::File_Bag>(file)->childs.push_back(iter->second);
+				dels.push_back(n);
+			}
 			break;
 		}
 		case FishManage::FileExtensions::fnt: {
-			// todo: GetXXXXXXXXXXXTextureName    dels.push_back(textureName);
+			auto&& ns = GetFntResNames(fileName);
+			for (auto&& n : ns) {
+				auto&& iter = files.find(n);
+				if (iter == files.end()) {
+					throw std::logic_error(xx::ToString("can't find name: ", n, " for fnt file: ", fileName));
+				}
+				xx::As<FishManage::File_Bag>(file)->childs.push_back(iter->second);
+				dels.push_back(n);
+			}
+			break;
 		}
 		}
 	}
 
-	for (auto&& d : dels) {
-		files.erase(d);
+	for (auto&& o : dels) {
+		files.erase(o);
 	}
 	dels.clear();
 

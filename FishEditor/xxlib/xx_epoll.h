@@ -37,6 +37,7 @@
 #include "xx_data_queue.h"
 #include "xx_scopeguard.h"
 #include "xx_string.h"
+#include "xx_fixeddata_w.h"
 
 #define LIKELY(x)       __builtin_expect(!!(x), 1)
 #define UNLIKELY(x)     __builtin_expect(!!(x), 0)
@@ -65,7 +66,37 @@ namespace xx {
             StringFuncs<sockaddr const *>::Append(s, (sockaddr const *) &in);
         }
     };
+
+    // for logger
+    template<>
+    struct DumpFuncs<sockaddr_in6> {
+        static const char value = dumpFuncsSafeIndex + 0;
+
+        inline static void Dump(std::ostream &o, char *&v) {
+            o << ToString(*(sockaddr_in6*)v);
+            v += sizeof(sockaddr_in6);
+        }
+
+        // 启动时自动注册函数
+        DumpFuncs<sockaddr_in6>() {
+            assert(!dumpFuncs[value]);
+            dumpFuncs[value] = Dump;
+        }
+    };
+    // 启动时自动注册函数
+    inline DumpFuncs<sockaddr_in6> __DumpFuncs_sockaddr_in6;
+
+    template<size_t size>
+    struct BufFuncs<size, sockaddr_in6, void> {
+        static inline void Write(FixedData<size> &data, sockaddr_in6 const &in) {
+            data.Ensure(1 + sizeof(sockaddr_in6));
+            data.buf[data.len] = DumpFuncs<sockaddr_in6>::value;
+            memcpy(data.buf + data.len + 1, &in, sizeof(sockaddr_in6));
+            data.len += 1 + sizeof(sockaddr_in6);
+        }
+    };
 }
+
 namespace xx::Epoll {
     /***********************************************************************************************************/
     // Item
@@ -474,7 +505,7 @@ namespace xx::Epoll {
         if (e & EPOLLOUT) {
             // 设置为可写状态
             writing = false;
-            if (int r = Write()) {
+            if (/*int r = */Write()) {
                 Close(__LINE__, __FILE__);
                 return;
             }
@@ -498,6 +529,8 @@ namespace xx::Epoll {
         auto &&offset = sendQueue.Fill(ec->iovecs, vsLen, bufLen);
         // 返回值为 实际发出的字节数
         auto &&sentLen = writev(fd, ec->iovecs.data(), vsLen);
+        // 让 valgrind 闭嘴
+        memset(ec->iovecs.data(), 0, vsLen * sizeof(iovec));
 
         // 已断开
         if (sentLen == 0) return -2;
@@ -998,7 +1031,7 @@ namespace xx::Epoll {
     inline int Context::Run() {
         // 创建 pipe fd. 失败返回编号
         int actionsPipes[2];
-        if (int r = pipe(actionsPipes)) return __LINE__;
+        if (/*int r = */pipe(actionsPipes)) return __LINE__;
         // 设置 pipe 为非阻塞
         fcntl(actionsPipes[1], F_SETFL, O_NONBLOCK);
         fcntl(actionsPipes[0], F_SETFL, O_NONBLOCK);

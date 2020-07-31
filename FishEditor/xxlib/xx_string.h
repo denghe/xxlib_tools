@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <chrono>
 #include <sstream>
 #include <iostream>
@@ -132,19 +133,19 @@ namespace xx {
         }
     };
 
-    // 适配 enum( 根据原始数据类型调上面的适配 )
+    // 适配 TimePoint
     template<typename C, typename D>
     struct StringFuncs<std::chrono::time_point<C, D>, void> {
         static inline void Append(std::string& s, std::chrono::time_point<C, D> const& in) {
             auto&& t = std::chrono::system_clock::to_time_t(in);
+            std::stringstream ss;
             std::tm tm{};
 #ifdef _WIN32
             localtime_s(&tm, &t);
 #else
             localtime_r(&t, &tm);
 #endif
-            std::stringstream ss;
-            ss << std::put_time(&tm, "%Y-%m-%d %X");
+            ss << std::put_time(&tm, "%F %T");
             s.append(ss.str());
         }
     };
@@ -170,6 +171,24 @@ namespace xx {
             if (auto inLen = in.size()) {
                 for(size_t i = 0; i < inLen; ++i) {
                     ::xx::Append(s, in[i]);
+                    s.push_back(',');
+                }
+                s[s.size() - 1] = ']';
+            }
+            else {
+                s.push_back(']');
+            }
+        }
+    };
+
+    // 适配 std::unordered_set<T>
+    template<typename T>
+    struct StringFuncs<std::unordered_set<T>, void> {
+        static inline void Append(std::string& s, std::unordered_set<T> const& in) {
+            s.push_back('[');
+            if (!in.empty()) {
+                for(auto&& o : in) {
+                    ::xx::Append(s, o);
                     s.push_back(',');
                 }
                 s[s.size() - 1] = ']';
@@ -240,6 +259,24 @@ namespace xx {
             if (auto inLen = in.len) {
                 for(size_t i = 0; i < inLen; ++i) {
                     ::xx::Append(s, (uint8_t)in[i]);
+                    s.push_back(',');
+                }
+                s[s.size() - 1] = ']';
+            }
+            else {
+                s.push_back(']');
+            }
+        }
+    };
+
+    // 适配 DataView
+    template<>
+    struct StringFuncs<DataView, void> {
+        static inline void Append(std::string& s, DataView const& in) {
+            s.push_back('[');
+            if (auto inLen = in.len) {
+                for(size_t i = 0; i < inLen; ++i) {
+                    ::xx::Append(s, (uint8_t)in.buf[i]);
                     s.push_back(',');
                 }
                 s[s.size() - 1] = ']';
@@ -416,4 +453,5 @@ namespace xx {
     inline void CoutFlush() {
         std::cout.flush();
     }
+
 }
