@@ -60,16 +60,23 @@ std::vector<std::string> GetPListItems(std::string const& plistFileName) {
 	return names;
 }
 
-// 获取 spine 文件关联的的 .json 和包含的贴图文件名列表
+// 获取 spine 文件关联的的 .json/.skel 和包含的贴图文件名列表
 std::vector<std::string> GetAtlasResNames(std::string const& atlasFileName) {
 	std::vector<std::string> rtv;
-	// json 文件的文件名部分相同, 扩展名不同
-	auto&& jsonFileName = rtv.emplace_back();
-	jsonFileName.assign(atlasFileName.data(), atlasFileName.size() - 6);
-	jsonFileName.append(".json");
+	// json/skel 文件的文件名部分相同, 扩展名不同
+	std::string fullPath = cocos2d::FileUtils::getInstance()->fullPathForFilename(atlasFileName);
+	auto&& basePath = fullPath.substr(0, fullPath.size() - 5);
+	if (std::filesystem::exists(basePath + "json")) {
+		rtv.emplace_back(atlasFileName.substr(0, atlasFileName.size() - 5) + "json");
+	}
+	else if (std::filesystem::exists(basePath + "skel")) {
+		rtv.emplace_back(atlasFileName.substr(0, atlasFileName.size() - 5) + "skel");
+	}
+	else {
+		throw std::logic_error(xx::ToString("can't find spine's .json or .skel file: ", atlasFileName));
+	}
 
 	// atlas 文件内容 第 2 行是引用到的图片文件名
-	std::string fullPath = cocos2d::FileUtils::getInstance()->fullPathForFilename(atlasFileName);
 	xx::Data d;
 	xx::ReadAllBytes(fullPath, d);
 	uint32_t from = 0;
@@ -85,14 +92,17 @@ std::vector<std::string> GetAtlasResNames(std::string const& atlasFileName) {
 	return rtv;
 }
 
-// 获取 c3b 包含的贴图文件名列表
-std::vector<std::string> GetC3bResNames(std::string const& c3bFileName) {
+// 获取 c3b 包含的贴图文件名列表 & 动作+时长 列表
+std::pair<std::vector<std::string>, std::vector<std::pair<std::string, float>>> GetC3bResNamesAnimations(std::string const& c3bFileName) {
 	// c3b 数据格式："C3B\0" + 版本号(1字节)*2 + 引用个数(4字节) for( 引用id(string:长度4字节+内容) + 类型(4字节) + 偏移(4字节) )
-	// 这里只关心 类型 == BUNDLE_TYPE_MATERIAL( 16 ) 的引用。
-	// 直接跳转到相应偏移 并继续读：材质个数(4字节) for( 材质id(string) + float(4字节)*14 + 贴图个数(4字节) for( 贴图明细 ) )
+	// 这里只关心 类型 == BUNDLE_TYPE_MATERIAL( 16 ), BUNDLE_TYPE_ANIMATIONS( 3 ) 的引用。
+	// 类型16: 直接跳转到相应偏移 并继续读：材质个数(4字节) for( 材质id(string) + float(4字节)*14 + 贴图个数(4字节) for( 贴图明细 ) )
 	// float(4字节)*14 = diffuse(3) + ambient(3) + emissive(3) + opacity(1) + specular(3) + shininess(1)
 	// 贴图明细 = 贴图id(string) + 贴图文件名(string) + uv映射(float*4) + GL贴图类型(string) + wrapS(string) + wrapT(string)
-	std::vector<std::string> rtv;
+	// 类型3: 直接跳转到相应偏移 并继续读：动画个数(4字节) for( 动画id(string) + totalTime(float) 
+	// + nodeCount(uint) for ( boneName(string) + keyframeCount(uint) for ( keytime(float) + rotate(float*4) + scale(float*3) + position(float*3)
+	// todo: 可通过 mesh 所有顶点求得 AABB ( 不需要关注子mesh ), 这样就能估算缩放尺寸. 或者直接通过 Bundle3D 组件加载，然后读其 MeshData ?
+	std::pair<std::vector<std::string>, std::vector<std::pair<std::string, float>>> rtv;
 	xx::Data d;
 	xx::ReadAllBytes(cocos2d::FileUtils::getInstance()->fullPathForFilename(c3bFileName), d);
 	xx::DataReader dr(d);
@@ -100,6 +110,7 @@ std::vector<std::string> GetC3bResNames(std::string const& c3bFileName) {
 	auto&& ReadString = [&](std::string& out)->int {
 		uint32_t len = 0;
 		if (int r = dr.ReadFixed(len)) return r;
+		if (len + dr.offset > dr.len) return -1;
 		out.resize(len);
 		return dr.ReadBuf(out.data(), len);
 	};
@@ -137,7 +148,7 @@ std::vector<std::string> GetC3bResNames(std::string const& c3bFileName) {
 						if (ReadString(textureId) || textureId.empty()) throw std::logic_error("read c3b texture Id error.");
 						std::string textureFileName;
 						if (ReadString(textureFileName) || textureFileName.empty()) throw std::logic_error("read c3b texture FileName error.");
-						rtv.emplace_back(std::move(textureFileName));	// 放入返回容器
+						rtv.first.emplace_back(std::move(textureFileName));	// 放入返回容器
 						float textureUV[4];
 						if (dr.ReadFixed(textureUV)) throw std::logic_error("read c3b texture uvmapping error.");
 						std::string textureGLType;
@@ -146,6 +157,41 @@ std::vector<std::string> GetC3bResNames(std::string const& c3bFileName) {
 						if (ReadString(textureWrapS) || textureWrapS.empty()) throw std::logic_error("read c3b texture wrapS error.");
 						std::string textureWrapT;
 						if (ReadString(textureWrapT) || textureWrapT.empty()) throw std::logic_error("read c3b texture wrapT error.");
+					}
+				}
+			}
+			// 还原读取偏移
+			dr.offset = offsetBak;
+		}
+		else if (referenceType == 3) {
+			// 类型 == BUNDLE_TYPE_ANIMATIONS, 临时跳过去读, 备份读取偏移
+			auto offsetBak = std::exchange(dr.offset, referenceOffset);
+			{
+				uint32_t animationCount = 0;
+				if (dr.ReadFixed(animationCount) || !animationCount) throw std::logic_error("read c3b animation Count error.");
+				for (uint32_t j = 0; j < animationCount; ++j) {
+					std::string animationId;
+					if (ReadString(animationId) || animationId.empty()) throw std::logic_error("read c3b animation Id error.");
+					float totalTime = 0;
+					if (dr.ReadFixed(totalTime)) throw std::logic_error("read c3b animation totalTime error.");
+					rtv.second.emplace_back(animationId, totalTime);
+					uint32_t nodeCount = 0;
+					if (dr.ReadFixed(nodeCount) || !nodeCount) throw std::logic_error("read c3b animation node Count error.");
+					for (uint32_t k = 0; k < nodeCount; ++k) {
+						std::string boneName;
+						if (ReadString(boneName)) throw std::logic_error("read c3b animation node boneName error.");
+						uint32_t keyframeCount = 0;
+						if (dr.ReadFixed(keyframeCount)) throw std::logic_error("read c3b animation node keyframeCount error.");
+						for (uint32_t L = 0; L < keyframeCount; ++L) {
+							float keytime = 0;
+							if (dr.ReadFixed(keytime)) throw std::logic_error("read c3b animation node keytime error.");
+							float rotate[4]{};
+							if (dr.ReadFixed(rotate)) throw std::logic_error("read c3b animation node rotate error.");
+							float scale[3]{};
+							if (dr.ReadFixed(scale)) throw std::logic_error("read c3b animation node scale error.");
+							float position[3]{};
+							if (dr.ReadFixed(position)) throw std::logic_error("read c3b animation node position error.");
+						}
 					}
 				}
 			}
@@ -174,8 +220,26 @@ std::vector<std::string> GetFntResNames(std::string const& fntFileName) {
 	return rtv;
 }
 
-
-
+// 获取 spine 的 animations name & 播放时长
+std::vector<std::pair<std::string, float>> GetSpineAnimationNamesSeconds(std::shared_ptr<FishManage::File_Spine> const& f) {
+	// 创建 spine 类，然后通过它自带函数来获取这些信息
+	spine::SkeletonAnimation* a;
+	if (f->childs[0]->ext == FishManage::FileExtensions::json) {
+		a = spine::SkeletonAnimation::createWithJsonFile(f->childs[0]->name, f->name);
+	}
+	else {
+		a = spine::SkeletonAnimation::createWithBinaryFile(f->childs[0]->name, f->name);
+	}
+	if (!a) {
+		throw std::logic_error(xx::ToString("GetSpineAnimationNamesSeconds create spine failed. fn = ", f->name));
+	}
+	std::vector<std::pair<std::string, float>> rtv;
+	for (int i = 0; i < a->getSkeleton()->data->animationsCount; ++i) {
+		auto&& ani = a->getSkeleton()->data->animations[i];
+		rtv.emplace_back(ani->name, ani->duration);
+	}
+	return rtv;
+}
 
 
 
@@ -285,6 +349,7 @@ bool MainScene::init() {
 
 		{ "atlas", FishManage::FileExtensions::atlas },
 		{ "json", FishManage::FileExtensions::json  },
+		{ "skel", FishManage::FileExtensions::skel  },
 
 		{ "c3b", FishManage::FileExtensions::c3b   },
 
@@ -343,6 +408,7 @@ bool MainScene::init() {
 			file = xx::Make<FishManage::File_Spine>();
 			break;
 		}
+		case FishManage::FileExtensions::skel:
 		case FishManage::FileExtensions::json: {
 			file = xx::Make<FishManage::File_Real>();
 			break;
@@ -422,17 +488,34 @@ bool MainScene::init() {
 				xx::As<FishManage::File_Bag>(file)->childs.push_back(iter->second);
 				dels.push_back(n);
 			}
+
+			// 找出所有 action 并填充
+			auto&& f = xx::As<FishManage::File_Spine>(file);
+			auto&& ns2 = GetSpineAnimationNamesSeconds(f);
+			for (auto&& o : ns2) {
+				auto&& a = f->actions.emplace_back();
+				a.name = o.first;
+				a.seconds = o.second;
+			}
 			break;
 		}
 		case FishManage::FileExtensions::c3b: {
-			auto&& ns = GetC3bResNames(fileName);
-			for (auto&& n : ns) {
+			auto&& nsas = GetC3bResNamesAnimations(fileName);
+			auto&& f = xx::As<FishManage::File_C3b>(file);
+			for (auto&& n : nsas.first) {
 				auto&& iter = files.find(n);
 				if (iter == files.end()) {
 					throw std::logic_error(xx::ToString("can't find name: ", n, " for c3b file: ", fileName));
 				}
-				xx::As<FishManage::File_Bag>(file)->childs.push_back(iter->second);
+				f->childs.push_back(iter->second);
 				dels.push_back(n);
+			}
+
+			// action 填充
+			for (auto&& o : nsas.second) {
+				auto&& a = f->actions.emplace_back();
+				a.name = o.first;
+				a.seconds = o.second;
 			}
 			break;
 		}

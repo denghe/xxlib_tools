@@ -3,7 +3,7 @@
 #include "FishManage_class_lite.h.inc"  // user create it for extend include files
 namespace FishManage {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<9be7814f6a2abf3f54283511c9e27887>*#";
+		inline static const std::string value = "#*MD5<c7a0c9749d944277e56095d9ba82b1d0>*#";
     };
 	struct PkgGenTypes {
         static void RegisterTo(xx::ObjectHelper& oh);
@@ -80,13 +80,14 @@ namespace FishManage {
         plist = 9,
         atlas = 10,
         json = 11,
-        c3b = 12,
-        lua = 13,
-        fnt = 14,
+        skel = 12,
+        c3b = 13,
+        lua = 14,
+        fnt = 15,
         // 虚拟文件扩展名: 帧动画
-        frameAnimation = 15,
+        frameAnimation = 16,
         // 虚拟文件扩展名: 帧动画
-        combine = 16,
+        combine = 17,
     };
     // 锁定点. 多点可连线
     struct LockPoint {
@@ -208,7 +209,7 @@ namespace FishManage {
         // 资源名( 初创时以 path+文件名 为资源名 )
         std::string name;
     };
-    // 打包文件信息 附加其他包含子文件( 例如 plist 附带 texture, atlas 附带 json & texture 等 )
+    // 打包文件信息 附加其他包含子文件( 例如 plist 附带 texture, atlas 附带 json/skel & texture 等 )
     struct File_Bag : FishManage::File_Real {
         XX_GENCODE_OBJECT_H(File_Bag, FishManage::File_Real)
         // 附带文件集. 不被 资源 直接引用

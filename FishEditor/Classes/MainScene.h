@@ -1,5 +1,6 @@
 #pragma once
 #include "cocos2d.h"
+#include "spine/spine-cocos2dx.h"
 #include "ui/CocosGUI.h"
 #include "FishManage_class_lite.h"
 #include "ActionPlayer_SpriteFrame.h"

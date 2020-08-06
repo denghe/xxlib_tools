@@ -38,7 +38,7 @@ using TemplateLibrary;
 
 	动画 (附加 动作列表: 名字 & 时长 & 宽高 & 帧率 & 每帧的 碰撞检测 & 锁定数据)
 		2d骨骼
-			spine( atlas, json )
+			spine( atlas, json/skel )
 				纹理引用到 单图
 		3d
 			c3b
@@ -100,7 +100,7 @@ enum FileExtensions {
 	mp3, ogg, wav, 
 	webp, png, jpg, pkm, tga, bmp, 
 	plist, 
-	atlas, json, 
+	atlas, json, skel,
 	c3b, 
 	lua, 
 	fnt,
@@ -174,7 +174,7 @@ class File_Picture : File_Real {
 	Weak<File_Bag> atPList;
 }
 
-[TypeId(4), Desc("打包文件信息 附加其他包含子文件( 例如 plist 附带 texture, atlas 附带 json & texture 等 )")]
+[TypeId(4), Desc("打包文件信息 附加其他包含子文件( 例如 plist 附带 texture, atlas 附带 json/skel & texture 等 )")]
 class File_Bag : File_Real {
 	[Desc("附带文件集. 不被 资源 直接引用")]
 	List<Shared<File_Real>> childs;
