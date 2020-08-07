@@ -1,5 +1,6 @@
 #pragma once
 #include "cocos2d.h"
+#include "audio/include/AudioEngine.h"
 #include "spine/spine-cocos2dx.h"
 #include "ui/CocosGUI.h"
 #include "FishManage_class_lite.h"
@@ -181,6 +182,16 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     void Init2();
     ~MainScene() override;
     void update(float delta) override;
+    int Update(int lineNumber);
+    int lineNumber = 0;
+    // 已知扩展名映射
+    std::unordered_map<std::string, FishManage::FileExtensions> exts;
+    // 根据已知扩展名，先填充文件信息到此
+    std::map<std::string, std::shared_ptr<FishManage::File_Real>> files;
+    std::vector<std::string> soundFileNames;
+    size_t i = 0;
+    int soundId = 0;
+    float soundDuration = 0;
     //cocos2d::AmbientLight* _ambientLight = nullptr;
     //cocos2d::DirectionLight* _directionalLight = nullptr;
     //cocos2d::PointLight* _pointLight = nullptr;

@@ -156,28 +156,28 @@ void MainScene::Init2() {
 MainScene::~MainScene() {
 }
 
-void MainScene::update(float delta) {
-	//static float angleDelta = 0.0;
-
-	//if (_directionalLight)
-	//{
-	//	_directionalLight->setRotation3D(cocos2d::Vec3(-45.0, -CC_RADIANS_TO_DEGREES(angleDelta), 0.0f));
-	//}
-
-	//if (_pointLight)
-	//{
-	//	_pointLight->setPositionX(100.0f * cosf(angleDelta + 2.0 * delta));
-	//	_pointLight->setPositionY(100.0f);
-	//	_pointLight->setPositionZ(100.0f * sinf(angleDelta + 2.0 * delta));
-	//}
-
-	//if (_spotLight)
-	//{
-	//	_spotLight->setPositionX(100.0f * cosf(angleDelta + 4.0 * delta));
-	//	_spotLight->setPositionY(100.0f);
-	//	_spotLight->setPositionZ(100.0f * sinf(angleDelta + 4.0 * delta));
-	//	_spotLight->setDirection(-cocos2d::Vec3(cosf(angleDelta + 4.0 * delta), 1.0, sinf(angleDelta + 4.0 * delta)));
-	//}
-
-	//angleDelta += delta;
-}
+//void MainScene::update(float delta) {
+//	//static float angleDelta = 0.0;
+//
+//	//if (_directionalLight)
+//	//{
+//	//	_directionalLight->setRotation3D(cocos2d::Vec3(-45.0, -CC_RADIANS_TO_DEGREES(angleDelta), 0.0f));
+//	//}
+//
+//	//if (_pointLight)
+//	//{
+//	//	_pointLight->setPositionX(100.0f * cosf(angleDelta + 2.0 * delta));
+//	//	_pointLight->setPositionY(100.0f);
+//	//	_pointLight->setPositionZ(100.0f * sinf(angleDelta + 2.0 * delta));
+//	//}
+//
+//	//if (_spotLight)
+//	//{
+//	//	_spotLight->setPositionX(100.0f * cosf(angleDelta + 4.0 * delta));
+//	//	_spotLight->setPositionY(100.0f);
+//	//	_spotLight->setPositionZ(100.0f * sinf(angleDelta + 4.0 * delta));
+//	//	_spotLight->setDirection(-cocos2d::Vec3(cosf(angleDelta + 4.0 * delta), 1.0, sinf(angleDelta + 4.0 * delta)));
+//	//}
+//
+//	//angleDelta += delta;
+//}
