@@ -3,17 +3,26 @@
 #include "audio/include/AudioEngine.h"
 #include "spine/spine-cocos2dx.h"
 #include "ui/CocosGUI.h"
-#include "FishManage_class_lite.h"
-#include "ActionPlayer_SpriteFrame.h"
-#include "Circle.h"
-#include "DraggingRes.h"
 #include "AppDelegate.h"
+
+#include "FileExts_class_lite.h"
 #include "xx_file.h"
 #include "xx_math.h"
 #include "xx_chrono.h"
+#include "xx_lua.h"
+
+#include "ajson.hpp"
+
+#include "Anim.h"
+
+//#include "Circle.h"
+//#include "DraggingRes.h"
 
 struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     using BaseType = cocos2d::Scene;
+
+    // lua 上下文( engine 内部使用 )
+    xx::Lua::State L;
 
     // 缓存 AppDelegate::designWidth/Height
     float W = 0, H = 0, W_2 = 0, H_2 = 0;
@@ -41,30 +50,31 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     float editRes2dScrolledPercentVertical = 0;
 
 
-    // touch 状态记录
-    cocos2d::Vec2 lastPos;
-    bool touching = false;
-    Circle* currCircle = nullptr;
-    DraggingRes* currDraggingRes = nullptr;
+    //// touch 状态记录
+    //cocos2d::Vec2 lastPos;
+    //bool touching = false;
+    //Circle* currCircle = nullptr;
+    //DraggingRes* currDraggingRes = nullptr;
 
     // 热键函数绑定
     cocos2d::ccMenuCallback keyboardCallback_C;
 
 
-    // 所有数据在此
-    FishManage::Data data;
+
+    //// 所有数据在此
+    //FishManage::Data data;
     // 对象帮助器
     xx::ObjectHelper oh;
-    // 存盘文件名
-    const std::string dataFileName = "fishs.data";
+    //// 存盘文件名
+    //const std::string dataFileName = "fishs.data";
 
     // = cocos2d::FileUtils::getInstance()->getSearchPaths()[0]
     std::string resPath;
 
-    // 读档
-    void LoadData();
-    // 存档
-    void SaveData();
+    //// 读档
+    //void LoadData();
+    //// 存档
+    //void SaveData();
 
     // 在屏幕中间弹出一段提示，几秒钟后飞走消失
     void PopupMessage(std::string const& txt, cocos2d::Color3B const& color = cocos2d::Color3B::RED);
@@ -106,15 +116,45 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 创建 某 3d 模型( 锚点 中心 )
     cocos2d::Sprite3D* CreateOrc(cocos2d::Vec2 const& pos, float const& r, cocos2d::Node* const& container = nullptr);
 
-    // 创建一个 2d 帧图 动作 预览动画
-    ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, FishManage::FrameAction const& action, cocos2d::Node* const& container = nullptr);
+    //// 创建一个 2d 帧图 动作 预览动画
+    //ActionPlayer_SpriteFrame* CreateActionPlayer_SpriteFrame(cocos2d::Vec2 const& pos, cocos2d::Size const& siz, FishManage::FrameAction const& action, cocos2d::Node* const& container = nullptr);
 
     // return tar->getContentSize().width
     float GetWidth(cocos2d::Node* const& tar);
     float GetWidth(std::pair<cocos2d::Label*, cocos2d::Label*> const& tar);
 
-    // 创建资源预览( 锚点 中心 ). 显示为指定 siz 大小( 对 spine, 3d 需要取出 bounding box 结合指定 siz 来算 scale )
-    cocos2d::Node* CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::Res> res, cocos2d::Node* const& container = nullptr);
+    //// 创建资源预览( 锚点 中心 ). 显示为指定 siz 大小( 对 spine, 3d 需要取出 bounding box 结合指定 siz 来算 scale )
+    //cocos2d::Node* CreateResPreview(cocos2d::Vec2 const& pos, cocos2d::Size siz, std::shared_ptr<FishManage::Res> res, cocos2d::Node* const& container = nullptr);
+
+
+
+
+
+
+
+    // out len == 16
+    void CalcMD5(void* const& buf, size_t const& len, void* out);
+
+    // 扫出 plist 里的 texture
+    std::string GetPListTextureName(std::string const& plistFileName);
+
+    // 扫出 plist 里的 sprite frame names
+    std::vector<std::string> GetPListItems(std::string const& plistFileName);
+
+    // 获取 spine 文件关联的的 .json/.skel 和包含的贴图文件名列表
+    std::vector<std::string> GetAtlasResNames(std::string const& atlasFileName);
+
+    // 获取 c3b 包含的贴图文件名列表 & 动作+时长 列表
+    std::pair<std::vector<std::string>, std::vector<std::pair<std::string, float>>> GetC3bResNamesAnimations(std::string const& c3bFileName);
+
+    // 获取 fnt 包含的贴图文件名列表
+    std::vector<std::string> GetFntResNames(std::string const& fntFileName);
+
+    // 获取 spine 的 animations name & 播放时长
+    std::vector<std::pair<std::string, float>> GetSpineAnimationNamesSeconds(std::string const& spineFileName);
+
+
+
 
 
 
@@ -162,13 +202,13 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     // 鱼管理页
     void ManageFishs();
 
-    // 鱼编辑页
-    void EditFishNormal(std::shared_ptr<FishManage::FishNormal> const& fish);
-    void EditFishBomb(std::shared_ptr<FishManage::FishBomb> const& fish);
-    void EditFishDrill(std::shared_ptr<FishManage::FishDrill> const& fish);
-    void EditFishFury(std::shared_ptr<FishManage::FishFury> const& fish);
-    void EditFishCyclone(std::shared_ptr<FishManage::FishCyclone> const& fish);
-    void EditFishEater(std::shared_ptr<FishManage::FishEater> const& fish);
+    //// 鱼编辑页
+    //void EditFishNormal(std::shared_ptr<FishManage::FishNormal> const& fish);
+    //void EditFishBomb(std::shared_ptr<FishManage::FishBomb> const& fish);
+    //void EditFishDrill(std::shared_ptr<FishManage::FishDrill> const& fish);
+    //void EditFishFury(std::shared_ptr<FishManage::FishFury> const& fish);
+    //void EditFishCyclone(std::shared_ptr<FishManage::FishCyclone> const& fish);
+    //void EditFishEater(std::shared_ptr<FishManage::FishEater> const& fish);
 
     // for edit box delegate
     void editBoxReturn(cocos2d::ui::EditBox* editBox) override;
@@ -184,10 +224,10 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
     void update(float delta) override;
     int Update(int lineNumber);
     int lineNumber = 0;
-    // 已知扩展名映射
-    std::unordered_map<std::string, FishManage::FileExtensions> exts;
-    // 根据已知扩展名，先填充文件信息到此
-    std::map<std::string, std::shared_ptr<FishManage::File_Real>> files;
+    //// 已知扩展名映射
+    //std::unordered_map<std::string, FishManage::FileExtensions> exts;
+    //// 根据已知扩展名，先填充文件信息到此
+    //std::map<std::string, std::shared_ptr<FishManage::File_Real>> files;
     std::vector<std::string> soundFileNames;
     size_t i = 0;
     int soundId = 0;

@@ -8,6 +8,11 @@ void MainScene::Welcome() {
 	// 背景
 	CreateBG(this);
 
+	// 上方为分类，过滤，排序 等 查询面板，以及 创建 xxxxx        按钮
+	// 内容做成分页的形式，防止一次性加载太多，速度慢
+	// 页码 页脚在最下方。以及退出
+	// todo:  Filter: [All]  [Sound] 
+
 	// [Browse Files]      [Browse Resources]      [Browse Fishs]
 	cocos2d::Vec2 p(margin, H - lineHeight / 2);
 	auto bBR = CreateButton(p, "[Manage Files]", [this](auto) {

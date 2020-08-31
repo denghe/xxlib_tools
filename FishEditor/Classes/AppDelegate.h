@@ -35,8 +35,8 @@ Private inheritance here hides part of interface from Director.
 class  AppDelegate : private cocos2d::Application
 {
 public:
-    inline static float designWidth = 1280;
-    inline static float designHeight = 720;
+    inline static float designWidth = 1900;//1280;
+    inline static float designHeight = 1000;//720;
 
 
     AppDelegate();
