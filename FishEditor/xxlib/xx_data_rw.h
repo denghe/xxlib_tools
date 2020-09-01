@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "xx_data.h"
 #include <string>
+#include <string_view>
 #include <vector>
 #include <unordered_map>
 #include <map>
@@ -321,6 +322,15 @@ namespace xx {
 		}
 	};
 
+	// 适配 std::string_view ( 写入 变长长度 + 内容 )
+	template<>
+	struct DataFuncs<std::string_view, void> {
+		static inline void Write(DataWriter& dw, std::string_view const& in) {
+			dw.WriteVarIntger(in.size());
+			dw.WriteBuf((char*)in.data(), in.size());
+		}
+	};
+
 	// 适配 std::optional<T>
 	template<typename T>
 	struct DataFuncs<std::optional<T>, void> {
@@ -449,5 +459,20 @@ namespace xx {
         }
     };
 
-    // todo: 适配 std::tuple
+    // 适配 std::tuple<T...>
+    template<typename...T>
+    struct DataFuncs<std::tuple<T...>, void> {
+        static inline void Write(DataWriter& dw, std::tuple<T...> const& in) {
+            std::apply([&](auto const &... args) {
+                dw.Write(args...);
+            }, in);
+        }
+        static inline int Read(DataReader& dr, std::tuple<T...>& out) {
+            int rtv = 0;
+            std::apply([&](auto&... args) {
+                rtv = dr.Read(args...);
+            }, out);
+            return rtv;
+        }
+    };
 }

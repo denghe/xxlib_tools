@@ -1,4 +1,5 @@
-﻿#include "FileExts_class_lite.h"
+﻿#pragma once
+#include "Pathway.h"
 //#include "xx_lua.h"
 //#include <iostream>
 //#include <chrono>
@@ -9,47 +10,6 @@
 //// todo: ajson macro
 //
 //
-
-// 移动路线 -- 点
-struct PathwayPoint {
-	// 2d坐标, 角度, 距离
-	float x = 0, y = 0, a = 0, d = 0;
-	PathwayPoint() = default;
-	PathwayPoint(PathwayPoint const&) = default;
-	PathwayPoint& operator=(PathwayPoint const&) = default;
-	PathwayPoint(float const& x, float const& y, float const& a, float const& d) : x(x), y(y), a(a), d(d) {	}
-	PathwayPoint(FileExts::PathwayPoint const& p) : x(p.x), y(p.y) {}
-};
-
-// 移动路线
-struct Pathway {
-	// 存储创建时读入的文件名
-	std::string fileName;
-
-	// 是否闭合( 是 则 最后一个点 的下一个指向 第一个点 )
-	bool isLoop;
-
-	// 点集合
-	std::vector<PathwayPoint> points;
-};
-
-// 移动路线管理器：负责加载 .pathway 文件，并转为 线段 数据格式 返回
-struct PathwayLoader {
-
-	// 已加载的 pathway 容器
-	std::unordered_map<std::string, std::shared_ptr<Pathway>> pathways;
-
-	// 临时容器
-	std::vector<FileExts::PathwayPoint> bs, cs;
-
-	// 加载并返回一条 移动路线
-	// 如果 pathways 中没找到 就加载文件 并放入
-	std::shared_ptr<Pathway> Load(std::string const& fn);
-
-	// 清除 pathways 值部分引用计数为 1 的 移动路线
-	void RemoveUnused();
-};
-
 
 //// todo: 序列化接口?
 // 动画基类
@@ -75,11 +35,13 @@ struct AnimBase {
 	// 获取锁定坐标
 	[[nodiscard]] virtual std::tuple<float, float> GetLockPoint() const = 0;
 
-	// todo: 坐标，角度，pathway 设置等等?? 两种模式？ 1. pathway 自动驱动   2. 不指定 pathway，每帧外部改坐标驱动？
+	virtual void SetPosition(float const& x, float const& y) = 0;
+	virtual void SetRotation(float const& a) = 0;
+	virtual void SetScale(float const& s) = 0;
+
+	virtual void SetPathway(std::shared_ptr<xx::Pathway> const& pathway) = 0;
 
 	// todo: 直接在这里管理 childs?
-
-
 };
 
 // todo: 附加对文件的加载和显示功能?

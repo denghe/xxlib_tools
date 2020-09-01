@@ -13,8 +13,6 @@
 
 #include "ajson.hpp"
 
-#include "Anim.h"
-
 //#include "Circle.h"
 //#include "DraggingRes.h"
 

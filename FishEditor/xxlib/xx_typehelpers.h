@@ -5,6 +5,30 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <functional>
+#include <stdexcept>
+
+// 先放这
+#define LIKELY(x)       __builtin_expect(!!(x), 1)
+#define UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#define __STRINGFY__(...) #__VA_ARGS__
+#define __LINESTR__ __STRINGFY__(__LINE__)
+
+/************************************************************************************/
+// throw 包一层，方便 coredump 里通过堆栈信息看到 throw 的内容
+/************************************************************************************/
+inline void ThrowRuntimeError(std::string const& s) {
+    throw std::runtime_error(s);
+}
+inline void ThrowRuntimeError(char const* const& s) {
+    throw std::runtime_error(s);
+}
+inline void ThrowLogicError(std::string const& s) {
+    throw std::logic_error(s);
+}
+inline void ThrowLogicError(char const* const& s) {
+    throw std::logic_error(s);
+}
 
 namespace xx {
     struct Data;
@@ -20,6 +44,8 @@ namespace xx {
 
 	template<typename T>
 	struct IsPod<T, std::enable_if_t<std::is_pod_v<T>>> : std::true_type {};
+
+
 
 
     /************************************************************************************/
