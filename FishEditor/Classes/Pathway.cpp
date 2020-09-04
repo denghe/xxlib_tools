@@ -1,32 +1,16 @@
 ﻿#include "MainScene.h"
 #include "Pathway.h"
-
-AJSON(FileExts::PathwayPoint, x, y, tension, numSegments);
-AJSON(FileExts::File_pathway, isLoop, points);
+#include "FileExts_class_lite.ajson.h"
 
 std::shared_ptr<xx::Pathway> PathwayLoader::Load(std::string const& fn) {
 	auto&& iter = pathways.find(fn);
 	// 已存在：短路返回
 	if (iter != pathways.end()) return iter->second;
 
-	char const* buf = nullptr;
-	size_t len = 0;
-#ifdef COCOS2D_VERSION
-	auto d = cocos2d::FileUtils::getInstance()->getDataFromFile(fn);
-	// 错误检查
-	if (d.getSize() == 0) return nullptr;
-	buf = (char*)d.getBytes();
-	len = d.getSize();
-#else
-	xx::Data d;
-	// 错误检查
-	if (xx::ReadAllBytes(fn, d) || !d.len) return nullptr;
-	buf = d.buf;
-	len = d.len;
-#endif
 	FileExts::File_pathway f;
+
 	// 从 json 加载
-	ajson::load_from_buff(f, buf, len); // try catch?
+	if (LoadJson(f, fn)) return nullptr;
 
 	// 准备返回值容器
 	auto rtv = xx::Make<xx::Pathway>();
@@ -38,8 +22,6 @@ std::shared_ptr<xx::Pathway> PathwayLoader::Load(std::string const& fn) {
 	// 点数量需要 >= 2
 	if (siz < 2) return nullptr;
 
-	// 保存文件名
-	rtv->fileName = fn;
 	auto&& rps = rtv->points;
 
 	// 如果只有 2 个点：直线

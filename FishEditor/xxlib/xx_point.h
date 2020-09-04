@@ -63,14 +63,18 @@ namespace xx {
 
         template<typename T>
         explicit PathwayPoint(T const &p) : pos(p.x, p.y) {}
+
+        template<typename T>
+        PathwayPoint& operator=(T const& p) {
+            pos.x = p.x;
+            pos.y = p.y;
+            return *this;
+        }
     };
 
 
     // 移动路线
     struct Pathway {
-        // 存储创建时读入的文件名
-        std::string fileName;
-
         // 是否闭合( 是 则 最后一个点 的下一个指向 第一个点 )
         bool isLoop = false;
 
@@ -84,15 +88,21 @@ namespace xx {
 
         Pathway &operator=(Pathway const &) = delete;
 
-        // 前进: 传入 一共要移动的距离长度( 正数 )，当前点下标，当前点已移动距离，回填坐标 & 角度
+        // 前进: 传入 移动距离( 正数 )，当前点下标，当前点已移动距离，回填坐标 & 角度
         // 返回是否已移动到终点( isLoop == false )
-        bool MoveForward(float total, size_t &i, float &d, xx::Point &pos, float &a) const;
+        bool Forward(float total, size_t &i, float &d, xx::Point &pos, float &a) const;
 
-        // 前进: 传入 一共要移动的距离长度( 正数 )，当前点下标，当前点剩余距离，回填坐标 & 角度
-        // 后退: 返回是否已移动到起点( isLoop == false )
-        bool MoveBack(float total, size_t &i, float &d, xx::Point &pos, float &a) const;
+        // 后退: 传入 移动距离( 正数 )，当前点下标，当前点剩余距离，回填坐标 & 角度
+        // 返回是否已移动到起点( isLoop == false )
+        bool Backward(float total, size_t &i, float &d, xx::Point &pos, float &a) const;
 
-        // 填充 角度 和 距离
+        // 获取起点的数据
+        void Begin(size_t &i, float &d, xx::Point &pos, float &a) const;
+
+        // 获取终点的数据
+        void End(size_t &i, float &d, xx::Point &pos, float &a) const;
+
+        // 针对手工填充了坐标的数据，填充 角度 和 距离
         void FillDA();
     };
 
@@ -111,11 +121,20 @@ namespace xx {
         // 改变最后个点角度( = )
         PathwayMaker &RotateTo(float const &a);
 
+        // 改变最后个点角度指向目标坐标
+        PathwayMaker &RotateTo(xx::Point const &tarPos);
+
         // 改变最后个点角度( + )
         PathwayMaker &RotateBy(float const &a);
 
         // 令最后个点针对 tarPos 计算 a, d, 追加形成新的点，新点.a = 最后个点.a，新点.d = 0
         PathwayMaker &To(xx::Point const &tarPos);
+
+        // RotateTo + Forward
+        PathwayMaker &ForwardTo(xx::Point const &tarPos, float const &d);
+
+        // 从最后个点弹跳前进一段距离，遇到边界会反弹( 类似台球 ). 会在改变角度时形成新的节点
+        PathwayMaker &BounceForward(float d, float const &rectX, float const &rectY, float const &rectW, float const &rectH);
 
         // 令最后个点针对第一个点计算 a, d，标记循环 并返回 pathway 容器
         std::shared_ptr<Pathway> Loop();
@@ -187,11 +206,11 @@ namespace xx {
     template<>
     struct DataFuncs<Pathway, void> {
         static inline void Write(DataWriter &dw, Pathway const &in) {
-            dw.Write(in.fileName, in.isLoop, in.points);
+            dw.Write(in.isLoop, in.points);
         }
 
         static inline int Read(DataReader &dr, Pathway &out) {
-            return dr.Read(out.fileName, out.isLoop, out.points);
+            return dr.Read(out.isLoop, out.points);
         }
     };
 
@@ -199,7 +218,7 @@ namespace xx {
     template<>
     struct StringFuncs<Pathway, void> {
         static inline void Append(std::string &s, Pathway const &in) {
-            xx::Append(s, "{\"fileName\":", in.fileName, ",\"isLoop\"", in.isLoop, ",\"points\"", in.points, '}');
+            xx::Append(s, "{\"isLoop\":", in.isLoop, ",\"points\":", in.points, '}');
         }
     };
 
@@ -314,12 +333,12 @@ namespace xx {
     }
 
 
-    inline bool Pathway::MoveForward(float total, size_t &i, float &d, xx::Point &pos, float &a) const {
+    inline bool Pathway::Forward(float total, size_t &i, float &d, xx::Point &pos, float &a) const {
         auto siz = points.size();
         LabBegin:
         auto left = points[i].d - d;
         // 总距离大于当前点剩余距离：从 total 中减去, 剩余距离清0, i 指向下一个点
-        if (total > left) {
+        if (total >= left) {
             ++i;
             total -= left;
             d = 0;
@@ -346,10 +365,10 @@ namespace xx {
         return false;
     }
 
-    inline bool Pathway::MoveBack(float total, size_t &i, float &d, xx::Point &pos, float &a) const {
+    inline bool Pathway::Backward(float total, size_t &i, float &d, xx::Point &pos, float &a) const {
         auto siz = points.size();
         LabBegin:
-        if (total > d) {
+        if (total >= d) {
             if (isLoop) {
                 i = i ? (i - 1) : (siz - 1);
                 total -= d;
@@ -372,6 +391,20 @@ namespace xx {
         return false;
     }
 
+
+    inline void Pathway::Begin(size_t &i, float &d, xx::Point &pos, float &a) const {
+        i = 0;
+        d = 0;
+        pos = points[0].pos;
+        a = points[0].a;
+    }
+
+    inline void Pathway::End(size_t &i, float &d, xx::Point &pos, float &a) const {
+        i = points.size() - 1;
+        d = points[i].d;
+        pos = points[i].pos;
+        a = points[i].a;
+    }
 
     inline void Pathway::FillDA() {
         auto n = points.size() - 1;
@@ -396,8 +429,11 @@ namespace xx {
     }
 
     inline PathwayMaker &PathwayMaker::Forward(float const &d) {
-        auto a = pathway->points.back().a;
-        pathway->points.emplace_back(xx::Rotate(xx::Point{d, 0}, a)).a = a;
+        auto &&p = pathway->points.back();
+        p.d = d;
+        auto a = p.a;
+        auto pos = p.pos;
+        pathway->points.emplace_back(xx::Rotate(xx::Point{d, 0}, a) + pos).a = a;
         return *this;
     }
 
@@ -405,6 +441,12 @@ namespace xx {
         pathway->points.back().a = a;
         return *this;
     }
+
+    inline PathwayMaker &PathwayMaker::RotateTo(xx::Point const &tarPos) {
+        pathway->points.back().a = GetAngle(pathway->points.back().pos, tarPos);
+        return *this;
+    }
+
     inline PathwayMaker &PathwayMaker::RotateBy(float const &a) {
         pathway->points.back().a += a;
         return *this;
@@ -417,6 +459,20 @@ namespace xx {
         pathway->points.emplace_back(tarPos).a = a;
         return *this;
     }
+
+    inline  PathwayMaker &PathwayMaker::ForwardTo(xx::Point const &tarPos, float const &d) {
+        pathway->points.back().a = GetAngle(pathway->points.back().pos, tarPos);
+        Forward(d);
+        return *this;
+    }
+
+    inline PathwayMaker &PathwayMaker::BounceForward(float d, float const &rectX, float const &rectY, float const &rectW, float const &rectH) {
+        // todo：根据 rect 求出 4 条边界的坐标，依次和 当前点 前进 d 产生的 线段 判断 相交？
+        // 如果有交点，根据边界方位，计算反弹角度? 令 d 减去 出发点到交点的距离？
+        // 如果 d 还有剩，使用新的角度前进并找交点？
+        return *this;
+    }
+
 
     inline std::shared_ptr<Pathway> PathwayMaker::Loop() {
         auto &&p1 = pathway->points.back();

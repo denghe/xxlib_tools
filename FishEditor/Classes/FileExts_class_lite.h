@@ -3,7 +3,7 @@
 #include "FileExts_class_lite.h.inc"  // user create it for extend include files
 namespace FileExts {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<f9a23c14cfb89685b624ac2272c526a4>*#";
+		inline static const std::string value = "#*MD5<325b28c13ee30523cba6b18e9c88c4dc>*#";
     };
 	struct PkgGenTypes {
         static void RegisterTo(xx::ObjectHelper& oh);
@@ -79,14 +79,6 @@ namespace FileExts {
         // 时间点--精灵帧 集合( spine, c3b 时该集合为 0 长 )
         std::vector<FileExts::TimePoint_Frame> fs;
     };
-    // 动画 配置文件基类
-    struct File_Anim {
-        XX_GENCODE_STRUCT_H(File_Anim)
-        // 目标文件名
-        std::string fileName;
-        // 动作集合
-        std::vector<FileExts::Action> actions;
-    };
     // 移动路线--点
     struct PathwayPoint {
         XX_GENCODE_STRUCT_H(PathwayPoint)
@@ -98,17 +90,11 @@ namespace FileExts {
         int32_t numSegments = 0;
 #include "FileExts_PathwayPoint.inc"
     };
-    // 精灵帧动画 配置文件( *.frames )
-    struct File_frames : FileExts::File_Anim {
-        XX_GENCODE_STRUCT_H(File_frames)
-    };
-    // spine 配置文件( *.atlas.ext )
-    struct File_atlas_ext : FileExts::File_Anim {
-        XX_GENCODE_STRUCT_H(File_atlas_ext)
-    };
-    // c3b 配置文件( *.c3b.ext )
-    struct File_c3b_ext : FileExts::File_Anim {
-        XX_GENCODE_STRUCT_H(File_c3b_ext)
+    // 动画 配置文件( *.frames, *.atlas.ext, *.c3b.ext 
+    struct File_Anim {
+        XX_GENCODE_STRUCT_H(File_Anim)
+        // 动作集合
+        std::vector<FileExts::Action> actions;
     };
     // 移动路线 配置文件 *.pathway
     struct File_pathway {
@@ -226,21 +212,6 @@ namespace xx {
 		static void Clone2(ObjectHelper &oh, FileExts::Action const& in, FileExts::Action& out);
 	};
 	template<>
-	struct StringFuncsEx<FileExts::File_Anim, void> {
-		static void Append(ObjectHelper &oh, FileExts::File_Anim const& in);
-		static void AppendCore(ObjectHelper &oh, FileExts::File_Anim const& in);
-    };
-	template<>
-	struct DataFuncsEx<FileExts::File_Anim, void> {
-		static void Write(DataWriterEx& dw, FileExts::File_Anim const& in);
-		static int Read(DataReaderEx& dr, FileExts::File_Anim& out);
-	};
-    template<>
-	struct CloneFuncs<FileExts::File_Anim, void> {
-		static void Clone1(ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim& out);
-		static void Clone2(ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim& out);
-	};
-	template<>
 	struct StringFuncsEx<FileExts::PathwayPoint, void> {
 		static void Append(ObjectHelper &oh, FileExts::PathwayPoint const& in);
 		static void AppendCore(ObjectHelper &oh, FileExts::PathwayPoint const& in);
@@ -256,49 +227,19 @@ namespace xx {
 		static void Clone2(ObjectHelper &oh, FileExts::PathwayPoint const& in, FileExts::PathwayPoint& out);
 	};
 	template<>
-	struct StringFuncsEx<FileExts::File_frames, void> {
-		static void Append(ObjectHelper &oh, FileExts::File_frames const& in);
-		static void AppendCore(ObjectHelper &oh, FileExts::File_frames const& in);
+	struct StringFuncsEx<FileExts::File_Anim, void> {
+		static void Append(ObjectHelper &oh, FileExts::File_Anim const& in);
+		static void AppendCore(ObjectHelper &oh, FileExts::File_Anim const& in);
     };
 	template<>
-	struct DataFuncsEx<FileExts::File_frames, void> {
-		static void Write(DataWriterEx& dw, FileExts::File_frames const& in);
-		static int Read(DataReaderEx& dr, FileExts::File_frames& out);
+	struct DataFuncsEx<FileExts::File_Anim, void> {
+		static void Write(DataWriterEx& dw, FileExts::File_Anim const& in);
+		static int Read(DataReaderEx& dr, FileExts::File_Anim& out);
 	};
     template<>
-	struct CloneFuncs<FileExts::File_frames, void> {
-		static void Clone1(ObjectHelper &oh, FileExts::File_frames const& in, FileExts::File_frames& out);
-		static void Clone2(ObjectHelper &oh, FileExts::File_frames const& in, FileExts::File_frames& out);
-	};
-	template<>
-	struct StringFuncsEx<FileExts::File_atlas_ext, void> {
-		static void Append(ObjectHelper &oh, FileExts::File_atlas_ext const& in);
-		static void AppendCore(ObjectHelper &oh, FileExts::File_atlas_ext const& in);
-    };
-	template<>
-	struct DataFuncsEx<FileExts::File_atlas_ext, void> {
-		static void Write(DataWriterEx& dw, FileExts::File_atlas_ext const& in);
-		static int Read(DataReaderEx& dr, FileExts::File_atlas_ext& out);
-	};
-    template<>
-	struct CloneFuncs<FileExts::File_atlas_ext, void> {
-		static void Clone1(ObjectHelper &oh, FileExts::File_atlas_ext const& in, FileExts::File_atlas_ext& out);
-		static void Clone2(ObjectHelper &oh, FileExts::File_atlas_ext const& in, FileExts::File_atlas_ext& out);
-	};
-	template<>
-	struct StringFuncsEx<FileExts::File_c3b_ext, void> {
-		static void Append(ObjectHelper &oh, FileExts::File_c3b_ext const& in);
-		static void AppendCore(ObjectHelper &oh, FileExts::File_c3b_ext const& in);
-    };
-	template<>
-	struct DataFuncsEx<FileExts::File_c3b_ext, void> {
-		static void Write(DataWriterEx& dw, FileExts::File_c3b_ext const& in);
-		static int Read(DataReaderEx& dr, FileExts::File_c3b_ext& out);
-	};
-    template<>
-	struct CloneFuncs<FileExts::File_c3b_ext, void> {
-		static void Clone1(ObjectHelper &oh, FileExts::File_c3b_ext const& in, FileExts::File_c3b_ext& out);
-		static void Clone2(ObjectHelper &oh, FileExts::File_c3b_ext const& in, FileExts::File_c3b_ext& out);
+	struct CloneFuncs<FileExts::File_Anim, void> {
+		static void Clone1(ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim& out);
+		static void Clone2(ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim& out);
 	};
 	template<>
 	struct StringFuncsEx<FileExts::File_pathway, void> {

@@ -251,36 +251,6 @@ namespace xx {
         xx::AppendEx(oh, ",\"ss\":", in.ss);
         xx::AppendEx(oh, ",\"fs\":", in.fs);
     }
-    void CloneFuncs<FileExts::File_Anim>::Clone1(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
-        CloneFuncs<std::string>::Clone1(oh, in.fileName, out.fileName);
-        CloneFuncs<std::vector<FileExts::Action>>::Clone1(oh, in.actions, out.actions);
-    }
-    void CloneFuncs<FileExts::File_Anim>::Clone2(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
-        CloneFuncs<std::string>::Clone2(oh, in.fileName, out.fileName);
-        CloneFuncs<std::vector<FileExts::Action>>::Clone2(oh, in.actions, out.actions);
-    }
-	void DataFuncsEx<FileExts::File_Anim, void>::Write(DataWriterEx& dw, FileExts::File_Anim const& in) {
-        dw.Write(in.fileName);
-        dw.Write(in.actions);
-    }
-	int DataFuncsEx<FileExts::File_Anim, void>::Read(DataReaderEx& d, FileExts::File_Anim& out) {
-        if (int r = d.Read(out.fileName)) return r;
-        if (int r = d.Read(out.actions)) return r;
-        return 0;
-    }
-	void StringFuncsEx<FileExts::File_Anim, void>::Append(ObjectHelper &oh, FileExts::File_Anim const& in) {
-        oh.s.push_back('{');
-        AppendCore(oh, in);
-        oh.s.push_back('}');
-    }
-	void StringFuncsEx<FileExts::File_Anim, void>::AppendCore(ObjectHelper &oh, FileExts::File_Anim const& in) {
-        auto sizeBak = oh.s.size();
-        if (sizeBak == oh.s.size()) {
-            oh.s.push_back(',');
-        }
-        xx::AppendEx(oh, "\"fileName\":", in.fileName); 
-        xx::AppendEx(oh, ",\"actions\":", in.actions);
-    }
     void CloneFuncs<FileExts::PathwayPoint>::Clone1(xx::ObjectHelper &oh, FileExts::PathwayPoint const& in, FileExts::PathwayPoint &out) {
         CloneFuncs<float>::Clone1(oh, in.x, out.x);
         CloneFuncs<float>::Clone1(oh, in.y, out.y);
@@ -321,71 +291,30 @@ namespace xx {
         xx::AppendEx(oh, ",\"tension\":", in.tension);
         xx::AppendEx(oh, ",\"numSegments\":", in.numSegments);
     }
-    void CloneFuncs<FileExts::File_frames>::Clone1(xx::ObjectHelper &oh, FileExts::File_frames const& in, FileExts::File_frames &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone1(oh, in, out);
+    void CloneFuncs<FileExts::File_Anim>::Clone1(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
+        CloneFuncs<std::vector<FileExts::Action>>::Clone1(oh, in.actions, out.actions);
     }
-    void CloneFuncs<FileExts::File_frames>::Clone2(xx::ObjectHelper &oh, FileExts::File_frames const& in, FileExts::File_frames &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone2(oh, in, out);
+    void CloneFuncs<FileExts::File_Anim>::Clone2(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
+        CloneFuncs<std::vector<FileExts::Action>>::Clone2(oh, in.actions, out.actions);
     }
-	void DataFuncsEx<FileExts::File_frames, void>::Write(DataWriterEx& dw, FileExts::File_frames const& in) {
-        DataFuncsEx<FileExts::File_Anim>::Write(dw, in);
+	void DataFuncsEx<FileExts::File_Anim, void>::Write(DataWriterEx& dw, FileExts::File_Anim const& in) {
+        dw.Write(in.actions);
     }
-	int DataFuncsEx<FileExts::File_frames, void>::Read(DataReaderEx& d, FileExts::File_frames& out) {
-        if (int r = DataFuncsEx<FileExts::File_Anim>::Read(d, out)) return r;
+	int DataFuncsEx<FileExts::File_Anim, void>::Read(DataReaderEx& d, FileExts::File_Anim& out) {
+        if (int r = d.Read(out.actions)) return r;
         return 0;
     }
-	void StringFuncsEx<FileExts::File_frames, void>::Append(ObjectHelper &oh, FileExts::File_frames const& in) {
+	void StringFuncsEx<FileExts::File_Anim, void>::Append(ObjectHelper &oh, FileExts::File_Anim const& in) {
         oh.s.push_back('{');
         AppendCore(oh, in);
         oh.s.push_back('}');
     }
-	void StringFuncsEx<FileExts::File_frames, void>::AppendCore(ObjectHelper &oh, FileExts::File_frames const& in) {
+	void StringFuncsEx<FileExts::File_Anim, void>::AppendCore(ObjectHelper &oh, FileExts::File_Anim const& in) {
         auto sizeBak = oh.s.size();
-        StringFuncsEx<FileExts::File_Anim>::AppendCore(oh, in);
-    }
-    void CloneFuncs<FileExts::File_atlas_ext>::Clone1(xx::ObjectHelper &oh, FileExts::File_atlas_ext const& in, FileExts::File_atlas_ext &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone1(oh, in, out);
-    }
-    void CloneFuncs<FileExts::File_atlas_ext>::Clone2(xx::ObjectHelper &oh, FileExts::File_atlas_ext const& in, FileExts::File_atlas_ext &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone2(oh, in, out);
-    }
-	void DataFuncsEx<FileExts::File_atlas_ext, void>::Write(DataWriterEx& dw, FileExts::File_atlas_ext const& in) {
-        DataFuncsEx<FileExts::File_Anim>::Write(dw, in);
-    }
-	int DataFuncsEx<FileExts::File_atlas_ext, void>::Read(DataReaderEx& d, FileExts::File_atlas_ext& out) {
-        if (int r = DataFuncsEx<FileExts::File_Anim>::Read(d, out)) return r;
-        return 0;
-    }
-	void StringFuncsEx<FileExts::File_atlas_ext, void>::Append(ObjectHelper &oh, FileExts::File_atlas_ext const& in) {
-        oh.s.push_back('{');
-        AppendCore(oh, in);
-        oh.s.push_back('}');
-    }
-	void StringFuncsEx<FileExts::File_atlas_ext, void>::AppendCore(ObjectHelper &oh, FileExts::File_atlas_ext const& in) {
-        auto sizeBak = oh.s.size();
-        StringFuncsEx<FileExts::File_Anim>::AppendCore(oh, in);
-    }
-    void CloneFuncs<FileExts::File_c3b_ext>::Clone1(xx::ObjectHelper &oh, FileExts::File_c3b_ext const& in, FileExts::File_c3b_ext &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone1(oh, in, out);
-    }
-    void CloneFuncs<FileExts::File_c3b_ext>::Clone2(xx::ObjectHelper &oh, FileExts::File_c3b_ext const& in, FileExts::File_c3b_ext &out) {
-        CloneFuncs<FileExts::File_Anim>::Clone2(oh, in, out);
-    }
-	void DataFuncsEx<FileExts::File_c3b_ext, void>::Write(DataWriterEx& dw, FileExts::File_c3b_ext const& in) {
-        DataFuncsEx<FileExts::File_Anim>::Write(dw, in);
-    }
-	int DataFuncsEx<FileExts::File_c3b_ext, void>::Read(DataReaderEx& d, FileExts::File_c3b_ext& out) {
-        if (int r = DataFuncsEx<FileExts::File_Anim>::Read(d, out)) return r;
-        return 0;
-    }
-	void StringFuncsEx<FileExts::File_c3b_ext, void>::Append(ObjectHelper &oh, FileExts::File_c3b_ext const& in) {
-        oh.s.push_back('{');
-        AppendCore(oh, in);
-        oh.s.push_back('}');
-    }
-	void StringFuncsEx<FileExts::File_c3b_ext, void>::AppendCore(ObjectHelper &oh, FileExts::File_c3b_ext const& in) {
-        auto sizeBak = oh.s.size();
-        StringFuncsEx<FileExts::File_Anim>::AppendCore(oh, in);
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
+        }
+        xx::AppendEx(oh, "\"actions\":", in.actions); 
     }
     void CloneFuncs<FileExts::File_pathway>::Clone1(xx::ObjectHelper &oh, FileExts::File_pathway const& in, FileExts::File_pathway &out) {
         CloneFuncs<bool>::Clone1(oh, in.isLoop, out.isLoop);
@@ -482,14 +411,6 @@ namespace FileExts {
         std::swap(this->fs, o.fs);
         return *this;
     }
-    File_Anim::File_Anim(File_Anim&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    File_Anim& File_Anim::operator=(File_Anim&& o) noexcept {
-        std::swap(this->fileName, o.fileName);
-        std::swap(this->actions, o.actions);
-        return *this;
-    }
     PathwayPoint::PathwayPoint(PathwayPoint&& o) noexcept {
         this->operator=(std::move(o));
     }
@@ -500,25 +421,11 @@ namespace FileExts {
         std::swap(this->numSegments, o.numSegments);
         return *this;
     }
-    File_frames::File_frames(File_frames&& o) noexcept {
+    File_Anim::File_Anim(File_Anim&& o) noexcept {
         this->operator=(std::move(o));
     }
-    File_frames& File_frames::operator=(File_frames&& o) noexcept {
-        this->FileExts::File_Anim::operator=(std::move(o));
-        return *this;
-    }
-    File_atlas_ext::File_atlas_ext(File_atlas_ext&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    File_atlas_ext& File_atlas_ext::operator=(File_atlas_ext&& o) noexcept {
-        this->FileExts::File_Anim::operator=(std::move(o));
-        return *this;
-    }
-    File_c3b_ext::File_c3b_ext(File_c3b_ext&& o) noexcept {
-        this->operator=(std::move(o));
-    }
-    File_c3b_ext& File_c3b_ext::operator=(File_c3b_ext&& o) noexcept {
-        this->FileExts::File_Anim::operator=(std::move(o));
+    File_Anim& File_Anim::operator=(File_Anim&& o) noexcept {
+        std::swap(this->actions, o.actions);
         return *this;
     }
     File_pathway::File_pathway(File_pathway&& o) noexcept {

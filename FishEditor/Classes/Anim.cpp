@@ -1,53 +1,114 @@
 ﻿#include "MainScene.h"
 #include "Anim.h"
-#include "Pathway.h"
-//#include "xx_object.h"
+#include "FileExts_class_lite.ajson.h"
+
 //#include "xx_lua.h"
 //#include <iostream>
 //#include <chrono>
-//
 //namespace XL = xx::Lua;
 
-// 内部函数. 被 Update 调用。确保传入的 经历时长 不会超出当前 timeLine 的范围. 返回距离
-float Anim::UpdateCore(float elapsedSeconds) {
+
+
+int Anim::Load(std::string const& fn) {
+	animType = AnimTypes::Unknown;
+	std::string ofn;
+
+	// 检查文件名是否合法, 分析文件类型
+	const auto exts = xx::GetFileNameExts(fn);
+	if (exts.first == ".frames") {
+		animType = AnimTypes::Frames;
+		ofn = fn;
+	}
+	else if (exts.first == ".ext") {
+		if (exts.second == ".atlas") {
+			animType = AnimTypes::Atlas;
+			ofn = fn.substr(0, fn.size() - exts.first.size());
+		}
+		else if (exts.second == ".c3b") {
+			animType = AnimTypes::C3b;
+			ofn = fn.substr(0, fn.size() - exts.first.size());
+		}
+		else return -2;
+	}
+	else return -3;
+
+	xx::MakeTo(anim);
+	if (int r = LoadJson(*anim, fn)) return r;
+	if (anim->actions.empty()) return -4;
+	action = &anim->actions[0];
+
+	switch (animType) {
+	case AnimTypes::Frames:
+		// 没有源文件可加载
+		break;
+	case AnimTypes::Atlas:
+		// todo: 加载源文件
+		// todo: 加载第一个动作?
+		break;
+	case AnimTypes::C3b:
+		// todo: 加载源文件
+		// todo: 加载第一个动作?
+		break;
+	}
+}
+
+int Anim::ActionEnd() {
+	// 当前逻辑是 repeat
+	totalElapsedSeconds = 0;
+	lpsCursor = 0;
+	cdsCursor = 0;
+	ssCursor = 0;
+	fsCursor = 0;
+	return 0;
+}
+
+int Anim::Move(float const& distance) {
+	if (!pathway) return 0;
+	// 根据 speedScale 来揣测移动方向
+	if (speedScale == 0) return 0;
+	else if (speedScale > 0) {
+		pathway->Forward(distance, pathwayI, pathwayD, pos, angle);
+	}
+	else {
+		pathway->Backward(distance, pathwayI, pathwayD, pos, angle);
+	}
+	return 0;
+}
+
+int Anim::Update(float elapsedSeconds) {
+	float d = 0;
 	// 判断下一个 tp 时间是否在范围内. 如果没有下一个 tp 或 时间点不在当前范围，则直接计算并返回
 	// 如果有，则计算当前时间点到它的时间的跨度，应用该时间点数据并计算一波，从 elapsedSeconds 扣除该跨度
 	// 如果 elapsedSeconds 还有剩余，则跳转到开头重复这一过程
-	float rtv = 0;
-	auto&& ss = action->ss;
-	if (ss.empty()) return rtv;
-LabBegin:
-	auto next = ss.data() + ssCursor + 1;   // 跳过越界检查
-	if (ss.size() > ssCursor + 1 && next->time <= totalElapsedSeconds + elapsedSeconds) {
-		auto es = next->time - totalElapsedSeconds;
-		rtv += ss[ssCursor++].speed * es;
-		elapsedSeconds -= es;
-		totalElapsedSeconds = next->time;
-		goto LabBegin;
-	}
-	else {
-		totalElapsedSeconds += elapsedSeconds;
-		rtv += ss[ssCursor].speed * elapsedSeconds;
-	}
-	return rtv;
-}
-
-
-// 只实现了更新指针和计算移动距离。更新显示要覆写
-float Anim::Update(float elapsedSeconds) {
-	float rtv = 0;
+	auto Calc = [&](float es) {
+		auto&& ss = action->ss;
+		if (ss.empty()) return;
+	LabBegin:
+		auto next = ss.data() + ssCursor + 1;   // 跳过越界检查
+		if (ss.size() > ssCursor + 1 && next->time <= totalElapsedSeconds + es) {
+			auto es = next->time - totalElapsedSeconds;
+			d += ss[ssCursor++].speed * es;
+			es -= es;
+			totalElapsedSeconds = next->time;
+			goto LabBegin;
+		}
+		else {
+			totalElapsedSeconds += es;
+			d += ss[ssCursor].speed * es;
+		}
+	};
 LabBegin:
 	// 计算距离
 	// 判断传入时长是否会超出当前 timeLine 的范围. 如果有超出则切割计算
 	auto left = action->totalSeconds - totalElapsedSeconds;
 	if (elapsedSeconds > left) {
 		elapsedSeconds -= left;
-		rtv += UpdateCore(left);
-		if (!OnFinish()) return rtv;
+		Calc(left);
+		if (int r = ActionEnd()) return r;
 		goto LabBegin;
 	}
 	else {
-		rtv += UpdateCore(elapsedSeconds);
+		Calc(elapsedSeconds);
 		// 同步 锁定，碰撞，帧 游标( 此时 totalElapsedSeconds 已经 + 了 elapsedSeconds )
 		while (action->lps.size() > lpsCursor + 1 && action->lps[lpsCursor + 1].time <= totalElapsedSeconds) {
 			++lpsCursor;
@@ -59,17 +120,8 @@ LabBegin:
 			++fsCursor;
 		}
 	}
-	return rtv;
-}
-
-bool Anim::OnFinish() {
-	// 当前逻辑是 repeat
-	totalElapsedSeconds = 0;
-	lpsCursor = 0;
-	cdsCursor = 0;
-	ssCursor = 0;
-	fsCursor = 0;
-	return true;
+	// 用算出来的距离在 pathway 上移动
+	return Move(d);
 }
 
 // 判断 点(r == 0) 或 圆 是否和单个 cdCircle 相交
