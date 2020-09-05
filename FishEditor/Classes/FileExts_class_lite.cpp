@@ -201,45 +201,76 @@ namespace xx {
         xx::AppendEx(oh, "\"time\":", in.time); 
         xx::AppendEx(oh, ",\"picName\":", in.picName);
     }
-    void CloneFuncs<FileExts::Action>::Clone1(xx::ObjectHelper &oh, FileExts::Action const& in, FileExts::Action &out) {
+    void CloneFuncs<FileExts::Action_Frames>::Clone1(xx::ObjectHelper &oh, FileExts::Action_Frames const& in, FileExts::Action_Frames &out) {
+        CloneFuncs<std::string>::Clone1(oh, in.name, out.name);
+        CloneFuncs<float>::Clone1(oh, in.totalSeconds, out.totalSeconds);
+        CloneFuncs<std::vector<FileExts::TimePoint_Frame>>::Clone1(oh, in.frames, out.frames);
+    }
+    void CloneFuncs<FileExts::Action_Frames>::Clone2(xx::ObjectHelper &oh, FileExts::Action_Frames const& in, FileExts::Action_Frames &out) {
+        CloneFuncs<std::string>::Clone2(oh, in.name, out.name);
+        CloneFuncs<float>::Clone2(oh, in.totalSeconds, out.totalSeconds);
+        CloneFuncs<std::vector<FileExts::TimePoint_Frame>>::Clone2(oh, in.frames, out.frames);
+    }
+	void DataFuncsEx<FileExts::Action_Frames, void>::Write(DataWriterEx& dw, FileExts::Action_Frames const& in) {
+        dw.Write(in.name);
+        dw.Write(in.totalSeconds);
+        dw.Write(in.frames);
+    }
+	int DataFuncsEx<FileExts::Action_Frames, void>::Read(DataReaderEx& d, FileExts::Action_Frames& out) {
+        if (int r = d.Read(out.name)) return r;
+        if (int r = d.Read(out.totalSeconds)) return r;
+        if (int r = d.Read(out.frames)) return r;
+        return 0;
+    }
+	void StringFuncsEx<FileExts::Action_Frames, void>::Append(ObjectHelper &oh, FileExts::Action_Frames const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
+    }
+	void StringFuncsEx<FileExts::Action_Frames, void>::AppendCore(ObjectHelper &oh, FileExts::Action_Frames const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
+        }
+        xx::AppendEx(oh, "\"name\":", in.name); 
+        xx::AppendEx(oh, ",\"totalSeconds\":", in.totalSeconds);
+        xx::AppendEx(oh, ",\"frames\":", in.frames);
+    }
+    void CloneFuncs<FileExts::Action_AnimExt>::Clone1(xx::ObjectHelper &oh, FileExts::Action_AnimExt const& in, FileExts::Action_AnimExt &out) {
         CloneFuncs<std::string>::Clone1(oh, in.name, out.name);
         CloneFuncs<float>::Clone1(oh, in.totalSeconds, out.totalSeconds);
         CloneFuncs<std::vector<FileExts::TimePoint_LockPoints>>::Clone1(oh, in.lps, out.lps);
         CloneFuncs<std::vector<FileExts::TimePoint_CDCircles>>::Clone1(oh, in.cds, out.cds);
         CloneFuncs<std::vector<FileExts::TimePoint_Speed>>::Clone1(oh, in.ss, out.ss);
-        CloneFuncs<std::vector<FileExts::TimePoint_Frame>>::Clone1(oh, in.fs, out.fs);
     }
-    void CloneFuncs<FileExts::Action>::Clone2(xx::ObjectHelper &oh, FileExts::Action const& in, FileExts::Action &out) {
+    void CloneFuncs<FileExts::Action_AnimExt>::Clone2(xx::ObjectHelper &oh, FileExts::Action_AnimExt const& in, FileExts::Action_AnimExt &out) {
         CloneFuncs<std::string>::Clone2(oh, in.name, out.name);
         CloneFuncs<float>::Clone2(oh, in.totalSeconds, out.totalSeconds);
         CloneFuncs<std::vector<FileExts::TimePoint_LockPoints>>::Clone2(oh, in.lps, out.lps);
         CloneFuncs<std::vector<FileExts::TimePoint_CDCircles>>::Clone2(oh, in.cds, out.cds);
         CloneFuncs<std::vector<FileExts::TimePoint_Speed>>::Clone2(oh, in.ss, out.ss);
-        CloneFuncs<std::vector<FileExts::TimePoint_Frame>>::Clone2(oh, in.fs, out.fs);
     }
-	void DataFuncsEx<FileExts::Action, void>::Write(DataWriterEx& dw, FileExts::Action const& in) {
+	void DataFuncsEx<FileExts::Action_AnimExt, void>::Write(DataWriterEx& dw, FileExts::Action_AnimExt const& in) {
         dw.Write(in.name);
         dw.Write(in.totalSeconds);
         dw.Write(in.lps);
         dw.Write(in.cds);
         dw.Write(in.ss);
-        dw.Write(in.fs);
     }
-	int DataFuncsEx<FileExts::Action, void>::Read(DataReaderEx& d, FileExts::Action& out) {
+	int DataFuncsEx<FileExts::Action_AnimExt, void>::Read(DataReaderEx& d, FileExts::Action_AnimExt& out) {
         if (int r = d.Read(out.name)) return r;
         if (int r = d.Read(out.totalSeconds)) return r;
         if (int r = d.Read(out.lps)) return r;
         if (int r = d.Read(out.cds)) return r;
         if (int r = d.Read(out.ss)) return r;
-        if (int r = d.Read(out.fs)) return r;
         return 0;
     }
-	void StringFuncsEx<FileExts::Action, void>::Append(ObjectHelper &oh, FileExts::Action const& in) {
+	void StringFuncsEx<FileExts::Action_AnimExt, void>::Append(ObjectHelper &oh, FileExts::Action_AnimExt const& in) {
         oh.s.push_back('{');
         AppendCore(oh, in);
         oh.s.push_back('}');
     }
-	void StringFuncsEx<FileExts::Action, void>::AppendCore(ObjectHelper &oh, FileExts::Action const& in) {
+	void StringFuncsEx<FileExts::Action_AnimExt, void>::AppendCore(ObjectHelper &oh, FileExts::Action_AnimExt const& in) {
         auto sizeBak = oh.s.size();
         if (sizeBak == oh.s.size()) {
             oh.s.push_back(',');
@@ -249,7 +280,6 @@ namespace xx {
         xx::AppendEx(oh, ",\"lps\":", in.lps);
         xx::AppendEx(oh, ",\"cds\":", in.cds);
         xx::AppendEx(oh, ",\"ss\":", in.ss);
-        xx::AppendEx(oh, ",\"fs\":", in.fs);
     }
     void CloneFuncs<FileExts::PathwayPoint>::Clone1(xx::ObjectHelper &oh, FileExts::PathwayPoint const& in, FileExts::PathwayPoint &out) {
         CloneFuncs<float>::Clone1(oh, in.x, out.x);
@@ -291,25 +321,55 @@ namespace xx {
         xx::AppendEx(oh, ",\"tension\":", in.tension);
         xx::AppendEx(oh, ",\"numSegments\":", in.numSegments);
     }
-    void CloneFuncs<FileExts::File_Anim>::Clone1(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
-        CloneFuncs<std::vector<FileExts::Action>>::Clone1(oh, in.actions, out.actions);
+    void CloneFuncs<FileExts::File_Frames>::Clone1(xx::ObjectHelper &oh, FileExts::File_Frames const& in, FileExts::File_Frames &out) {
+        CloneFuncs<std::vector<FileExts::Action_Frames>>::Clone1(oh, in.actions, out.actions);
+        CloneFuncs<std::vector<std::string>>::Clone1(oh, in.plists, out.plists);
     }
-    void CloneFuncs<FileExts::File_Anim>::Clone2(xx::ObjectHelper &oh, FileExts::File_Anim const& in, FileExts::File_Anim &out) {
-        CloneFuncs<std::vector<FileExts::Action>>::Clone2(oh, in.actions, out.actions);
+    void CloneFuncs<FileExts::File_Frames>::Clone2(xx::ObjectHelper &oh, FileExts::File_Frames const& in, FileExts::File_Frames &out) {
+        CloneFuncs<std::vector<FileExts::Action_Frames>>::Clone2(oh, in.actions, out.actions);
+        CloneFuncs<std::vector<std::string>>::Clone2(oh, in.plists, out.plists);
     }
-	void DataFuncsEx<FileExts::File_Anim, void>::Write(DataWriterEx& dw, FileExts::File_Anim const& in) {
+	void DataFuncsEx<FileExts::File_Frames, void>::Write(DataWriterEx& dw, FileExts::File_Frames const& in) {
         dw.Write(in.actions);
+        dw.Write(in.plists);
     }
-	int DataFuncsEx<FileExts::File_Anim, void>::Read(DataReaderEx& d, FileExts::File_Anim& out) {
+	int DataFuncsEx<FileExts::File_Frames, void>::Read(DataReaderEx& d, FileExts::File_Frames& out) {
         if (int r = d.Read(out.actions)) return r;
+        if (int r = d.Read(out.plists)) return r;
         return 0;
     }
-	void StringFuncsEx<FileExts::File_Anim, void>::Append(ObjectHelper &oh, FileExts::File_Anim const& in) {
+	void StringFuncsEx<FileExts::File_Frames, void>::Append(ObjectHelper &oh, FileExts::File_Frames const& in) {
         oh.s.push_back('{');
         AppendCore(oh, in);
         oh.s.push_back('}');
     }
-	void StringFuncsEx<FileExts::File_Anim, void>::AppendCore(ObjectHelper &oh, FileExts::File_Anim const& in) {
+	void StringFuncsEx<FileExts::File_Frames, void>::AppendCore(ObjectHelper &oh, FileExts::File_Frames const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
+        }
+        xx::AppendEx(oh, "\"actions\":", in.actions); 
+        xx::AppendEx(oh, ",\"plists\":", in.plists);
+    }
+    void CloneFuncs<FileExts::File_AnimExt>::Clone1(xx::ObjectHelper &oh, FileExts::File_AnimExt const& in, FileExts::File_AnimExt &out) {
+        CloneFuncs<std::vector<FileExts::Action_AnimExt>>::Clone1(oh, in.actions, out.actions);
+    }
+    void CloneFuncs<FileExts::File_AnimExt>::Clone2(xx::ObjectHelper &oh, FileExts::File_AnimExt const& in, FileExts::File_AnimExt &out) {
+        CloneFuncs<std::vector<FileExts::Action_AnimExt>>::Clone2(oh, in.actions, out.actions);
+    }
+	void DataFuncsEx<FileExts::File_AnimExt, void>::Write(DataWriterEx& dw, FileExts::File_AnimExt const& in) {
+        dw.Write(in.actions);
+    }
+	int DataFuncsEx<FileExts::File_AnimExt, void>::Read(DataReaderEx& d, FileExts::File_AnimExt& out) {
+        if (int r = d.Read(out.actions)) return r;
+        return 0;
+    }
+	void StringFuncsEx<FileExts::File_AnimExt, void>::Append(ObjectHelper &oh, FileExts::File_AnimExt const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
+    }
+	void StringFuncsEx<FileExts::File_AnimExt, void>::AppendCore(ObjectHelper &oh, FileExts::File_AnimExt const& in) {
         auto sizeBak = oh.s.size();
         if (sizeBak == oh.s.size()) {
             oh.s.push_back(',');
@@ -399,16 +459,24 @@ namespace FileExts {
         std::swap(this->picName, o.picName);
         return *this;
     }
-    Action::Action(Action&& o) noexcept {
+    Action_Frames::Action_Frames(Action_Frames&& o) noexcept {
         this->operator=(std::move(o));
     }
-    Action& Action::operator=(Action&& o) noexcept {
+    Action_Frames& Action_Frames::operator=(Action_Frames&& o) noexcept {
+        std::swap(this->name, o.name);
+        std::swap(this->totalSeconds, o.totalSeconds);
+        std::swap(this->frames, o.frames);
+        return *this;
+    }
+    Action_AnimExt::Action_AnimExt(Action_AnimExt&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    Action_AnimExt& Action_AnimExt::operator=(Action_AnimExt&& o) noexcept {
         std::swap(this->name, o.name);
         std::swap(this->totalSeconds, o.totalSeconds);
         std::swap(this->lps, o.lps);
         std::swap(this->cds, o.cds);
         std::swap(this->ss, o.ss);
-        std::swap(this->fs, o.fs);
         return *this;
     }
     PathwayPoint::PathwayPoint(PathwayPoint&& o) noexcept {
@@ -421,10 +489,18 @@ namespace FileExts {
         std::swap(this->numSegments, o.numSegments);
         return *this;
     }
-    File_Anim::File_Anim(File_Anim&& o) noexcept {
+    File_Frames::File_Frames(File_Frames&& o) noexcept {
         this->operator=(std::move(o));
     }
-    File_Anim& File_Anim::operator=(File_Anim&& o) noexcept {
+    File_Frames& File_Frames::operator=(File_Frames&& o) noexcept {
+        std::swap(this->actions, o.actions);
+        std::swap(this->plists, o.plists);
+        return *this;
+    }
+    File_AnimExt::File_AnimExt(File_AnimExt&& o) noexcept {
+        this->operator=(std::move(o));
+    }
+    File_AnimExt& File_AnimExt::operator=(File_AnimExt&& o) noexcept {
         std::swap(this->actions, o.actions);
         return *this;
     }
