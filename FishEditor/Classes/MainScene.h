@@ -40,7 +40,7 @@ static int LoadJson(T& o, std::string const& fn) {
 }
 
 
-
+struct AnimExt;
 
 struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 	using BaseType = cocos2d::Scene;
@@ -99,6 +99,10 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 	//void LoadData();
 	//// 存档
 	//void SaveData();
+
+	std::vector<std::shared_ptr<AnimExt>> anims;
+
+
 
 	// 在屏幕中间弹出一段提示，几秒钟后飞走消失
 	void PopupMessage(std::string const& txt, cocos2d::Color3B const& color = cocos2d::Color3B::RED);
@@ -244,7 +248,7 @@ struct MainScene : public cocos2d::Scene, public cocos2d::ui::EditBoxDelegate {
 	void Init2();
 	~MainScene() override;
 	void update(float delta) override;
-	int Update(int lineNumber);
+	int Update(int lineNumber, float delta);
 	int lineNumber = 0;
 	//// 已知扩展名映射
 	//std::unordered_map<std::string, FishManage::FileExtensions> exts;

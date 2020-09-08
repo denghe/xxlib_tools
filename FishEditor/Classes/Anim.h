@@ -62,10 +62,13 @@ struct Anim {
 struct Anim_Frames : Anim {
 	// 文件内容容器
 	FileExts::File_Frames file;
+
 	// 指向当前动作( 位于 file.actions )
 	FileExts::Action_Frames* action;
+
 	// 当前帧下标
 	size_t frameIndex = 0;
+
 	// 当前用于显示的类实例
 	cocos2d::Sprite* sprite = nullptr;
 
@@ -104,11 +107,14 @@ struct AnimExt {
 	// 当前动画
 	std::shared_ptr<Anim> anim;
 
-	// todo: 文件名
-	// todo: 文件内容容器
+	// 文件名
+	std::string fileName;
+
+	// 所在容器
+	cocos2d::Node* container = nullptr;
 
 	// 预设移动路线集合
-	std::vector<std::shared_ptr<xx::Pathway>> const& pathways;
+	std::vector<std::shared_ptr<xx::Pathway>> pathways;
 
 	// 当前移动路线( 指向 pathways 的成员 )
 	xx::Pathway* pathway;
@@ -122,10 +128,17 @@ struct AnimExt {
 	// 移动速度系数. 默认为 1, 0 为停止, 负数为倒退
 	float speedScale = 1;
 
-	// todo int Load()
+	// 时间系数. 默认为 1, 0 为停止. 不能为负
+	float timeScale = 1;
 
 	// 子集合，组合啥的会用到。母体函数分发判断 lock attack 啥的。pathway 通常依附于母体，走相对坐标
 	std::vector<std::shared_ptr<AnimExt>> childs;
+
+	// 根据 fileName 加载文件. 成功返回 0. 该函数被设计为只执行一次（依赖成员变量初始值的正确性）
+	virtual int Load() = 0;
+
+	// 设置使用哪条移动路线。pathway = &*pathways[idx], 初始化状态变量并同步坐标角度啥的
+	virtual void SetPathway(size_t const& idx) = 0;
 
 	// 调用动画 Update 并沿 pathway 移动. 返回 非 0 表示 移动到头了
 	virtual int Update(float elapsedSeconds) = 0;
@@ -156,18 +169,38 @@ struct AnimExt {
 
 	// 绘制
 	virtual void Draw() = 0;
+
+	virtual ~AnimExt() = default;
 };
 
 struct AnimExt_Anim : AnimExt {
-	virtual bool IsIntersect(float const& x, float const& y, float const& r) const = 0;
-	virtual bool Lockable() const = 0;
-	virtual xx::Point GetLockPoint() const = 0;
-	virtual bool Attackable() const = 0;
-	virtual void Lock() = 0;	// todo: 参数？准星样式？
-	virtual void Unlock() = 0;
-	virtual void Attack() = 0;	// todo: 参数？
-	virtual void Death() = 0;	// todo: 参数？死法？
-	virtual void Draw() = 0;
+	// 文件内容容器
+	FileExts::File_AnimExt file;
+
+	// 指向当前 action( 位于 file.actions )
+	FileExts::Action_AnimExt* action = nullptr;
+
+	// 动画已经历秒数
+	float totalElapsedSeconds = 0;
+
+	// 记录相应时间线的游标/下标
+	size_t lpsCursor = 0;
+	size_t cdsCursor = 0;
+	size_t ssCursor = 0;
+
+	int Load() override;
+	void SetPathway(size_t const& idx) override;
+	int Update(float elapsedSeconds) override;
+	bool IsIntersect(float const& x, float const& y, float const& r) const override;
+	bool Lockable() const override;
+	xx::Point GetLockPoint() const override;
+	bool Attackable() const override;
+	void Lock() override;
+	void Unlock() override;
+	void Attack() override;
+	void Death() override;
+	void Draw() override;
+	~AnimExt_Anim() override;
 };
 
 struct AnimExt_Lua : AnimExt {
@@ -175,7 +208,7 @@ struct AnimExt_Lua : AnimExt {
 };
 
 // 根据文件扩展名路由加载相应类型扩展动画. 后续还要自己继续初始化，设置 pathway 啥的
-std::shared_ptr<AnimExt> CreateAnimExt(std::string const& fn);
+std::shared_ptr<AnimExt> CreateAnimExt(std::string const& fn, cocos2d::Node* const& container);
 
 
 

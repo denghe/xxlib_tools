@@ -48,8 +48,8 @@ std::shared_ptr<xx::Pathway> PathwayLoader::Load(std::string const& fn) {
 		// 曲线 转为 带控制点的贝塞尔
 		if (f.isLoop) {
 			// 循环曲线则前后各追加几个点算控制点
-			bs.push_back(ps[ps.size() - 2]);
-			bs.push_back(ps[ps.size() - 1]);
+			bs.push_back(ps[siz - 2]);
+			bs.push_back(ps[siz - 1]);
 			bs.insert(bs.end(), ps.begin(), ps.end());
 			bs.push_back(ps[0]);
 			bs.push_back(ps[1]);
@@ -57,8 +57,8 @@ std::shared_ptr<xx::Pathway> PathwayLoader::Load(std::string const& fn) {
 			xx::CurveToBezier(cs, bs);
 			bs.clear();
 			// 移除追加
-			cs.erase(cs.end() - 6, cs.end() - 1);
-			cs.erase(cs.begin(), cs.begin() + 3);
+			cs.resize(cs.size() - 6);
+			cs.erase(cs.begin(), cs.begin() + 6);
 		}
 		else {
 			xx::CurveToBezier(cs, ps);

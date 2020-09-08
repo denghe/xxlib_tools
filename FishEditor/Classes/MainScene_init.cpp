@@ -1,4 +1,5 @@
 #include "MainScene.h"
+#include "Anim.h"
 
 bool MainScene::init() {
 	if (!Scene::init()) return false;
@@ -20,20 +21,82 @@ bool MainScene::init() {
 
 void MainScene::update(float delta) {
 	if (lineNumber >= 0) {
-		lineNumber = Update(lineNumber);
+		lineNumber = Update(lineNumber, delta);
 	}
 	else {
 		unscheduleUpdate();
 	}
 }
 
-int MainScene::Update(int lineNumber) {
+int MainScene::Update(int lineNumber, float delta) {
 	COR_BEGIN;
 
 	W = AppDelegate::designWidth;
 	H = AppDelegate::designHeight;
 	W_2 = W / 2;
 	H_2 = H / 2;
+
+	//{
+	//	auto anim = CreateAnimExt("1.frames.ext", this);
+	//	if (anim) {
+	//		//anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
+	//		anim->pathways.emplace_back(xx::Pathway::Make(true, {
+	//			{ 800.0f, 200.0f, 0.5f, 100 },
+	//			{ 1500.0f, 500.0f, 0.5f, 100 },
+	//			{ 800.0f, 800.0f, 0.5f, 100 },
+	//			{ 100.0f, 500.0f, 0.5f, 100 },
+	//			}));
+	//		anim->timeScale = 100;
+	//		anim->speedScale = -1;
+	//		anim->SetPathway(0);
+	//	}
+	//	anims.push_back(anim);
+	//}
+	{
+		auto anim = CreateAnimExt("1.frames.ext", this);
+		if (anim) {
+			anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
+			anim->timeScale = 10;
+			anim->SetPathway(0);
+		}
+		anims.push_back(anim);
+	}
+
+	while (true) {
+		COR_YIELD;
+
+		if (delta < 0.016) {
+			for (size_t i = 0; i < 1000; i++)
+			{
+				auto anim = CreateAnimExt("1.frames.ext", this);
+				if (anim) {
+					//anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
+					anim->pathways.emplace_back(xx::Pathway::Make(true, {
+						{ 800.0f, 200.0f, 0.5f, 100 },
+						{ 1500.0f, 500.0f, 0.5f, 100 },
+						{ 800.0f, 800.0f, 0.5f, 100 },
+						{ 100.0f, 500.0f, 0.5f, 100 },
+						}));
+					anim->timeScale = 10;
+					anim->speedScale = -1;
+					anim->SetPathway(0);
+				}
+				anims.push_back(anim);
+			}
+		}
+
+		for (auto&& anim : anims) {
+			if (anim && anim->Update(delta)) {
+				anim.reset();
+			}
+			else {
+				anim->Draw();
+			}
+		}
+	}
+
+
+
 
 	//{
 	//	auto kbListener = cocos2d::EventListenerKeyboard::create();

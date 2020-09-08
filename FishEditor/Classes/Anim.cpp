@@ -4,14 +4,9 @@
 
 // todo: 以后再补合法性检测, 异常处理
 
-Anim_Frames::~Anim_Frames() {
-	if (sprite) {
-		sprite->removeFromParentAndCleanup(true);
-	}
-}
 int Anim_Frames::Load() {
 	// 加载文件数据
-	LoadJson(file, fileName);
+	if (int r = LoadJson(file, fileName)) return r;
 	// 缓存相关 plists
 	auto&& sfc = cocos2d::SpriteFrameCache::getInstance();
 	for (auto&& fn : file.plists) {
@@ -47,10 +42,20 @@ int Anim_Frames::Update(float const& elapsedSeconds) {
 void Anim_Frames::Draw() {
 	if (!sprite) {
 		sprite = cocos2d::Sprite::create();
+		container->addChild(sprite);
 	}
 	sprite->setSpriteFrame(action->frames[frameIndex].picName);
+	sprite->setPosition(pos.x, pos.y);
+	sprite->setRotation(-angle * (180.0f / float(M_PI)));
+	sprite->setScale(scaleX, scaleY);
+	//sprite->setZOrder(??); 
+	sprite->setVisible(visible);
 }
-
+Anim_Frames::~Anim_Frames() {
+	if (sprite) {
+		sprite->removeFromParentAndCleanup(true);
+	}
+}
 
 Anim_Atlas::~Anim_Atlas() {}
 int Anim_Atlas::Load() { return 0; }
@@ -68,176 +73,149 @@ void Anim_C3b::Draw() {}
 
 // 根据文件名加载指定动画. 根据扩展名路由创建 Anim_Frames / Anim_Atlas / Anim_C3b
 std::shared_ptr<Anim> CreateAnim(std::string const& fn, cocos2d::Node* const& container) {
-	// todo
-	return nullptr;
+	std::shared_ptr<Anim> rtv;
+	const auto&& exts = xx::GetFileNameExts(fn);
+	//if (exts.first != ".ext") return rtv;
+	if (exts.first == ".frames") {
+		rtv = xx::Make<Anim_Frames>();
+	}
+	else if (exts.first == ".atlas") {
+		rtv = xx::Make<Anim_Atlas>();
+	}
+	else if (exts.first == ".c3b") {
+		rtv = xx::Make<Anim_C3b>();
+	}
+	else return rtv;
+	rtv->fileName = fn;
+	rtv->container = container;
+	if (rtv->Load()) return nullptr;
+	return rtv;
 }
+
+
+
+int AnimExt_Anim::Load() {
+	// 加载资源. 从文件名截取处资源名
+	const auto&& exts = xx::GetFileNameExts(fileName);
+	if (exts.first != ".ext") return -1;
+	anim = CreateAnim(fileName.substr(0, fileName.size() - exts.first.size()), container);
+	if (!anim) return -2;
+	// 加载 .ext
+	if (int r = LoadJson(file, fileName)) return r;
+	action = &file.actions[0];
+	return 0;
+}
+void AnimExt_Anim::SetPathway(size_t const& idx) {
+	pathway = &*pathways[idx];
+	if (speedScale >= 0) {
+		pathway->Begin(pathwayI, pathwayD, anim->pos, anim->angle);
+	}
+	else {
+		pathway->End(pathwayI, pathwayD, anim->pos, anim->angle);
+	}
+}
+int AnimExt_Anim::Update(float elapsedSeconds) {
+	if (!pathway || timeScale == 0 || speedScale == 0) return 0;
+	elapsedSeconds *= timeScale;
+	// todo: 如果不是循环 pathway，且已走到头，就不更新动画了？
+	anim->Update(elapsedSeconds);
+	float d = 0;
+	// 计算不超出当前动作总时长的移动距离
+	const auto&& Calc = [&](float es) {
+		auto&& ss = action->ss;
+		if (ss.empty()) return;
+	LabBegin:
+		auto next = ss.data() + ssCursor + 1;   // 跳过越界检查
+		if (ss.size() > ssCursor + 1 && next->time <= totalElapsedSeconds + es) {
+			auto es = next->time - totalElapsedSeconds;
+			d += ss[ssCursor++].speed * es;
+			es -= es;
+			totalElapsedSeconds = next->time;
+			goto LabBegin;
+		}
+		else {
+			totalElapsedSeconds += es;
+			d += ss[ssCursor].speed * es;
+		} 
+	};
+LabBegin:
+	// 计算距离
+	// 判断传入时长是否会超出当前 timeLine 的范围. 如果有超出则切割计算
+	auto left = action->totalSeconds - totalElapsedSeconds;
+	if (elapsedSeconds > left) {
+		elapsedSeconds -= left;
+		Calc(left);
+		totalElapsedSeconds = 0;
+		lpsCursor = 0;
+		cdsCursor = 0;
+		ssCursor = 0;
+		goto LabBegin;
+	}
+	else {
+		Calc(elapsedSeconds);
+		// 同步 锁定，碰撞 游标( 此时 totalElapsedSeconds 已经 + 了 elapsedSeconds )
+		while (action->lps.size() > lpsCursor + 1 && action->lps[lpsCursor + 1].time <= totalElapsedSeconds) {
+			++lpsCursor;
+		}
+		while (action->cds.size() > cdsCursor + 1 && action->cds[cdsCursor + 1].time <= totalElapsedSeconds) {
+			++cdsCursor;
+		}
+	}
+	if (speedScale > 0) {
+		pathway->Forward(d * speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
+	}
+	else {
+		pathway->Backward(d * -speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
+	}
+	return 0;
+}
+bool AnimExt_Anim::IsIntersect(float const& x, float const& y, float const& r) const {
+	if (action->cds.empty()) return false;
+	auto&& Intersect = [](FileExts::CDCircle const& c, float const& x, float const& y, float const& r) {
+		return (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y) <= (c.r + r) * (c.r + r);
+	};
+	auto&& cd = action->cds[cdsCursor];
+	if (!Intersect(cd.maxCDCircle, x, y, r)) return false;
+	for (auto&& c : cd.cdCircles) {
+		if (Intersect(c, x, y, r)) return true;
+	}
+	return false;
+}
+bool AnimExt_Anim::Lockable() const {
+	if (action->lps.empty()) return false;
+	// todo: 判断所有点都在可锁定区域/显示区域内
+	return true;
+}
+xx::Point AnimExt_Anim::GetLockPoint() const {
+	xx::Point rtv;
+	if (action->lps.empty()) return rtv;
+	// todo: 需结合坐标以及屏幕裁剪范围来算
+	rtv = action->lps[lpsCursor].mainLockPoint;
+	return rtv;
+}
+bool AnimExt_Anim::Attackable() const { return true; }
+void AnimExt_Anim::Lock() {}
+void AnimExt_Anim::Unlock() {}
+void AnimExt_Anim::Attack() {}
+void AnimExt_Anim::Death() {}
+void AnimExt_Anim::Draw() {
+	anim->Draw();
+}
+AnimExt_Anim::~AnimExt_Anim() {}
 
 
 
 
 std::shared_ptr<AnimExt> CreateAnimExt(std::string const& fn, cocos2d::Node* const& container) {
-	// todo
-	return nullptr;
+	std::shared_ptr<AnimExt> rtv;
+	const auto&& exts = xx::GetFileNameExts(fn);
+	if (exts.first != ".ext") return rtv;
+	rtv = xx::Make<AnimExt_Anim>();
+	rtv->fileName = fn;
+	rtv->container = container;
+	if (rtv->Load()) return nullptr;
+	return rtv;
 }
-
-
-
-//#include "xx_lua.h"
-//#include <iostream>
-//#include <chrono>
-//namespace XL = xx::Lua;
-
-
-//
-//int Anim::Load(std::string const& fn) {
-//	animType = AnimTypes::Unknown;
-//	std::string ofn;
-//
-//	// 检查文件名是否合法, 分析文件类型
-//	const auto exts = xx::GetFileNameExts(fn);
-//	if (exts.first == ".frames") {
-//		animType = AnimTypes::Frames;
-//		ofn = fn;
-//	}
-//	else if (exts.first == ".ext") {
-//		if (exts.second == ".atlas") {
-//			animType = AnimTypes::Atlas;
-//			ofn = fn.substr(0, fn.size() - exts.first.size());
-//		}
-//		else if (exts.second == ".c3b") {
-//			animType = AnimTypes::C3b;
-//			ofn = fn.substr(0, fn.size() - exts.first.size());
-//		}
-//		else return -2;
-//	}
-//	else return -3;
-//
-//	xx::MakeTo(anim);
-//	if (int r = LoadJson(*anim, fn)) return r;
-//	if (anim->actions.empty()) return -4;
-//	action = &anim->actions[0];
-//
-//	switch (animType) {
-//	case AnimTypes::Frames:
-//		// 数据全在 anim
-//		break;
-//	case AnimTypes::Atlas:
-//		// todo: 加载源文件
-//		// todo: 加载第一个动作?
-//		break;
-//	case AnimTypes::C3b:
-//		// todo: 加载源文件
-//		// todo: 加载第一个动作?
-//		break;
-//	}
-//}
-//
-//int Anim::ActionEnd() {
-//	// 当前逻辑是 repeat
-//	totalElapsedSeconds = 0;
-//	lpsCursor = 0;
-//	cdsCursor = 0;
-//	ssCursor = 0;
-//	fsCursor = 0;
-//	return 0;
-//}
-//
-//int Anim::Move(float const& distance) {
-//	if (!pathway) return 0;
-//	// 根据 speedScale 来揣测移动方向
-//	if (speedScale == 0) return 0;
-//	else if (speedScale > 0) {
-//		pathway->Forward(distance, pathwayI, pathwayD, pos, angle);
-//	}
-//	else {
-//		pathway->Backward(distance, pathwayI, pathwayD, pos, angle);
-//	}
-//	return 0;
-//}
-//
-//int Anim::Update(float elapsedSeconds) {
-//	float d = 0;
-//	// 判断下一个 tp 时间是否在范围内. 如果没有下一个 tp 或 时间点不在当前范围，则直接计算并返回
-//	// 如果有，则计算当前时间点到它的时间的跨度，应用该时间点数据并计算一波，从 elapsedSeconds 扣除该跨度
-//	// 如果 elapsedSeconds 还有剩余，则跳转到开头重复这一过程
-//	auto Calc = [&](float es) {
-//		auto&& ss = action->ss;
-//		if (ss.empty()) return;
-//	LabBegin:
-//		auto next = ss.data() + ssCursor + 1;   // 跳过越界检查
-//		if (ss.size() > ssCursor + 1 && next->time <= totalElapsedSeconds + es) {
-//			auto es = next->time - totalElapsedSeconds;
-//			d += ss[ssCursor++].speed * es;
-//			es -= es;
-//			totalElapsedSeconds = next->time;
-//			goto LabBegin;
-//		}
-//		else {
-//			totalElapsedSeconds += es;
-//			d += ss[ssCursor].speed * es;
-//		}
-//	};
-//LabBegin:
-//	// 计算距离
-//	// 判断传入时长是否会超出当前 timeLine 的范围. 如果有超出则切割计算
-//	auto left = action->totalSeconds - totalElapsedSeconds;
-//	if (elapsedSeconds > left) {
-//		elapsedSeconds -= left;
-//		Calc(left);
-//		if (int r = ActionEnd()) return r;
-//		goto LabBegin;
-//	}
-//	else {
-//		Calc(elapsedSeconds);
-//		// 同步 锁定，碰撞，帧 游标( 此时 totalElapsedSeconds 已经 + 了 elapsedSeconds )
-//		while (action->lps.size() > lpsCursor + 1 && action->lps[lpsCursor + 1].time <= totalElapsedSeconds) {
-//			++lpsCursor;
-//		}
-//		while (action->cds.size() > cdsCursor + 1 && action->cds[cdsCursor + 1].time <= totalElapsedSeconds) {
-//			++cdsCursor;
-//		}
-//		while (action->fs.size() > fsCursor + 1 && action->fs[fsCursor + 1].time <= totalElapsedSeconds) {
-//			++fsCursor;
-//		}
-//	}
-//	// 用算出来的距离在 pathway 上移动
-//	return Move(d);
-//}
-//
-//// 判断 点(r == 0) 或 圆 是否和单个 cdCircle 相交
-//bool Anim::IsIntersect(FileExts::CDCircle const& c, float const& x, float const& y, float const& r) {
-//	return (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y) <= (c.r + r) * (c.r + r);
-//}
-//
-//// 判断 点(r == 0) 或 圆 是否和某 cdCircle 相交( touch, bullet hit 判断需要 )
-//bool Anim::IsIntersect(float const& x, float const& y, float const& r) const {
-//	if (!action || action->cds.empty()) return false;
-//	auto&& cd = action->cds[cdsCursor];
-//	if (!IsIntersect(cd.maxCDCircle, x, y, r)) return false;
-//	for (auto&& c : cd.cdCircles) {
-//		if (IsIntersect(c, x, y, r)) return true;
-//	}
-//	return false;
-//}
-//
-//bool Anim::Lockable() const {
-//	if (!action || action->lps.empty()) return false;
-//	// todo
-//	return true;
-//}
-//
-//std::tuple<float, float> Anim::GetLockPoint() const {
-//	std::tuple<float, float> rtv;
-//	if (!action || action->lps.empty()) return rtv;
-//	// todo: 需结合坐标以及屏幕裁剪范围来算
-//	std::get<0>(rtv) = action->lps[lpsCursor].mainLockPoint.x;
-//	std::get<1>(rtv) = action->lps[lpsCursor].mainLockPoint.y;
-//	return rtv;
-//}
-//
-
-
-
 
 
 
