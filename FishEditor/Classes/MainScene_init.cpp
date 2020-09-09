@@ -36,18 +36,12 @@ int MainScene::Update(int lineNumber, float delta) {
 	W_2 = W / 2;
 	H_2 = H / 2;
 
+
 	//{
 	//	auto anim = CreateAnimExt("1.frames.ext", this);
 	//	if (anim) {
-	//		//anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
-	//		anim->pathways.emplace_back(xx::Pathway::Make(true, {
-	//			{ 800.0f, 200.0f, 0.5f, 100 },
-	//			{ 1500.0f, 500.0f, 0.5f, 100 },
-	//			{ 800.0f, 800.0f, 0.5f, 100 },
-	//			{ 100.0f, 500.0f, 0.5f, 100 },
-	//			}));
-	//		anim->timeScale = 100;
-	//		anim->speedScale = -1;
+	//		anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
+	//		anim->timeScale = 1;
 	//		anim->SetPathway(0);
 	//	}
 	//	anims.push_back(anim);
@@ -55,8 +49,16 @@ int MainScene::Update(int lineNumber, float delta) {
 	{
 		auto anim = CreateAnimExt("1.frames.ext", this);
 		if (anim) {
-			anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
-			anim->timeScale = 10;
+			anim->pathways.emplace_back(xx::Pathway::Make(true, {
+				{ 800.0f, 200.0f, 0.5f, 100 },
+				{ 1500.0f, 500.0f, 0.5f, 100 },
+				{ 800.0f, 800.0f, 0.5f, 100 },
+				{ 100.0f, 500.0f, 0.5f, 100 },
+				}));
+			anim->timeScale = 1;
+			anim->speedScale = 2;
+			anim->anim->scaleX = 2;
+			anim->anim->scaleY = 2;
 			anim->SetPathway(0);
 		}
 		anims.push_back(anim);
@@ -64,27 +66,6 @@ int MainScene::Update(int lineNumber, float delta) {
 
 	while (true) {
 		COR_YIELD;
-
-		if (delta < 0.016) {
-			for (size_t i = 0; i < 1000; i++)
-			{
-				auto anim = CreateAnimExt("1.frames.ext", this);
-				if (anim) {
-					//anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
-					anim->pathways.emplace_back(xx::Pathway::Make(true, {
-						{ 800.0f, 200.0f, 0.5f, 100 },
-						{ 1500.0f, 500.0f, 0.5f, 100 },
-						{ 800.0f, 800.0f, 0.5f, 100 },
-						{ 100.0f, 500.0f, 0.5f, 100 },
-						}));
-					anim->timeScale = 10;
-					anim->speedScale = -1;
-					anim->SetPathway(0);
-				}
-				anims.push_back(anim);
-			}
-		}
-
 		for (auto&& anim : anims) {
 			if (anim && anim->Update(delta)) {
 				anim.reset();
@@ -375,7 +356,7 @@ int MainScene::Update(int lineNumber, float delta) {
 	//// 读取声音长度( wav 似乎无法读取长度，先不支持 )
 	//for (i = 0; i < soundFileNames.size(); ++i) {
 	//	soundId = cocos2d::experimental::AudioEngine::play2d(soundFileNames[i]);
-	//	assert(soundId != -1);
+	//	assert(soundId != -1); 
 	//	do {
 	//		COR_YIELD;
 	//		soundDuration = cocos2d::experimental::AudioEngine::getDuration(soundId);

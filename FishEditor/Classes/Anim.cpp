@@ -16,8 +16,10 @@ int Anim_Frames::Load() {
 	action = &file.actions[0];
 	return 0;
 }
-void Anim_Frames::SetAction(size_t const& index) {
-	action = &file.actions[index];
+void Anim_Frames::SetAction(int const& index) {
+	if (index >= 0) {
+		action = &file.actions[index];
+	}
 	totalElapsedSeconds = 0;
 	frameIndex = 0;
 }
@@ -59,14 +61,14 @@ Anim_Frames::~Anim_Frames() {
 
 Anim_Atlas::~Anim_Atlas() {}
 int Anim_Atlas::Load() { return 0; }
-void Anim_Atlas::SetAction(size_t const& index) {}
+void Anim_Atlas::SetAction(int const& index) {}
 int Anim_Atlas::Update(float const& elapsedSeconds) { return 0; }
 void Anim_Atlas::Draw() {}
 
 
 Anim_C3b::~Anim_C3b() {}
 int Anim_C3b::Load() { return 0; }
-void Anim_C3b::SetAction(size_t const& index) {}
+void Anim_C3b::SetAction(int const& index) {}
 int Anim_C3b::Update(float const& elapsedSeconds) { return 0; }
 void Anim_C3b::Draw() {}
 
@@ -103,6 +105,7 @@ int AnimExt_Anim::Load() {
 	// 加载 .ext
 	if (int r = LoadJson(file, fileName)) return r;
 	action = &file.actions[0];
+	speed = action->ss[0].speed;
 	return 0;
 }
 void AnimExt_Anim::SetPathway(size_t const& idx) {
@@ -114,29 +117,46 @@ void AnimExt_Anim::SetPathway(size_t const& idx) {
 		pathway->End(pathwayI, pathwayD, anim->pos, anim->angle);
 	}
 }
-int AnimExt_Anim::Update(float elapsedSeconds) {
+// 可选算法：帧逻辑，基于时间池，按一个固定时长从池减去，每减一次算一次. 有助于降低编写复杂度
+int AnimExt_Anim::Update(float const& elapsedSeconds_) {
 	if (!pathway || timeScale == 0 || speedScale == 0) return 0;
-	elapsedSeconds *= timeScale;
-	// todo: 如果不是循环 pathway，且已走到头，就不更新动画了？
-	anim->Update(elapsedSeconds);
-	float d = 0;
+	auto elapsedSeconds = elapsedSeconds_ * timeScale;
+	auto sumSeconds = 0;
+
+	// 在 pathway 上移动 d 距离
+	const auto&& Move = [&](float const& d) {
+		if (speedScale > 0) {
+			pathway->Forward(d * speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
+		}
+		else {
+			pathway->Backward(d * -speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
+		}
+	};
+
+	auto&& ss = action->ss;
 	// 计算不超出当前动作总时长的移动距离
 	const auto&& Calc = [&](float es) {
-		auto&& ss = action->ss;
-		if (ss.empty()) return;
 	LabBegin:
-		auto next = ss.data() + ssCursor + 1;   // 跳过越界检查
+		auto next = ss.data() + ssCursor + 1;
 		if (ss.size() > ssCursor + 1 && next->time <= totalElapsedSeconds + es) {
-			auto es = next->time - totalElapsedSeconds;
-			d += ss[ssCursor++].speed * es;
-			es -= es;
+			++ssCursor;
+			auto es2 = next->time - totalElapsedSeconds;
+			Move(speed * es2);
+			es -= es2;
+			sumSeconds += es2;
 			totalElapsedSeconds = next->time;
+			if (next->speed >= 0) {
+				speed = next->speed;
+			}
+			else {
+				Event(-(int)next->speed, elapsedSeconds_ - sumSeconds);
+			}
 			goto LabBegin;
 		}
 		else {
 			totalElapsedSeconds += es;
-			d += ss[ssCursor].speed * es;
-		} 
+			Move(speed * es);
+		}
 	};
 LabBegin:
 	// 计算距离
@@ -145,14 +165,17 @@ LabBegin:
 	if (elapsedSeconds > left) {
 		elapsedSeconds -= left;
 		Calc(left);
+		anim->SetAction(-1);
 		totalElapsedSeconds = 0;
 		lpsCursor = 0;
 		cdsCursor = 0;
 		ssCursor = 0;
+		speed = ss[0].speed;
 		goto LabBegin;
 	}
 	else {
 		Calc(elapsedSeconds);
+		anim->Update(elapsedSeconds);
 		// 同步 锁定，碰撞 游标( 此时 totalElapsedSeconds 已经 + 了 elapsedSeconds )
 		while (action->lps.size() > lpsCursor + 1 && action->lps[lpsCursor + 1].time <= totalElapsedSeconds) {
 			++lpsCursor;
@@ -161,13 +184,11 @@ LabBegin:
 			++cdsCursor;
 		}
 	}
-	if (speedScale > 0) {
-		pathway->Forward(d * speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
-	}
-	else {
-		pathway->Backward(d * -speedScale, pathwayI, pathwayD, anim->pos, anim->angle);
-	}
 	return 0;
+}
+void AnimExt_Anim::Event(int const& eventId, float const& elapsedSeconds) {
+	//xx::CoutN("eventId = ",eventId, " elapsedSeconds = ", elapsedSeconds, " pos = " ,anim->pos);
+	cocos2d::experimental::AudioEngine::play2d("effect2.ogg");
 }
 bool AnimExt_Anim::IsIntersect(float const& x, float const& y, float const& r) const {
 	if (action->cds.empty()) return false;

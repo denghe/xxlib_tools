@@ -73,6 +73,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 
 	// Set FPS. the default value is 1.0/60 if you don't call this
 	//director->setAnimationInterval(1.0f / 60);
+	//director->setAnimationInterval(1.0f / 5);
 	director->setAnimationInterval(1.0f / 144);
 
 	//Size frameSize = glview->getFrameSize();

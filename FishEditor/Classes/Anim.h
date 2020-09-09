@@ -14,6 +14,8 @@
 
 // todo: 最后来补序列化支持, 以及加客户端判断宏以跳过一些服务器做不了或不需要做的事情
 
+// todo: size_t 换 int 以便 lua 更好的支持？
+
 // 跨 frames / atlas / c3b 的动画基类
 struct Anim {
 	// 在容器中的显示坐标
@@ -46,8 +48,8 @@ struct Anim {
 	// 根据 fileName 加载文件. 成功返回 0. 该函数被设计为只执行一次（依赖成员变量初始值的正确性）
 	virtual int Load() = 0;
 
-	// 设置当前要播的动画。会跳到 0 秒处
-	virtual void SetAction(size_t const& index) = 0;
+	// 设置当前要播的动画。会跳到 0 秒处。如果 index < 0 则只是重置动画
+	virtual void SetAction(int const& index) = 0;
 
 	// 驱动动画往前播放指定时长. 不调用就是暂停. 传更长的时间入内就是快进. 返回非 0 表示停止播放( 到头了？）
 	virtual int Update(float const& elapsedSeconds) = 0;
@@ -67,13 +69,13 @@ struct Anim_Frames : Anim {
 	FileExts::Action_Frames* action;
 
 	// 当前帧下标
-	size_t frameIndex = 0;
+	int frameIndex = 0;
 
 	// 当前用于显示的类实例
 	cocos2d::Sprite* sprite = nullptr;
 
 	int Load() override;
-	void SetAction(size_t const& index) override;
+	void SetAction(int const& index) override;
 	int Update(float const& elapsedSeconds) override;
 	void Draw() override;
 	~Anim_Frames() override;
@@ -83,7 +85,7 @@ struct Anim_Atlas : Anim {
 	// todo: 文件内容容器
 	// todo: spine node?
 	int Load() override;
-	void SetAction(size_t const& index) override;
+	void SetAction(int const& index) override;
 	int Update(float const& elapsedSeconds) override;
 	void Draw() override;
 	~Anim_Atlas() override;
@@ -93,7 +95,7 @@ struct Anim_C3b : Anim {
 	// todo: 文件内容容器
 	// todo: sprite3d node?
 	int Load() override;
-	void SetAction(size_t const& index) override;
+	void SetAction(int const& index) override;
 	int Update(float const& elapsedSeconds) override;
 	void Draw() override;
 	~Anim_C3b() override;
@@ -117,7 +119,7 @@ struct AnimExt {
 	std::vector<std::shared_ptr<xx::Pathway>> pathways;
 
 	// 当前移动路线( 指向 pathways 的成员 )
-	xx::Pathway* pathway;
+	xx::Pathway* pathway = nullptr;
 
 	// pathway 之 当前点下标
 	size_t pathwayI = 0;
@@ -141,7 +143,10 @@ struct AnimExt {
 	virtual void SetPathway(size_t const& idx) = 0;
 
 	// 调用动画 Update 并沿 pathway 移动. 返回 非 0 表示 移动到头了
-	virtual int Update(float elapsedSeconds) = 0;
+	virtual int Update(float const& elapsedSeconds) = 0;
+
+	// Update 时遇到 speed 变为负数时将转为 eventId 触发该函数调用. elapsedSeconds 为事件触发后又过了多长时间
+	virtual void Event(int const& eventId, float const& elapsedSeconds) = 0;
 
 	// 判断 传入点(r == 0) 或 圆 是否和某 cdCircle 相交( touch, bullet hit 判断需要 )
 	virtual bool IsIntersect(float const& x, float const& y, float const& r) const = 0;
@@ -187,10 +192,13 @@ struct AnimExt_Anim : AnimExt {
 	size_t lpsCursor = 0;
 	size_t cdsCursor = 0;
 	size_t ssCursor = 0;
+	// 缓存当前速度
+	float speed = 0;
 
 	int Load() override;
 	void SetPathway(size_t const& idx) override;
-	int Update(float elapsedSeconds) override;
+	int Update(float const& elapsedSeconds) override;
+	void Event(int const& eventId, float const& elapsedSeconds) override;
 	bool IsIntersect(float const& x, float const& y, float const& r) const override;
 	bool Lockable() const override;
 	xx::Point GetLockPoint() const override;
