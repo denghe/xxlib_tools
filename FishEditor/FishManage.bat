@@ -1,1 +1,1 @@
-PackageGenerator\pkggen.exe 2 FishManage Classes\ .\
+PackageGenerator\pkggen.exe 2 FishManage Classes\ FishManage.cs

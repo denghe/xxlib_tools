@@ -37,15 +37,15 @@ int MainScene::Update(int lineNumber, float delta) {
 	H_2 = H / 2;
 
 
-	//{
-	//	auto anim = CreateAnimExt("1.frames.ext", this);
-	//	if (anim) {
-	//		anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
-	//		anim->timeScale = 1;
-	//		anim->SetPathway(0);
-	//	}
-	//	anims.push_back(anim);
-	//}
+	{
+		auto anim = CreateAnimExt("1.frames.ext", this);
+		if (anim) {
+			anim->pathways.emplace_back(xx::PathwayMaker({ 100, 100 }).RotateTo(M_PI_4).Forward(200).RotateTo(M_PI).Forward(100).Loop());
+			anim->timeScale = 1;
+			anim->SetPathway(0);
+		}
+		anims.push_back(anim);
+	}
 	{
 		auto anim = CreateAnimExt("1.frames.ext", this);
 		if (anim) {
@@ -55,7 +55,7 @@ int MainScene::Update(int lineNumber, float delta) {
 				{ 800.0f, 800.0f, 0.5f, 100 },
 				{ 100.0f, 500.0f, 0.5f, 100 },
 				}));
-			anim->timeScale = 1;
+			anim->timeScale = 5;
 			anim->speedScale = 2;
 			anim->anim->scaleX = 2;
 			anim->anim->scaleY = 2;

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <type_traits>
 #include <string_view>
 
@@ -32,7 +33,7 @@ auto __cdecl xx::Detail::NameOf<
 #endif
         }
     }
-    template <typename... T>
+    template<typename... T>
     inline constexpr auto TypeName_v = Detail::NameOf<T...>();
 
     /************************************************************************************/
@@ -47,12 +48,12 @@ auto __cdecl xx::Detail::NameOf<
             return tn.rfind("(lambda at ", 0) == 0 && *tn.rbegin() == ')' && tn.find(':') > tn.rfind('(');
 #elif defined(__GNUC__)
             // lambda 输出长相: ... <lambda( ... )>
-            if constexpr (tn.size() < 10 || tn[tn.size()-1] != '>' || tn[tn.size()-2] != ')') return false;
+            if constexpr (tn.size() < 10 || tn[tn.size() - 1] != '>' || tn[tn.size() - 2] != ')') return false;
             auto at = tn.size() - 3;
             for (std::size_t i = 1; i; --at) {
                 i += tn[at = tn.find_last_of("()", at)] == '(' ? -1 : 1;
             }
-            return at >= 6 && tn.substr(at-6, 7) == "<lambda";
+            return at >= 6 && tn.substr(at - 6, 7) == "<lambda";
 #elif defined(_MSC_VER) && _MSC_VER >= 1920 && _MSC_VER < 1930  // vs2019 16.0
             // lambda 输出长相: class <lambda_1499ff3675c53ea7d4fea6e5391ecc4d>
             return tn.rfind("class <lambda_", 0) == 0 && *tn.rbegin() == '>';
@@ -61,45 +62,11 @@ auto __cdecl xx::Detail::NameOf<
     }
 
     template<typename T>
-    struct IsLambda : std::integral_constant<bool, Detail::IsLambda<T>()> {};
+    struct IsLambda : std::integral_constant<bool, Detail::IsLambda<T>()> {
+    };
 
     template<typename T>
     inline constexpr bool IsLambda_v = IsLambda<T>::value;
 
 
-    /************************************************************************************/
-    // LambdaRtv_t   LambdaArgs_t  (lambda / function 类型拆解)
-
-    template<typename T, typename = void>
-    struct LambdaTraits;
-
-    template<typename Rtv, typename...Args>
-    struct LambdaTraits<Rtv (*)(Args ...)> {
-        using R = Rtv;
-        using A = std::tuple<std::decay_t<Args>...>;
-
-    };
-
-    // 适配 写在 std::funcion 里面那种表达式
-    template<typename Rtv, typename...Args>
-    struct LambdaTraits<Rtv(Args ...)> {
-        using R = Rtv;
-        using A = std::tuple<std::decay_t<Args>...>;
-    };
-
-    template<typename Rtv, typename CT, typename... Args>
-    struct LambdaTraits<Rtv (CT::*)(Args ...) const> {
-        using R = Rtv;
-        using A = std::tuple<std::decay_t<Args>...>;
-    };
-
-    template<typename T>
-    struct LambdaTraits<T, std::void_t<decltype(&T::operator())> >
-            : public LambdaTraits<decltype(&T::operator())> {
-    };
-
-    template<typename T>
-    using LambdaRtv_t = typename LambdaTraits<T>::R;
-    template<typename T>
-    using LambdaArgs_t = typename LambdaTraits<T>::A;
 }

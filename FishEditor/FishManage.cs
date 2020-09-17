@@ -106,7 +106,7 @@ enum FileExtensions {
 	fnt,
 	[Desc("虚拟文件扩展名: 帧动画")]
 	frameAnimation,
-	[Desc("虚拟文件扩展名: 帧动画")]
+	[Desc("虚拟文件扩展名: 合并动画")]
 	combine
 }
 
@@ -138,7 +138,7 @@ class File_Real : File {
 class File_Lua : File_Real {
 	// todo: 附加 实现了何种接口的描述?? 以方便 选择 bind ?
 }
-
+CLSCompliantAttribute
 
 [TypeId(2), Desc("声音文件 附加播放时长")]
 class File_Sound : File_Real {

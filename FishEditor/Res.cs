@@ -81,9 +81,11 @@ boss5.script.res		->	EN: en/xx.lua		CN: cn/xx.lua
 
 二级扩展名列表: snd( 声音 ), pic( 单图 ), ani( 帧/spine/3d 动画 ), script( 特指符合 图像/动画 创建 & 移动 & 检测 等等 接口的，展现某个逻辑游戏元素个体行为的脚本 )
 
+
+脚本运行环境应该是同场景公用，通过一些映射函数提供访问场景数据，注册对象id 等能力
 脚本具体接口规范：
 
-local t = {}									// 函数 & 成员变量 容器( 不可序列化部分 )
+local t = {}									// 函数 & 成员变量 容器
 
 t.MakeArgs = function()							// 迎合编辑器填写参数需求，编辑器拿到 table 后反射并生成填写面板。
 	local args = {}
@@ -94,32 +96,23 @@ t.MakeArgs = function()							// 迎合编辑器填写参数需求，编辑器�
 	return args
 end
 
-t.Export = function()							// 数据导出。返回的 data 将 序列化并发送出去
-	return t.data
-end
-
 t.Create = function( c, data )					// c 为显示容器( server 传 nil ), data 的内容来自 MakeArgs 并填充 或 服务器下发。如果为 nil 则为 编辑器预览
+	CopyTo( data, t )							// 将 data 的内容合并到 t
+	data.??.id = NewObj( "xxx" )				// 通知 C++ 创建 xxx 类对象, 并返回自增 id
+	UpdateObj( id, x, y, r )					// 添加或更新 C++ 那边的 对象id + 坐标 + 半径
 	t.c = c										// 保存参数
-	t.data = data								// 保存可序列化数据表
-	t.data.xxxx = CreateXxxxx(.....				// 
-	t.data.??.id = MakeId()						// C++ 提供的 能拿到自增 id
+	t.xxxx = CreateXxxxx(.....					// 
 	c?.AddChild( t.xxxx......
-	AddId( id, x, y, r )						// 添加或更新 C++ 那边的 对象id + 坐标 + 半径
 end
 
 t.Dispose = function()							// 销毁
-	RemoveId( id )								// 移除 C++ 那边的 对象id + 坐标 + 半径
+	DeleteObj( id )								// 移除 C++ 那边的 对象id + 坐标 + 半径
 	t.c.Remove( t.xxxx......					// 从显示容器移除?
 end
 
 t.Update = function( elapsedSeconds )			// 令动画前进指定时长( 基于当前状态 )
-	AddId / RemoveId
-	return true / false / nil					// 返回 false / nil 表示整个执行结束
-end
-
-t.MoveTo = function( x, y )						// 迎合编辑器拖拽需求
-	t.xxxxxxx.SetPosition(......
-	t.data.pos = .........
+	UpdateObj / DeleteObj
+	return true / false / nil					// 返回 false / nil 表示整个执行结束，之后 t.Dispose 会被自动调用
 end
 
 t.CollisionDetect = function( x, y, r, id )		// 碰撞检测. 传入的是 坐标 + 半径 圆，如果 id 有值则限定检测，否则遍历检测（如果有子对象的话）
@@ -128,19 +121,39 @@ t.CollisionDetect = function( x, y, r, id )		// 碰撞检测. 传入的是 坐�
 	end
 end
 
-t.Die = function( id )							// 令目标 id 死亡. 通常在收到服务器下发的死亡包 后调用该函数
-	// 如果是特殊鱼死亡，可能需要枚举一定范围内别的鱼的 id 并 Send cmd 影响其状态, 甚至导致其死亡???
-end
-
-t.Send = function( msgName, args... )			// 消息通知. 当前可能的 msgName 有:
-	switch msgName								// "escape"( 快速逃离, 参数可能是几倍游动速度 )( 例如 场景切换，遍历所有当前鱼通知其快速离场 )
-	case ........								// "frozen"( 冻结, 参数可能是冻结时长 )( 例如 冰冻子弹 )
-	t.xxxxxx = xxxx								// "drag"（拖拽，参数可能是 目标id 或 坐标, 几倍游动速度 ）( 例如 旋风鱼死亡时将别的同类 吸过去 )
-	t.xxx_state = xxxxx							// "lightning"（闪电，参数可能是 目标id 或 坐标, 麻痹时长）( 例如 闪电鱼放电，电到动不了 )
-	t.xxx_state = xxxxx							// "eat"（被吃，参数可能是 目标id）( 例如 李逵劈鱼 )
+t.Event = function( ... )						// 事件通知. 当前可能有:
+	                    						// "die"( 死亡, 参数可能死亡方式 )
+	                    						// "escape"( 快速逃离, 参数可能是几倍游动速度 )( 例如 场景切换，遍历所有当前鱼通知其快速离场 )
+	                    						// "frozen"( 冻结, 参数可能是冻结时长 )( 例如 冰冻子弹 )
+	                    						// "drag"（拖拽，参数可能是 目标id 或 坐标, 几倍游动速度 ）( 例如 旋风鱼死亡时将别的同类 吸过去 )
+	                    						// "lightning"（闪电，参数可能是 目标id 或 坐标, 麻痹时长）( 例如 闪电鱼放电，电到动不了 )
+	                    						// "eat"（被吃，参数可能是 目标id）( 例如 李逵劈鱼 )
 end
 
 return t
+
+
+总结一下，C++提供给 lua 访问的映射函数大概有：
+	id:int ObjNew( cfg:string )
+		使用指定 配置 创建对象并返回 id. 脚本生命周期内可创建多个（子对象）
+	success:bool ObjUpdate( id:int, x,y,r )
+		更新指定 对象id 对应的 坐标，半径. 这个数据用于碰撞检测初步判断
+	success:bool ObjDelete( id:int )
+		使用指定 对象id 销毁对象
+
+	(id list) QueryObjs( x,y,r )
+		查询圆范围内的 id 列表？
+	
+	id:int LineNew( groupName:string )
+		根据 路线分组名 随机选择路线，返回下标
+	x,y,a LineUpdate( id:int, distance:float )
+		在指定路线上移动指定距离, 返回坐标和朝向
+	success:bool LineDelete( id:int )
+		使用指定 路线id 销毁路线
+	Line 创建后，序列化时跟着脚本走？
+
+	最常见情况：运行时生成或选择路线 并和 obj id , cocos node 绑定，每帧自动移动？ 就像动画播放那样注册？
+	路线移动到尽头了又怎样？自动 Dispose ? 或者是自己注册处理函数？
 
 
 下面通过每个类来描述 ?.ext  ?.res 的结构，避免用到引用对象，全走结构体，使用基础数据类型，string, List, 不走继承，以便和 json 组件兼容
